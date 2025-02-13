@@ -1,0 +1,45 @@
+{
+  "nodes": {
+    "k3d": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-98gFduFl5txTFOgb/wRRn/vLT+RihBmpb6zop0rXuew=",
+        "path": "/nix/store/m1bra4pkwg7viq56nh3wfjhswq75hpk1-source/flakes/k3d",
+        "type": "path"
+      },
+      "original": {
+        "path": "/nix/store/m1bra4pkwg7viq56nh3wfjhswq75hpk1-source/flakes/k3d",
+        "type": "path"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1739138025,
+        "narHash": "sha256-M4ilIfGxzbBZuURokv24aqJTbdjPA9K+DtKUzrJaES4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b2243f41e860ac85c0b446eadc6930359b294e79",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "k3d": "k3d",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
