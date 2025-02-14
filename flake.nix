@@ -26,5 +26,16 @@
       x86_64-linux = self.packages.x86_64-linux;
       aarch64-darwin = self.packages.aarch64-darwin;
     };
+
+    devShells = let
+      pkgs = import nixpkgs { inherit (self) system; };
+    in {
+      default = pkgs.mkShell {
+        buildInputs = [
+          self.packages.${builtins.currentSystem}
+          k3d.defaultPackage.${builtins.currentSystem}
+        ];
+      };
+    };
   };
 }

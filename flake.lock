@@ -9,11 +9,11 @@
       "locked": {
         "lastModified": 1,
         "narHash": "sha256-98gFduFl5txTFOgb/wRRn/vLT+RihBmpb6zop0rXuew=",
-        "path": "/nix/store/pykxljcn1xdfp8k1b0jyv9aa8935l504-source/flakes/k3d",
+        "path": "/nix/store/hw0q2rs6z48jj34avdd1y26m1vx4vh0y-source/flakes/k3d",
         "type": "path"
       },
       "original": {
-        "path": "/nix/store/pykxljcn1xdfp8k1b0jyv9aa8935l504-source/flakes/k3d",
+        "path": "/nix/store/hw0q2rs6z48jj34avdd1y26m1vx4vh0y-source/flakes/k3d",
         "type": "path"
       }
     },
