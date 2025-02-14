@@ -9,31 +9,22 @@
   };
 
   outputs = { self, nixpkgs, k3d }: {
-    packages = {
-      x86_64-linux = let
-        pkgs = import nixpkgs { system = "x86_64-linux"; };
-      in {
-        operationsCenterMilano = pkgs.stdenv.mkDerivation {
-          name = "operationscenter-milano";
-          src = ./.;
-          buildInputs = [ pkgs.hello ];
-        };
+    packages = let
+      createPackage = system: let
+        pkgs = import nixpkgs { inherit system; };
+      in pkgs.stdenv.mkDerivation {
+        name = "operationscenter-milano";
+        src = ./.;
+        buildInputs = [ pkgs.hello ];
       };
-
-      aarch64-darwin = let
-        pkgs = import nixpkgs { system = "aarch64-darwin"; };
-      in {
-        operationsCenterMilano = pkgs.stdenv.mkDerivation {
-          name = "operationscenter-milano";
-          src = ./.;
-          buildInputs = [ pkgs.hello ];
-        };
-      };
+    in {
+      x86_64-linux = createPackage "x86_64-linux";
+      aarch64-darwin = createPackage "aarch64-darwin";
     };
 
     defaultPackage = {
-      x86_64-linux = self.packages.x86_64-linux.operationsCenterMilano;
-      aarch64-darwin = self.packages.aarch64-darwin.operationsCenterMilano;
+      x86_64-linux = self.packages.x86_64-linux;
+      aarch64-darwin = self.packages.aarch64-darwin;
     };
   };
 }
