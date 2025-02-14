@@ -7,15 +7,14 @@
         ]
       },
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-98gFduFl5txTFOgb/wRRn/vLT+RihBmpb6zop0rXuew=",
-        "path": "/nix/store/qppw5c84vh9r9026afjwm06vqcxb78xw-source/flakes/k3d",
+        "path": "./flakes/k3d",
         "type": "path"
       },
       "original": {
-        "path": "/nix/store/qppw5c84vh9r9026afjwm06vqcxb78xw-source/flakes/k3d",
+        "path": "./flakes/k3d",
         "type": "path"
-      }
+      },
+      "parent": []
     },
     "nixpkgs": {
       "locked": {
