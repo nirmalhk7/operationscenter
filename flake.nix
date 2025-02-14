@@ -16,6 +16,12 @@
         name = "operationscenter-milano";
         src = ./.;
         buildInputs = [ pkgs.hello ];
+        installPhase = ''
+          mkdir -p $out/bin
+          echo '#!/bin/sh' > $out/bin/operationscenter-milano
+          echo 'echo Hello, World!' >> $out/bin/operationscenter-milano
+          chmod +x $out/bin/operationscenter-milano
+        '';
       };
     in {
       x86_64-linux = createPackage "x86_64-linux";
