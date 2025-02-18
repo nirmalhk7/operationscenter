@@ -1,0 +1,17 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: locust
+spec:
+  chart: locust
+  repo: https://raw.githubusercontent.com/deliveryhero/helm-charts/refs/heads/master/
+  targetNamespace: mgd-devbench
+  valuesContent: |-
+    image:
+      repository: locustio/locust
+      tag: 2.32.2
+      pullPolicy: IfNotPresent
+    
+    extraLabels:
+      milano.app: locust
+      milano.level: managed
