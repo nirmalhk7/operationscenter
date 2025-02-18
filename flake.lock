@@ -1,41 +1,23 @@
 {
   "nodes": {
-    "k3d": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-t2Ha5vMs6/Z7jb6kuRK7fuLDJO8sYn5a0/WAmwrLY3c=",
-        "path": "/nix/store/wd3rva4brj459kcv4dl3ndsj2zmjp3gm-source/flakes/k3d",
-        "type": "path"
-      },
-      "original": {
-        "path": "/nix/store/wd3rva4brj459kcv4dl3ndsj2zmjp3gm-source/flakes/k3d",
-        "type": "path"
-      }
-    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1739138025,
-        "narHash": "sha256-M4ilIfGxzbBZuURokv24aqJTbdjPA9K+DtKUzrJaES4=",
-        "owner": "NixOS",
+        "lastModified": 1739446958,
+        "narHash": "sha256-+/bYK3DbPxMIvSL4zArkMX0LQvS7rzBKXnDXLfKyRVc=",
+        "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "b2243f41e860ac85c0b446eadc6930359b294e79",
+        "rev": "2ff53fe64443980e139eaa286017f53f88336dd0",
         "type": "github"
       },
       "original": {
-        "owner": "NixOS",
-        "ref": "nixpkgs-unstable",
+        "owner": "nixos",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
     "root": {
       "inputs": {
-        "k3d": "k3d",
         "nixpkgs": "nixpkgs"
       }
     }

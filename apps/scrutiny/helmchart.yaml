@@ -1,0 +1,17 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: scrutiny
+  namespace: mgd-default
+  labels:
+    milano.app: scrutiny
+    milano.level: managed
+spec:
+  chart: scrutiny
+  repo: https://vhdirk.github.io/helm-charts
+  targetNamespace: mgd-default
+  valuesContent: |-
+    image:
+      repository: ghcr.io/analogj/scrutiny
+      pullPolicy: Always
+      tag: master-omnibus
