@@ -16,9 +16,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: traefik-kube-system
     app.kubernetes.io/name: traefik
-    milano.app: managed
   name: traefik-dashboard-ingress
-  namespace: kube-system
 spec:
   entryPoints:
   - websecure

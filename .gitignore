@@ -1,3 +1,5 @@
 **/result
 .env
 **/*.px.yaml
+opcenter.bkp.zip
+.DS_Store

@@ -5,7 +5,6 @@ metadata:
     app: traefik
     release: main
   name: traefik
-  namespace: kube-system
 spec:
   endpoints:
   - port: metrics

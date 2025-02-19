@@ -11,3 +11,10 @@ encrypt:
 		BASE=$$(basename $(FILE) .px.yaml); \
 		kubeseal --format=yaml --cert=pub-sealed-secrets.pem < $(FILE) > $$DIR/$$BASE.yaml; \
 	fi
+
+backup:
+	mkdir -p opcenter.bkp
+	cp .env opcenter.bkp/
+	find . -type f -name "*.px.yaml" -exec rsync -R \{\} opcenter.bkp/ \;
+	zip -r opcenter.bkp.zip opcenter.bkp
+	rm -rf opcenter.bkp

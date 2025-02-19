@@ -10,5 +10,4 @@ resources:
 
 labels:
   - pairs:
-      milano.app: traefik
       milano.level: managed
