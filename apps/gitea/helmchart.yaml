@@ -1,0 +1,27 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: gitea
+spec:
+  chart: gitea
+  repo: https://charts.bitnami.com/bitnami
+  targetNamespace: mgd-devbench
+  valuesContent: |-
+    commonLabels:
+      milano.app: gitea
+      milano.level: managed
+
+    postgresql:
+      enabled: false
+
+    postgresql-ha:
+      enabled: false
+
+    adminUsername: nirmalhk7
+    adminEmail: nirmalhk7
+    extraEnvVarsSecret: gitea-secrets
+    
+    rootURL: gitea.trusted.nirmalhk7.com
+    externalDatabase:
+      existingSecret: "gitea-secret"
+      existingSecretPasswordKey: "DB-PASSWORD"

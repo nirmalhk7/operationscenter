@@ -2,10 +2,6 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
   name: cert-manager
-  namespace: mgd-certs
-  labels:
-    milano.app: certmanager
-    milano.level: managed
 spec:
   chart: cert-manager
   repo: https://charts.jetstack.io
