@@ -1,0 +1,30 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus
+  annotations:
+    gethomepage.dev/href: "https://prometheus.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Observability
+    gethomepage.dev/icon: prometheus
+    gethomepage.dev/app: prometheus # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: Prometheus
+    gethomepage.dev/widget.type: "prometheus"
+    gethomepage.dev/widget.url: "https://prometheus.trusted.nirmalhk7.com"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/name=prometheus"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`prometheus.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: main-kube-prometheus-stack-prometheus
+          port: 9090
+      middlewares:
+        - name: mgd-monitoring-https
+        - name: mgd-monitoring-ratelimit
+        - name: mgd-monitoring-headervalidation
+  tls:
+    secretName: prometheus-tls

@@ -1,0 +1,25 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: main
+spec:
+  chart: kube-prometheus-stack
+  repo: https://prometheus-community.github.io/helm-charts
+  targetNamespace: mgd-monitoring
+  valuesContent: |-
+    grafana:
+      defaultDashboardsEnabled: false
+      env:
+        GF_SERVER_SERVE_FROM_SUB_PATH: true
+        
+      grafana.ini:
+        server:
+          domain: "grafana.trusted.nirmalhk7.com"
+          root_url: "https://grafana.trusted.nirmalhk7.com"
+    prometheus:
+      prometheusSpec:
+        externalUrl: "https://prometheus.trusted.nirmalhk7.com"
+        routePrefix: /
+
+    commonLabels:
+      milano.level: managed
