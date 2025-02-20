@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vikunja-cert
+spec:
+  secretName: vikunja-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "vikunja.trusted.nirmalhk7.com"
+  dnsNames:
+    - "vikunja.trusted.nirmalhk7.com"
+    - "vikunja-api.trusted.nirmalhk7.com"

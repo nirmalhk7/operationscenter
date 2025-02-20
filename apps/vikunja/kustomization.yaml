@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mgd-default
+
+resources:
+  - helmchart.yaml
+  - ingressroute.yaml
+  - certificate.yaml
+  - secret.yaml
+
+labels:
+  - pairs:
+      milano.app: vikunja
+      milano.level: managed

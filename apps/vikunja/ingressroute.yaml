@@ -1,0 +1,43 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  annotations:
+    gethomepage.dev/app: vikunja
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Applications
+    gethomepage.dev/href: https://vikunja.trusted.nirmalhk7.com
+    gethomepage.dev/icon: vikunja
+    gethomepage.dev/name: Vikunja
+    gethomepage.dev/widget.enableTaskList: "true"
+    gethomepage.dev/widget.key: tk_8cb027d4d9eaede2eecadd288f25c999e3b4fc66
+    gethomepage.dev/widget.type: vikunja
+    gethomepage.dev/widget.url: https://vikunja.trusted.nirmalhk7.com
+  name: vikunja
+  namespace: mgd-default
+  labels:
+    milano.app: vikunja
+    milano.level: managed
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: "Host(`vikunja.trusted.nirmalhk7.com`)"
+      kind: Rule
+      services:
+        - name: vikunja
+          port: 3456
+      middlewares:
+        - name: mgd-default-https
+        - name: mgd-default-ratelimit
+        - name: mgd-default-headervalidation
+    - kind: Rule
+      match: "Host(`vikunja-api.trusted.nirmalhk7.com`)"
+      middlewares:
+      - name: mgd-default-https
+      - name: mgd-default-headervalidation
+      services:
+      - name: vikunja-api
+        port: 3456
+  tls:
+    secretName: vikunja-tls

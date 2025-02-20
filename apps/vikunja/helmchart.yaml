@@ -1,0 +1,62 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: vikunja
+spec:
+  chart: oci://kolaente.dev/vikunja/vikunja
+  version: 1.0.0
+  targetNamespace: mgd-default
+  valuesContent: |-
+    vikunja:
+      configMaps:
+        # The configuration for Vikunja's api
+        # https://vikunja.io/docs/config-options/
+        api-config:
+          enabled: true
+          data:
+            config.yml: |
+              typesense:
+                # Typesense will only work if it is enabled below (typesense.enabled).
+                url: "http://{{ printf "%s-typesense" .Release.Name }}:8108"
+                apiKey: "{{ .Values.typesense.env.TYPESENSE_API_KEY }}"
+              redis:
+                # Redis will only work if it is enabled below (redis.enabled).
+                host: "{{ printf "%s-redis-master" .Release.Name }}:6379"
+                db: "{{ .Release.Name }}"
+
+      env:
+        VIKUNJA_API_URL: https://vikunja.trusted.nirmalhk7.com
+        VIKUNJA_DATABASE_TYPE: "mysql"
+        VIKUNJA_DATABASE_USER: 
+          valueFrom:
+            secretKeyRef:
+              name: vikunja-credentials
+              key: db-username
+        VIKUNJA_DATABASE_PASSWORD: 
+          valueFrom:
+            secretKeyRef:
+              name: vikunja-credentials
+              key: db-password
+        VIKUNJA_DATABASE_NAME: "vikunja"
+        VIKUNJA_DATABASE_HOST: "maria-mariadb-primary.mgd-db.svc.cluster.local:3306"
+
+      persistence:
+        data:
+          enabled: true
+          size: 5Gi
+          storageClass: milano-v2
+      
+      ingress:
+        main:
+          enabled: false
+
+    redis:
+      enabled: true
+
+    postgresql:
+      enabled: false
+
+    typesense:
+      persistence:
+        data:
+          storageClass: milano-v2
