@@ -1,0 +1,28 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: touca
+  annotations:
+    gethomepage.dev/href: "https://touca.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Devbench
+    gethomepage.dev/icon: https://touca.io/docs/img/touca_logo_bg.png
+    gethomepage.dev/app: touca # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: Touca
+    gethomepage.dev/pod-selector: "app=touca-touca"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`touca.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: touca-touca
+          port: 8080
+      middlewares:
+        - name: mgd-devops-https
+        - name: mgd-devops-ratelimit
+        - name: mgd-devops-headervalidation
+  tls:
+    secretName: touca-tls
