@@ -1,0 +1,20 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: tools
+spec:
+  # chart: it-tools
+  # repo: https://charts.plcnk.net
+  targetNamespace: mgd-default
+  valuesContent: |-
+    commonLabels: 
+      milano.app: mailu
+      milano.level: managed
+    
+    hostnames:
+      - trusted.nirmalhk7.com
+
+    domain:
+      - nirmalhk7.com
+    
+    existingSecret: mailu-credentials

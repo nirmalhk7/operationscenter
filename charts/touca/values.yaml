@@ -1,0 +1,10 @@
+toucaApp:
+  dockerRepoName: "touca"
+  dockerImageName: "touca"
+  dockerImageTag: "2.0.0"
+
+volume:
+  scName: "ebs-sc"
+
+ingress:
+  enabled: true
