@@ -5,8 +5,8 @@ metadata:
   annotations:
     gethomepage.dev/href: "https://locust.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: DevBench
-    # gethomepage.dev/icon: https://locust.io/docs/img/touca_logo_bg.png
+    gethomepage.dev/group: Devbench
+    gethomepage.dev/icon: https://locust.io/static/img/locust-cloud-logo.png
     gethomepage.dev/app: locust # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Locust
     gethomepage.dev/pod-selector: "app=locust"

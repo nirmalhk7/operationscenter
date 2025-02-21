@@ -1,41 +1,21 @@
 {
-  description = "A very basic flake";
+  description = "Mainflake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    k3d-flake = path: ./flakes/k3d;
+    flake-utils.url = "github:numtide/flake-utils";
+    # k3d-flake.url = path:./flakes/k3d;
   };
 
-  outputs = { self, nixpkgs, k3d-flake }: {
-
-    packages = {
-      x86_64-linux = {
-        default = nixpkgs.legacyPackages.x86_64-linux.k3d;
-        k3d = nixpkgs.legacyPackages.x86_64-linux.k3d;
+  outputs = { self, nixpkgs, flake-utils,  ... }@inputs:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+      in {
+      packages = {
+        hello = pkgs.hello;
+        # k3d = k3d-flake.packages.${system}.defaultPackage;
       };
-
-      aarch64-darwin = {
-        default = nixpkgs.legacyPackages.aarch64-darwin.k3d;
-        k3d = nixpkgs.legacyPackages.aarch64-darwin.k3d;
-      };
-    };
-
-    devShell = {
-      x86_64-linux = nixpkgs.mkShell {
-        buildInputs = [
-          nixpkgs.legacyPackages.x86_64-linux.k3d
-        ];
-      };
-
-      aarch64-darwin = nixpkgs.mkShell {
-        buildInputs = [
-          nixpkgs.legacyPackages.aarch64-darwin.k3d
-        ];
-      };
-    };
-
-    overlay = final: prev: {
-      k3d = k3d-flake.packages.${final.system}.defaultPackage;
-    };
-  };
+      }
+    );
 }

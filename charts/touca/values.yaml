@@ -6,5 +6,6 @@ toucaApp:
 volume:
   scName: "ebs-sc"
 
+namespace: {{ .Release.Namespace }}
 ingress:
   enabled: true
