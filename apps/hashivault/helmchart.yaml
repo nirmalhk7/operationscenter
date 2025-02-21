@@ -1,0 +1,15 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: hashivault
+spec:
+  chart: vault
+  repo: https://helm.releases.hashicorp.com
+  targetNamespace: mgd-devops
+  valuesContent: |-
+    global:
+      namespace: mgd-security
+      tlsDisable: true
+
+    ui:
+      serviceType: "ClusterIP"

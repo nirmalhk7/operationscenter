@@ -13,19 +13,29 @@
     };
 
     packages = self.forAllSystems (system: {
-      k3d = nixpkgs.legacyPackages.${system}.k3d;
+      defaultPackage = nixpkgs.legacyPackages.${system}.k3d;
     });
 
-    defaultPackage = self.forAllSystems (system: self.packages.${system}.k3d);
+    defaultPackage = self.forAllSystems (system: self.packages.${system}.defaultPackage);
 
     devShell = self.forAllSystems (system: with nixpkgs.legacyPackages.${system}; mkShell {
-      buildInputs = [ k3d ];
+      # No need to include k3d in buildInputs since it's already in your PATH
+      buildInputs = [];
 
       shellHook = ''
+        # Ensure k3d is available in PATH
+        if ! command -v k3d &> /dev/null; then
+          echo "k3d could not be found in your PATH. Please ensure it is installed and available."
+          exit 1
+        fi
+
         # Create clusters
-        k3d cluster create milano-dev --tls-san "trusted.nirmalhk7.com" --tls-san "milano"
-        k3d cluster create milano-managed --servers 2 --agents 2 --tls-san "trusted.nirmalhk7.com" --tls-san "milano"
-        k3d cluster create milano-live --tls-san "trusted.nirmalhk7.com" --tls-san "milano"
+        echo "dev cluster: playground"
+        k3d cluster create milano-dev --k3s-arg "--tls-san 'trusted.nirmalhk7.com' --tls-san 'milano'"
+        echo "managed cluster: critical applications"
+        k3d cluster create milano-managed --servers 2 --agents 2  --k3s-arg "--tls-san 'trusted.nirmalhk7.com' --tls-san 'milano'"
+        echo "live cluster: internet exposed"
+        k3d cluster create milano-live  --k3s-arg "--tls-san 'trusted.nirmalhk7.com' --tls-san 'milano'"
 
         # Print client-certificate-data, client-key-data, and certificate-authority-data
         for cluster in milano-dev milano-managed milano-live; do

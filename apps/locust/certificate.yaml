@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: locust-cert
+  namespace: mgd-devbench
+  labels:
+    milano.app: locust
+    milano.level: managed
+spec:
+  secretName: locust-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "locust.trusted.nirmalhk7.com"
+  dnsNames:
+    - "locust.trusted.nirmalhk7.com"

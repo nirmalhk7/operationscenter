@@ -1,0 +1,22 @@
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: homepage-ingress
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: "Host(`home.trusted.nirmalhk7.com`)"
+      kind: Rule
+      services:
+        - name: homepage
+          port: 3000
+      middlewares:
+        - name: mgd-default-https
+        - name: mgd-default-ratelimit
+        - name: mgd-default-headervalidation
+  tls:
+    secretName: homepage-tls

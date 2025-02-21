@@ -1,41 +1,41 @@
 {
-  description = "We go big or go home. Operations Center Mainflake";
+  description = "A very basic flake";
 
-  # Define the inputs for the flake
   inputs = {
-    # Use the unstable branch of nixpkgs
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-
-    # Include the k3d flake from a local path
-    k3d = {
-      url = "./flakes/k3d";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    k3d-flake = path: ./flakes/k3d;
   };
 
-  # Define the outputs of the flake
-  outputs = { self, nixpkgs, k3d }: {
-    # Include k3d in the packages section
+  outputs = { self, nixpkgs, k3d-flake }: {
+
     packages = {
-      x86_64-linux = k3d.defaultPackage.x86_64-linux;
-      aarch64-darwin = k3d.defaultPackage.aarch64-darwin;
+      x86_64-linux = {
+        default = nixpkgs.legacyPackages.x86_64-linux.k3d;
+        k3d = nixpkgs.legacyPackages.x86_64-linux.k3d;
+      };
+
+      aarch64-darwin = {
+        default = nixpkgs.legacyPackages.aarch64-darwin.k3d;
+        k3d = nixpkgs.legacyPackages.aarch64-darwin.k3d;
+      };
     };
 
-    # Define the default package for each system
-    defaultPackage = {
-      x86_64-linux = self.packages.x86_64-linux;
-      aarch64-darwin = self.packages.aarch64-darwin;
-    };
-
-    # Define development shells
-    devShells = let
-      pkgs = import nixpkgs { inherit (self) system; };
-    in {
-      default = pkgs.mkShell {
+    devShell = {
+      x86_64-linux = nixpkgs.mkShell {
         buildInputs = [
-          k3d.defaultPackage.${builtins.currentSystem}
+          nixpkgs.legacyPackages.x86_64-linux.k3d
         ];
       };
+
+      aarch64-darwin = nixpkgs.mkShell {
+        buildInputs = [
+          nixpkgs.legacyPackages.aarch64-darwin.k3d
+        ];
+      };
+    };
+
+    overlay = final: prev: {
+      k3d = k3d-flake.packages.${final.system}.defaultPackage;
     };
   };
 }
