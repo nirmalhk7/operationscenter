@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: immich-cert
+spec:
+  commonName: immich.trusted.nirmalhk7.com
+  dnsNames:
+  - immich.trusted.nirmalhk7.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  secretName: immich-tls
