@@ -5,7 +5,7 @@ This repository contains configurations for my home server, which I call "Operat
 
         # Create clusters
         echo "dev cluster: playground"
-        k3d cluster create milano-dev --k3s-arg "--tls-san 'trusted.nirmalhk7.com' --tls-san 'milano'"
+        k3d cluster create milano-dev --k3s-arg "--tls-san 'kube.trusted.nirmalhk7.com' --tls-san 'milano'"
         echo "managed cluster: critical applications"
         k3d cluster create milano-managed --servers 2 --agents 2  --k3s-arg "--tls-san 'trusted.nirmalhk7.com' --tls-san 'milano'"
         echo "live cluster: internet exposed"

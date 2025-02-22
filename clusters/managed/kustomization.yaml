@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - _storageclasses
+  - certs
+  - db
+  - default
+  - devbench
+  - flux-system
+  - kube-system
+  - monitoring
+  - multimedia
+  - security
+
+labels:
+  - pairs:
+      milano.level: managed

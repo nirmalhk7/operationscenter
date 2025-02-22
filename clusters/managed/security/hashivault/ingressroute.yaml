@@ -1,0 +1,29 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: hashivault
+  annotations:
+    gethomepage.dev/href: "https://vault.trusted.nirmalhk7.com"
+    gethomepage.dev/description: "Hashicorp Vault"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Security
+    gethomepage.dev/icon: hashicorp-vault
+    gethomepage.dev/app: HashiVault # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: HashiVault
+    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=hashivault"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`vault.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: hashivault
+          port: 8200
+      middlewares:
+        - name: mgd-https
+        - name: mgd-headervalidation
+  tls:
+    secretName: vault-tls
+---

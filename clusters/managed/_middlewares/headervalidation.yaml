@@ -1,0 +1,11 @@
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: mgd-headervalidation
+spec:
+  headers:
+    customResponseHeaders:
+      X-Server: "OCB-Milano"
+    frameDeny: true
+    browserXssFilter: true

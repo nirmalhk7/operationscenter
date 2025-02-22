@@ -1,0 +1,58 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: nextcloud
+spec:
+  chart: nextcloud
+  repo: https://nextcloud.github.io/helm/
+  targetNamespace: mgd-multimedia
+  valuesContent: |-
+    deploymentLabels:
+      milano.app: nextcloud
+      milano.level: managed
+
+    imaginary:
+      podLabels:  
+        milano.app: nextcloud
+        milano.level: managed
+      service:
+        labels:
+          milano.app: nextcloud
+          milano.level: managed
+
+    metrics:
+      enabled: true
+      podLabels:
+        milano.app: nextcloud
+        milano.level: managed
+      serviceMonitor:
+        labels:
+          milano.app: nextcloud
+          milano.level: managed
+
+    persistence:  
+      enabled: true
+      size: 20Gi
+      storageClass: milano-v2
+
+    nextcloud:
+      host: nextcloud.trusted.nirmalhk7.com
+      existingSecret:
+        enabled: true
+        secretName: nextcloud-credentials
+        usernameKey: nx-username
+        passwordKey: nx-password
+
+    internalDatabase:
+      enabled: false
+
+    externalDatabase:
+      enabled: true
+      type: mysql
+      database: nextcloud
+      host: maria-mariadb-primary.mgd-db.svc.cluster.local:3306
+      existingSecret:
+        enabled: true
+        secretName: nextcloud-credentials
+        usernameKey: db-username
+        passwordKey: db-password

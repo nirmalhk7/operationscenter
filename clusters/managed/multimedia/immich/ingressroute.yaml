@@ -1,0 +1,31 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: immich-server
+  annotations:
+    gethomepage.dev/app: immich
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Applications
+    gethomepage.dev/href: https://immich.trusted.nirmalhk7.com
+    gethomepage.dev/icon: immich
+    gethomepage.dev/name: Immich
+    gethomepage.dev/widget.key: TOKEN
+    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=immich"
+    gethomepage.dev/widget.type: nextcloud
+    gethomepage.dev/widget.url: /nextcloud
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`immich.trusted.nirmalhk7.com`)
+      kind: Rule
+      middlewares:
+      - name: mgd-https
+      - name: mgd-ratelimit
+      - name: mgd-headervalidation
+      services:
+        - name: immich-server
+          port: 2283
+  tls:
+    secretName: immich-tls

@@ -1,0 +1,13 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: scrutiny
+spec:
+  chart: scrutiny
+  repo: https://vhdirk.github.io/helm-charts
+  targetNamespace: mgd-monitoring
+  valuesContent: |-
+    image:
+      repository: ghcr.io/analogj/scrutiny
+      pullPolicy: Always
+      tag: master-omnibus

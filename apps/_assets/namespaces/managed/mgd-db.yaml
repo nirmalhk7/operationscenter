@@ -1,7 +1,0 @@
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: mgd-db
-  labels:
-    milano.level: managed

@@ -1,0 +1,28 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: gitea
+  annotations:
+    gethomepage.dev/href: "https://gitea.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Devbench
+    gethomepage.dev/description: "Gitea"
+    gethomepage.dev/icon: gitea
+    gethomepage.dev/app: gitea # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: gitea
+    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=gitea"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`gitea.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: gitea-http
+          port: 3000
+      middlewares:
+        - name: mgd-https
+        - name: mgd-headervalidation
+  tls:
+    secretName: gitea-tls

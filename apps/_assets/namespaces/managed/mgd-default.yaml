@@ -1,9 +1,0 @@
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: mgd-default
-  labels:
-    milano.scaleDown.start: "2023-01-01T00.00.00-07.00"
-    milano.scaleDown.end: "2023-01-01T07.00.00-07.00"
-    milano.level: managed
