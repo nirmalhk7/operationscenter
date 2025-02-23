@@ -1,0 +1,37 @@
+name: Publish Touca Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/touca/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+
+    - name: Package Helm chart
+      run: helm package charts/touca
+
+    - name: Create GitHub Pages directory
+      run: mkdir -p gh-pages
+
+    - name: Move packaged chart to GitHub Pages directory
+      run: mv touca-*.tgz gh-pages/
+
+    - name: Initialize Helm repository index
+      run: helm repo index gh-pages --url https://nirmalhk7.github.io/operationscenter
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: gh-pages

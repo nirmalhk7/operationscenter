@@ -6,7 +6,6 @@ spec:
   chart: open-webui
   version: 5.19.0
   repo: https://helm.openwebui.com
-  version: 5.19.0
   targetNamespace: mgd-llm
   valuesContent: |-
     ollama:
