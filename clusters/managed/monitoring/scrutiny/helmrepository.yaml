@@ -1,5 +1,5 @@
 # TODO: Bring this repository in-house
-apiVersion: source.toolkit.fluxcd.io/v1beta1
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: scrutiny-repo
