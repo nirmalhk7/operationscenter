@@ -3,10 +3,9 @@ kind: Kustomization
 
 resources:
   - certificate.yaml
-  - helmrelease.yaml
-  - helmrepository.yaml
+  - helmchart.yaml
   - ingressroute.yaml
 
 labels:
   - pairs:
-      milano.app: scrutiny
+      milano.app: open-webui

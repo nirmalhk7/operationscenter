@@ -1,0 +1,28 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ollama-ingress
+  namespace: mgd-default
+  annotations:
+    gethomepage.dev/href: "https://llm.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "Applications"
+    gethomepage.dev/icon: "open-webui-light"
+    gethomepage.dev/app: "open-webui" # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: "Open WebUI"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`llm.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: open-webui 
+          port: 80
+      middlewares:
+        - name: mgd-https
+        - name: mgd-ratelimit
+        - name: mgd-headervalidation
+  tls:
+    secretName: llm-tls

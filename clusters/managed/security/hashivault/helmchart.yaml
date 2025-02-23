@@ -4,6 +4,7 @@ metadata:
   name: hashivault
 spec:
   chart: vault
+  version: 0.29.1
   repo: https://helm.releases.hashicorp.com
   targetNamespace: mgd-security
   valuesContent: |-

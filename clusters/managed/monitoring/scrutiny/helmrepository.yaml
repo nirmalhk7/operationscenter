@@ -1,0 +1,8 @@
+# TODO: Bring this repository in-house
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: scrutiny-repo
+spec:
+  interval: 1h
+  url: https://vhdirk.github.io/helm-charts

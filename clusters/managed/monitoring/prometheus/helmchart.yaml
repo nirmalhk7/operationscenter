@@ -4,6 +4,7 @@ metadata:
   name: main
 spec:
   chart: kube-prometheus-stack
+  version: 69.4.1
   repo: https://prometheus-community.github.io/helm-charts
   targetNamespace: mgd-monitoring
   valuesContent: |-

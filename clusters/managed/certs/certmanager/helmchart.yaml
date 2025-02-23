@@ -4,6 +4,7 @@ metadata:
   name: cert-manager
 spec:
   chart: cert-manager
+  version: 1.17.1
   repo: https://charts.jetstack.io
   targetNamespace: mgd-certs
   valuesContent: |-

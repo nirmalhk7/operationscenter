@@ -9,7 +9,7 @@ data:
     title: "OC Boulder"
     description: "Welcome to Milano!"
     background:
-      image: https://images.unsplash.com/photo-1486607303850-bc051a4ffad4
+      image: https://images.unsplash.com/photo-1600104146011-ad1a8571f161
       blur: sm
       opacity: 50
     useEqualHeights: true
@@ -35,8 +35,8 @@ data:
             href: https://login.tailscale.com/admin/machines
             widget:
               type: tailscale
-              deviceid: $TSKEY_DEVICEID
-              key: $TSKEY_API
+              deviceid: ${TSKEY_DEVICEID}
+              key: ${TSKEY_API}
         - Cloudflare:
             icon: cloudflare
             href: https://dash.cloudflare.com/397ae3d0f15c4e696b2a31307963d57c/home/domains
@@ -46,22 +46,18 @@ data:
             widget:
               type: nextdns
               profile: a5ccfe
-              key: $(NEXTDNS_KEY)
+              key: ${NEXTDNS_KEY}
   widgets.yaml: |
     - greeting:
         text_size: xl
         text: Operations Center Boulder
         font: bold
-    - openmeteo:
-        units: metric
-        cache: 5
     - kubernetes:
         cluster:
           show: true
           cpu: true
           memory: true
           showLabel: false
-          label: "cluster"
         nodes:
           show: true
           cpu: true

@@ -4,6 +4,7 @@ metadata:
   name: nextcloud
 spec:
   chart: nextcloud
+  version: 6.6.4
   repo: https://nextcloud.github.io/helm/
   targetNamespace: mgd-multimedia
   valuesContent: |-

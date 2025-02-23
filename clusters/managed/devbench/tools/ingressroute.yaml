@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/href: "https://tools.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Applications
+    gethomepage.dev/group: Devbench
     gethomepage.dev/description: "IT-Tools"
     gethomepage.dev/icon: mdi-tools
     gethomepage.dev/app: tools # optional, may be needed if app.kubernetes.io/name != ingress metadata.name

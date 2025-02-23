@@ -9,6 +9,7 @@ resources:
   - devbench
   - flux-system
   - kube-system
+  - llm
   - monitoring
   - multimedia
   - security

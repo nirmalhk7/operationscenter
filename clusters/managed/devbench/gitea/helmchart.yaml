@@ -4,6 +4,7 @@ metadata:
   name: gitea
 spec:
   chart: gitea
+  version: 10.6.0
   repo: https://charts.bitnami.com/bitnami
   targetNamespace: mgd-devbench
   valuesContent: |-

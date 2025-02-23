@@ -4,6 +4,7 @@ metadata:
   name: locust
 spec:
   chart: locust
+  version: 0.32.4
   repo: https://raw.githubusercontent.com/deliveryhero/helm-charts/refs/heads/master/
   targetNamespace: mgd-devbench
   valuesContent: |-

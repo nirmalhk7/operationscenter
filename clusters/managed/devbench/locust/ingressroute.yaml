@@ -9,7 +9,7 @@ metadata:
     gethomepage.dev/icon: https://locust.io/static/img/locust-cloud-logo.png
     gethomepage.dev/app: locust # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Locust
-    gethomepage.dev/pod-selector: "app=locust"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=locust"
 spec:
   entryPoints:
     - websecure

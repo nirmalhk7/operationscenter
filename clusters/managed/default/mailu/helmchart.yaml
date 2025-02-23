@@ -1,7 +1,7 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: tools
+  name: mailu
 spec:
   # chart: it-tools
   # repo: https://charts.plcnk.net
