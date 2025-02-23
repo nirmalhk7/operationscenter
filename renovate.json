@@ -4,6 +4,6 @@
     "config:recommended"
   ],
   "kubernetes": {
-    "fileMatch": ["apps/.+\\.yaml$"]
+    "fileMatch": ["clusters/.+\\.yaml$"]
   }
 }
