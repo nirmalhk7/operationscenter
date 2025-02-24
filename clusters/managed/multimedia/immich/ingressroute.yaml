@@ -11,8 +11,8 @@ metadata:
     gethomepage.dev/name: Immich
     gethomepage.dev/widget.key: TOKEN
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=immich"
-    gethomepage.dev/widget.type: nextcloud
-    gethomepage.dev/widget.url: /nextcloud
+    gethomepage.dev/widget.type: immich
+    gethomepage.dev/widget.url: /
 spec:
   entryPoints:
     - websecure

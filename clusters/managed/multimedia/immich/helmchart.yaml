@@ -20,9 +20,10 @@ spec:
           secretKeyRef:
             name: immich-credentials
             key: db_password
-      REDIS_HOSTNAME: immich-redis
       IMMICH_LOG_LEVEL: verbose
 
+    redis:
+      enabled: true
 
     immich:
       metrics:
