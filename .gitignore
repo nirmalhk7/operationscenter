@@ -3,3 +3,4 @@
 **/*.px.yaml
 opcenter.bkp.zip
 .DS_Store
+start.sh

@@ -8,6 +8,8 @@ resources:
   - pvc.yaml
   - secret.yaml
   - certificate.yaml
+  - redis-deployment.yaml
+  - redis-service.yaml
 
 labels:
   - pairs:

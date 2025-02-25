@@ -8,8 +8,6 @@ spec:
   repo: https://immich-app.github.io/immich-charts
   targetNamespace: mgd-multimedia
   valuesContent: |-
-    image:
-      tag: v1.119.0
 
     env:
       DB_HOSTNAME: pgvecto.mgd-db.svc.cluster.local
@@ -19,11 +17,15 @@ spec:
         valueFrom:
           secretKeyRef:
             name: immich-credentials
-            key: db_password
-      IMMICH_LOG_LEVEL: verbose
+            key: DB_PASSWORD
+      REDIS_HOSTNAME: immich-redis
+      REDIS_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: immich-credentials
+            key: REDIS_PASSWORD
 
-    redis:
-      enabled: true
+      IMMICH_LOG_LEVEL: verbose
 
     immich:
       metrics:
