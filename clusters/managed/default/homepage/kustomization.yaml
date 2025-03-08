@@ -11,7 +11,7 @@ resources:
   - ingressroute.yaml
   - service.yaml
   - serviceaccount.yaml
-  - certificate.yaml
+  # - certificate.yaml
 
 labels:
   - pairs:
