@@ -21,4 +21,4 @@ backup:
 
 nginx_build:
 	cp -r ~/operationscenter/nginx/* /etc/nginx/
-	rc-service nginx
+	rc-service nginx restart
