@@ -18,3 +18,7 @@ backup:
 	find . -type f -name "*.px.yaml" -exec rsync -R \{\} opcenter.bkp/ \;
 	zip -r opcenter.bkp.zip opcenter.bkp
 	rm -rf opcenter.bkp
+
+nginx_build:
+	cp -r ~/operationscenter/nginx/* /etc/nginx/
+	rc-service nginx
