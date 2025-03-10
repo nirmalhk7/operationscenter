@@ -3,9 +3,10 @@ kind: Service
 metadata:
   name: homepage
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     - port: 3000
+      targetPort: 3000
       name: http
   selector:
     app.kubernetes.io/name: homepage
