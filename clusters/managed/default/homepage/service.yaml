@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: homepage
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - port: 3000
       name: http
