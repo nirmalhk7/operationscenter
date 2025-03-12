@@ -26,5 +26,3 @@ spec:
         - name: mgd-https
         - name: mgd-ratelimit
         - name: mgd-headervalidation
-  tls:
-    secretName: prometheus-tls

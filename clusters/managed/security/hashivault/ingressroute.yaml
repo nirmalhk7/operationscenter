@@ -24,6 +24,3 @@ spec:
       middlewares:
         - name: mgd-https
         - name: mgd-headervalidation
-  tls:
-    secretName: vault-tls
----

@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: mgd-devbench
 
 resources:
-  - certificate.yaml
   - helmchart.yaml
   - ingressroute.yaml
 

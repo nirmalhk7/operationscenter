@@ -29,5 +29,3 @@ spec:
         - name: mgd-ratelimit
         - name: mgd-https
         - name: mgd-headervalidation
-  tls:
-    secretName: grafana-tls

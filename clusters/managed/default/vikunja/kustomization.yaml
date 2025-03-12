@@ -5,7 +5,6 @@ kind: Kustomization
 resources:
   - helmchart.yaml
   - ingressroute.yaml
-  - certificate.yaml
   - secret.yaml
 
 labels:

@@ -28,5 +28,3 @@ spec:
     services:
     - name: nextcloud
       port: 8080
-  tls:
-    secretName: nextcloud-tls

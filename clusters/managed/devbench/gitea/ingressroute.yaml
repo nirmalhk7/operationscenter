@@ -24,5 +24,3 @@ spec:
       middlewares:
         - name: mgd-https
         - name: mgd-headervalidation
-  tls:
-    secretName: gitea-tls
