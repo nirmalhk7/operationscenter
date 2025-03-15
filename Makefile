@@ -22,3 +22,6 @@ backup:
 nginx_build:
 	cp -r ~/operationscenter/nginx/* /etc/nginx/
 	rc-service nginx restart
+
+nginx_logs:
+	tail -f /var/log/nginx/error.log && tail -f /var/log/nginx/access.log
