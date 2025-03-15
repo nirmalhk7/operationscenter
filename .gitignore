@@ -5,3 +5,5 @@ opcenter.bkp.zip
 .DS_Store
 start.sh
 wikis
+**/*_creds.terraform.tfvars
+**/*.terraform
