@@ -15,6 +15,6 @@ spec:
         - name: homepage
           port: 3000
       middlewares:
-        - name: mgd-https
+        # - name: mgd-https
         - name: mgd-ratelimit
         - name: mgd-headervalidation

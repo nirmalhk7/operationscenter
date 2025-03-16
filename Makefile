@@ -25,3 +25,6 @@ nginx_build:
 
 nginx_logs:
 	tail -f /var/log/nginx/error.log && tail -f /var/log/nginx/access.log
+
+encrypt_newkey:
+	kubeseal --fetch-cert --controller-name=sealed-secrets-controller --controller-namespace=flux-system > pub-sealed-secrets.pem
