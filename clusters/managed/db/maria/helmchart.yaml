@@ -1,0 +1,45 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: maria
+spec:
+  chart: mariadb
+  version: 20.3.1
+  repo: https://charts.bitnami.com/bitnami
+  targetNamespace: mgd-db
+  valuesContent: |-
+    global:
+      storageClass: "milano-v2"
+
+    architecture: "replication"
+    auth:
+      rootPassword: "xey!rB3rN&Gy&LCLBs%i"
+      database: "default"
+      username: "nirmalhk7"
+      password: "$CivwzbNdt%GTBBs27VH"
+      replicationPassword: "JMCQpvHK6i"
+
+    primary:
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClass: milano-v2
+
+      service:
+        type: NodePort
+        nodePort: 32000  # Choose a port in the range 30000-32767
+
+    secondary:
+      replicaCount: 2
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClass: milano-v2
+
+    initdbScriptsConfigMap: maria-initdb-scripts
+# CREATE USER 'svc_nextcloud'@'%' IDENTIFIED BY 'K5fL*s9Cok!cqTsW^o6m';
+# GRANT ALL PRIVILEGES ON default.* TO 'svc_nextcloud'@'%';
+# FLUSH PRIVILEGES;
+# GRANT ALL PRIVILEGES ON default.* TO 'nirmalhk7'@'%';
+# FLUSH PRIVILEGES;

@@ -21,7 +21,7 @@ spec:
     - match: Host(`immich.trusted.nirmalhk7.com`)
       kind: Rule
       middlewares:
-      - name: mgd-https
+      # - name: mgd-https
       - name: mgd-ratelimit
       - name: mgd-headervalidation
       services:

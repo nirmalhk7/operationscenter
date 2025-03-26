@@ -22,7 +22,7 @@ spec:
   - kind: Rule
     match: Host(`nextcloud.trusted.nirmalhk7.com`)
     middlewares:
-    - name: mgd-https
+    # - name: mgd-https
     - name: mgd-ratelimit
     - name: mgd-headervalidation
     services:
