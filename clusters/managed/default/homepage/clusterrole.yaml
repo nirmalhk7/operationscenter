@@ -20,17 +20,22 @@ rules:
     verbs:
       - get
       - list
-  - apiGroups: ["traefik.containo.us"]
-    resources: ["ingressroutes"]
-    verbs: ["get", "list", "watch"]
   - apiGroups:
       - traefik.io
+      - traefik.containo.us
     resources:
       - ingressroutes
     verbs:
       - get
       - list
-      - watch
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
+      - gateways
+    verbs:
+      - get
+      - list
   - apiGroups:
       - metrics.k8s.io
     resources:
@@ -39,6 +44,3 @@ rules:
     verbs:
       - get
       - list
-  - apiGroups: ["apiextensions.k8s.io"]
-    resources: ["customresourcedefinitions", "customresourcedefinitions/status"]
-    verbs: ["get", "list", "watch"]

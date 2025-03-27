@@ -4,11 +4,10 @@ metadata:
   name: immich
 spec:
   chart: immich
-  version: 0.9.0
+  version: 0.9.2
   repo: https://immich-app.github.io/immich-charts
   targetNamespace: mgd-multimedia
   valuesContent: |-
-
     env:
       DB_HOSTNAME: pgvecto.mgd-db.svc.cluster.local
       DB_DATABASE_NAME: immich
@@ -24,13 +23,10 @@ spec:
           secretKeyRef:
             name: immich-credentials
             key: REDIS_PASSWORD
-
       IMMICH_LOG_LEVEL: verbose
-
     immich:
       metrics:
         enabled: true
-      
       persistence:
         library:
           existingClaim: immich-pvc
