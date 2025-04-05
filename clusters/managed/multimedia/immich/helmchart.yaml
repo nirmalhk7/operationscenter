@@ -8,6 +8,8 @@ spec:
   repo: https://immich-app.github.io/immich-charts
   targetNamespace: mgd-multimedia
   valuesContent: |-
+    image:
+      tag: v1.130.3
     env:
       DB_HOSTNAME: pgvecto.mgd-db.svc.cluster.local
       DB_DATABASE_NAME: immich

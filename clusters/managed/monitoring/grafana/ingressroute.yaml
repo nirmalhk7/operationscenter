@@ -27,5 +27,5 @@ spec:
           port: 80
       middlewares:
         - name: mgd-ratelimit
-        - name: mgd-https
+        # - name: mgd-https
         - name: mgd-headervalidation

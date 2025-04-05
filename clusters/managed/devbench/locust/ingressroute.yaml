@@ -21,6 +21,6 @@ spec:
         - name: locust
           port: 8089
       middlewares:
-        - name: mgd-https
+        # - name: mgd-https
         - name: mgd-ratelimit
         - name: mgd-headervalidation

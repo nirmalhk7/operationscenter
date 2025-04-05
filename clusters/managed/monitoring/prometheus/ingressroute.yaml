@@ -23,6 +23,6 @@ spec:
         - name: main-kube-prometheus-stack-prometheus
           port: 9090
       middlewares:
-        - name: mgd-https
+        # - name: mgd-https
         - name: mgd-ratelimit
         - name: mgd-headervalidation
