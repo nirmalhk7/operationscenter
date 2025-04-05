@@ -26,5 +26,5 @@ spec:
         - name: authentik-server
           port: 80
       middlewares:
-        - name: mgd-https
+        # - name: mgd-https
         - name: mgd-headervalidation

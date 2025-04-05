@@ -22,5 +22,5 @@ spec:
         - name: hashivault
           port: 8200
       middlewares:
-        - name: mgd-https
+        # - name: mgd-https
         - name: mgd-headervalidation

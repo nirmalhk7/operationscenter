@@ -17,6 +17,15 @@ spec:
         server:
           domain: "grafana.trusted.nirmalhk7.com"
           root_url: "https://grafana.trusted.nirmalhk7.com"
+      
+      sidecar:
+        dashboards:
+          enabled: true
+          # ConfigMaps with this label will be mounted and loaded
+          label: milano_grafana_dashboard
+          # Look for dashboard ConfigMaps in all namespaces
+          searchNamespace: ALL
+
     prometheus:
       prometheusSpec:
         externalUrl: "https://prometheus.trusted.nirmalhk7.com"

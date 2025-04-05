@@ -4,6 +4,9 @@ kind: Kustomization
 
 resources:
   - ingressroute.yaml
+  - cm-grafdash-k8global.yaml
+  - cm-grafdash-k8ns.yaml
+  - cm-grafdash-k8pods.yaml
 
 labels:
   - pairs:
