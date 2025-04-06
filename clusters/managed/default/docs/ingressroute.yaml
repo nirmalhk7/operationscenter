@@ -1,16 +1,16 @@
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: homepage-ingress
+  name: docs-ingress
 spec:
   entryPoints:
     - websecure
     - web
   routes:
-    - match: "Host(`home.trusted.nirmalhk7.com`)"
+    - match: "Host(`docs.trusted.nirmalhk7.com`)"
       kind: Rule
       services:
-        - name: homepage
+        - name: docs-docsmost
           port: 3000
       middlewares:
         # - name: mgd-https

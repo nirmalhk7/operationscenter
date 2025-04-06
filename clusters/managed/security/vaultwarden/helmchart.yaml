@@ -1,0 +1,32 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: credentials
+spec:
+  chart: gissilabs/vaultwarden
+  repo: https://gissilabs.github.io/charts/
+  version: 1.2.5
+  targetNamespace: mgd-security
+  valuesContent: |-
+    database:
+      type: postgresql
+
+    vaultwarden:
+      allowSignups: true
+      verifySignup: false
+      requireEmail: false
+      allowInvitation: true
+      showPasswordHint: false
+      enableWebVault: true
+      enableSends: true
+      orgCreationUsers: all
+      
+    persistence:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteOnce
+      storageClass: "milano-v2"
+      annotations: {}
+
+    podLabels:
+      milano.app: vaultwarden

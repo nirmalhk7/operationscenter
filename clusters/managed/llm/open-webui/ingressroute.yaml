@@ -21,6 +21,6 @@ spec:
         - name: open-webui 
           port: 80
       middlewares:
-        - name: mgd-https
+        # - name: mgd-https
         - name: mgd-ratelimit
         - name: mgd-headervalidation

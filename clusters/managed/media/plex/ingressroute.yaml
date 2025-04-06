@@ -1,0 +1,29 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: plex
+  annotations:
+    gethomepage.dev/app: immich
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Applications
+    gethomepage.dev/href: https://plex.trusted.nirmalhk7.com
+    gethomepage.dev/icon: immich
+    gethomepage.dev/name: Immich
+    gethomepage.dev/widget.key: TOKEN
+    gethomepage.dev/pod-selector: "milano.app=plex"
+    gethomepage.dev/widget.type: immich
+    gethomepage.dev/widget.url: /
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`plex.trusted.nirmalhk7.com`)
+      kind: Rule
+      middlewares:
+      # - name: mgd-https
+      - name: mgd-ratelimit
+      - name: mgd-headervalidation
+      services:
+        - name: plex-plex-media-server
+          port: 32400

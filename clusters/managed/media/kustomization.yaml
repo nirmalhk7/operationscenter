@@ -4,8 +4,7 @@ kind: Kustomization
 resources:
   - ../_middlewares
   - namespace.yaml
-  - immich
-  - nextcloud
+  - media-pv.yaml
   - plex
-
-namespace: mgd-multimedia
+  
+namespace: mgd-media

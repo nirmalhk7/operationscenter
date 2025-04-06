@@ -1,0 +1,22 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: transmission
+spec:
+  chart: transmission-openvpn
+  version: 0.9.1
+  repo: https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages 
+  targetNamespace: mgd-multimedia
+  valuesContent: |-
+    image:
+      registry: index.docker.io
+      repository: plexinc/pms-docker
+      pullPolicy: IfNotPresent
+
+
+    pms:
+      storageClassName: milano-v2
+      configStorage: 2Gi
+
+    commonLabels: 
+      milano.app: plex

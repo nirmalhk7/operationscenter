@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - _storageclasses
-  # - certs
   - db
   - default
   - devbench
