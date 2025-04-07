@@ -25,7 +25,7 @@ spec:
                 db: "{{ .Release.Name }}"
 
       env:
-        VIKUNJA_API_URL: https://tasks.trusted.nirmalhk7.com
+        VIKUNJA_API_URL: https://task.trusted.nirmalhk7.com
         VIKUNJA_DATABASE_TYPE: "mysql"
         VIKUNJA_DATABASE_USER: 
           valueFrom:

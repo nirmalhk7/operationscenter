@@ -12,6 +12,7 @@ resources:
   - monitoring
   - multimedia
   - security
+  - media
 
 labels:
   - pairs:

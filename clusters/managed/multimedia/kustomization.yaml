@@ -6,6 +6,5 @@ resources:
   - namespace.yaml
   - immich
   - nextcloud
-  - plex
 
 namespace: mgd-multimedia

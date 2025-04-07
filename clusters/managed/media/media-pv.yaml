@@ -1,12 +1,12 @@
 apiVersion: v1
-kind: PersistentVolume
+kind: PersistentVolumeClaim
 metadata:
-  name: media-pv
+  name: media-pvc
+  namespace: media
 spec:
-  storageClassName: milano-v2
-  capacity:
-    storage: 100Gi
   accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: "/mnt/ssd/media"
+    - ReadWriteMany  
+  storageClassName: milano-v2
+  resources:
+    requests:
+      storage: 100Gi

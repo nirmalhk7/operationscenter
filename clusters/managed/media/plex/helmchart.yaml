@@ -8,23 +8,9 @@ spec:
   repo: https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages 
   targetNamespace: mgd-media
   valuesContent: |-
-    image:
-      registry: index.docker.io
-      repository: plexinc/pms-docker
-      pullPolicy: IfNotPresent
-
-    pms:
-      storageClassName: milano-v2
-      configStorage: 2Gi
-
-    persistence:
-      data:
+    persistence: 
+      media:
         existingClaim: media-pvc
-      transcode:
-        emptyDir: {}
-
-    service:
-      type: ClusterIP
 
     commonLabels: 
       milano.app: plex
