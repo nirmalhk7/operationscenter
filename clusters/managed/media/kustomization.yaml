@@ -5,6 +5,10 @@ resources:
   - ../_middlewares
   - namespace.yaml
   - media-pv.yaml
+  - jackett
   - plex
+  - radarr
+  - sonarr
+  - transmission
   
 namespace: mgd-media

@@ -5,7 +5,7 @@ metadata:
 spec:
   chart: transmission-openvpn
   repo: https://bananaspliff.github.io/geek-charts
-  targetNamespace: mgd-multimedia
+  targetNamespace: mgd-media
   valuesContent: |-
     replicaCount: 1
 
@@ -62,7 +62,7 @@ spec:
         subPath: "configs/transmission-data" # Path /mnt/ssd/media/configs/transmission-data where transmission writes the configuration
       - name: "media-ssd"
         mountPath: "/downloads/transmission"
-        subPath: "downloads/transmission" # Path /mnt/ssd/media/downloads/transmission where transmission downloads Torrents
+        subPath: "downloads/transmission"
       - name: "dev-tun"
         mountPath: "/dev/net/tun" # Needed for VPN
 

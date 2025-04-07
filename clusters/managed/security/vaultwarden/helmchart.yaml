@@ -3,7 +3,7 @@ kind: HelmChart
 metadata:
   name: credentials
 spec:
-  chart: gissilabs/vaultwarden
+  chart: vaultwarden
   repo: https://gissilabs.github.io/charts/
   version: 1.2.5
   targetNamespace: mgd-security
