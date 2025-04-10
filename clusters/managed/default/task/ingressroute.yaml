@@ -5,20 +5,20 @@ metadata:
     gethomepage.dev/app: vikunja
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Applications
-    gethomepage.dev/href: https://task.trusted.nirmalhk7.com
+    gethomepage.dev/href: https://tasks.trusted.nirmalhk7.com
     gethomepage.dev/icon: vikunja
     gethomepage.dev/name: Tasks
     gethomepage.dev/widget.enableTaskList: "true"
-    gethomepage.dev/widget.key: tk_8cb027d4d9eaede2eecadd288f25c999e3b4fc66
+    gethomepage.dev/widget.key: ${VIKUNJA_API_TOKEN}
     gethomepage.dev/widget.type: vikunja
-    gethomepage.dev/widget.url: https://task.trusted.nirmalhk7.com
+    gethomepage.dev/widget.url: https://tasks.trusted.nirmalhk7.com
   name: vikunja
 spec:
   entryPoints:
     - websecure
     - web
   routes:
-    - match: "Host(`task.trusted.nirmalhk7.com`)"
+    - match: "Host(`tasks.trusted.nirmalhk7.com`)"
       kind: Rule
       services:
         - name: vikunja

@@ -5,7 +5,7 @@ metadata:
 spec:
   chart: sonarr
   repo: https://bananaspliff.github.io/geek-charts
-  targetNamespace: mgd-media
+  targetNamespace: mgd-entertain
   valuesContent: |-
     replicaCount: 1
 

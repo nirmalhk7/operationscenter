@@ -28,6 +28,9 @@ spec:
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
               value: "home.trusted.nirmalhk7.com"
+          envFrom:
+            - secretRef: 
+                name: homepage-secret
           ports:
             - name: http
               containerPort: 3000

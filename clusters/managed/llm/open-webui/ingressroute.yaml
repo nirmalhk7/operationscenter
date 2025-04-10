@@ -4,7 +4,7 @@ metadata:
   name: ollama-ingress
   namespace: mgd-default
   annotations:
-    gethomepage.dev/href: "https://llm.trusted.nirmalhk7.com"
+    gethomepage.dev/href: "https://llms.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: "Applications"
     gethomepage.dev/icon: "open-webui-light"
@@ -15,7 +15,7 @@ spec:
     - websecure
     - web
   routes:
-    - match: Host(`llm.trusted.nirmalhk7.com`)
+    - match: Host(`llms.trusted.nirmalhk7.com`)
       kind: Rule
       services:
         - name: open-webui 

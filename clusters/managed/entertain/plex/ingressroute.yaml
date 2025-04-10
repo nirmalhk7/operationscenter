@@ -3,16 +3,13 @@ kind: IngressRoute
 metadata:
   name: plex
   annotations:
-    gethomepage.dev/app: immich
+    gethomepage.dev/app: plex
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Applications
     gethomepage.dev/href: https://media.trusted.nirmalhk7.com
-    gethomepage.dev/icon: immich
-    gethomepage.dev/name: Immich
-    gethomepage.dev/widget.key: TOKEN
+    gethomepage.dev/icon: plex-light
+    gethomepage.dev/name: Media Center
     gethomepage.dev/pod-selector: "milano.app=plex"
-    gethomepage.dev/widget.type: immich
-    gethomepage.dev/widget.url: /
 spec:
   entryPoints:
     - websecure

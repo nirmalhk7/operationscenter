@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pterodactyl-panel
+  labels:
+    app: pterodactyl-panel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pterodactyl-panel
+  template:
+    metadata:
+      labels:
+        app: pterodactyl-panel
+    spec:
+      containers:
+      - name: panel
+        image: ghcr.io/pterodactyl/panel:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_URL
+          value: "https://gaming.trusted.nirmalhk7.com"
+        - name: DB_HOST
+          value: "mysql"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_DATABASE
+          value: "panel"
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pterodactyl-secrets
+              key: db-username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pterodactyl-secrets
+              key: db-password
+        - name: MAIL_HOST
+          value: "smtp.example.com"
+        - name: MAIL_PORT
+          value: "587"
+        - name: MAIL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pterodactyl-secrets
+              key: mail-username
+        - name: MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pterodactyl-secrets
+              key: mail-password
+        volumeMounts:
+        - name: panel-data
+          mountPath: /app/var
+      volumes:
+      - name: panel-data
+        persistentVolumeClaim:
+          claimName: pterodactyl-panel-pvc

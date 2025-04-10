@@ -28,4 +28,15 @@ data:
       END IF;
       GRANT ALL PRIVILEGES ON DATABASE authentik TO svc_authentik;
     END
+
+    CREATE DATABASE docmost;
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'svc_docmost') THEN
+        CREATE USER svc_docmost WITH PASSWORD '${SVC_APP_PASSWORD}';
+      ELSE
+        ALTER USER svc_docmost WITH PASSWORD '${SVC_APP_PASSWORD}';
+      END IF;
+      GRANT ALL PRIVILEGES ON DATABASE docmost TO svc_docmost;
+    END
     $$;

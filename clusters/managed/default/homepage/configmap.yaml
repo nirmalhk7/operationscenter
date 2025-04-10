@@ -5,8 +5,9 @@ metadata:
 data:
   kubernetes.yaml: |
     mode: cluster
+    traefik: true
   settings.yaml: |
-    title: "OC Boulder"
+    title: "Operations Center Boulder - MILANO"
     description: "Welcome to Milano!"
     background:
       image: https://images.unsplash.com/photo-1600104146011-ad1a8571f161
@@ -29,11 +30,26 @@ data:
               href: https://github.com/users/nirmalhk7/projects/11
               description: This very project - to build a full scale home server, professionally.
   services.yaml: |
-    - Networking:
+    - Networking/ OS:
         - Tailscale:
             icon: tailscale-light	
             href: https://login.tailscale.com/admin/machines
-
+            widget:
+              type: tailscale
+              deviceid: ${TSKEY_DEVICEID}
+              key: ${TSKEY_API}
+        - Cloudflare:
+            icon: cloudflare
+            href: https://dash.cloudflare.com/397ae3d0f15c4e696b2a31307963d57c/nirmalhk7.com
+        - Proxmox:
+            icon: proxmox-light	
+            href: https://10.0.0.10:8006/
+            widget:
+              type: proxmox
+              url: https://10.0.0.10:8006/
+              username: ${PROXMOX_USERNAME}
+              password: ${PROXMOX_PASSWORD}
+              node: ocb-1
   widgets.yaml: |
     - greeting:
         text_size: xl

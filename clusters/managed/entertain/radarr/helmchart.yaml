@@ -5,7 +5,7 @@ metadata:
 spec:
   chart: radarr
   repo: https://bananaspliff.github.io/geek-charts
-  targetNamespace: mgd-media
+  targetNamespace: mgd-entertain
   valuesContent: |-
     ## media.radarr.values.yml
     replicaCount: 1

@@ -11,6 +11,7 @@ resources:
   - ingressroute.yaml
   - service.yaml
   - serviceaccount.yaml
+  - secret-svc-token.yaml
 
 labels:
   - pairs:

@@ -6,7 +6,7 @@ spec:
   chart: plex-media-server
   version: 0.9.1
   repo: https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages 
-  targetNamespace: mgd-media
+  targetNamespace: mgd-entertain
   valuesContent: |-
     persistence: 
       media:
