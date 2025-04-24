@@ -10,7 +10,10 @@ spec:
   valuesContent: |-
     persistence: 
       media:
-        existingClaim: media-pvc
+        existingClaim: entertainment-pvc
 
     commonLabels: 
       milano.app: plex
+
+    extraEnv:
+      PLEX_CLAIM: "testing"

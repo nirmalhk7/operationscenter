@@ -26,18 +26,18 @@ spec:
       port: 80
 
     volumes:
-      - name: "media-ssd"
+      - name: "entertainment-pvc"
         persistentVolumeClaim:
-          claimName:  "media-ssd" # PersistentVolumeClaim created earlier
+          claimName:  "entertainment-pvc" # PersistentVolumeClaim created earlier
 
     volumeMounts:
-      - name: "media-ssd"
+      - name: "entertainment-pvc"
         mountPath: "/config"
         subPath: "configs/radarr" # Path /mnt/ssd/media/configs/radarr where radarr writes the configuration
-      - name: "media-ssd"
+      - name: "entertainment-pvc"
         mountPath: "/downloads/transmission"
         subPath: "downloads/transmission" # Path /mnt/ssd/media/downloads/transmission where radarr picks up downloaded movies
-      - name: media-ssd
+      - name: entertainment-pvc
         mountPath: "/movies"
         subPath: "library/movies" # Path /mnt/ssd/media/library/movies where radarr moves and renames the movies
 

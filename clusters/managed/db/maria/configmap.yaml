@@ -24,3 +24,10 @@ data:
     FLUSH PRIVILEGES;
     GRANT ALL PRIVILEGES ON vikunja.* TO 'nirmalhk7'@'%';
     FLUSH PRIVILEGES;
+
+    CREATE USER 'svc_pterodactyl'@'%' IDENTIFIED BY 'K5fL*s9Cok!cqTsW^o6m';
+    CREATE DATABASE IF NOT EXISTS pterodactyl;
+    GRANT ALL PRIVILEGES ON pterodactyl.* TO 'svc_pterodactyl'@'%';
+    FLUSH PRIVILEGES;
+    GRANT ALL PRIVILEGES ON pterodactyl.* TO 'nirmalhk7'@'%';
+    FLUSH PRIVILEGES;

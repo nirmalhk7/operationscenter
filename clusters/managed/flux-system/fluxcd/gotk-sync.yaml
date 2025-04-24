@@ -3,14 +3,14 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: flux-system
+  name: operationscenter-git
   namespace: flux-system
 spec:
   interval: 1m0s
   ref:
     branch: main
   secretRef:
-    name: flux-system
+    name: operationscenter-token
   url: https://github.com/nirmalhk7/operationscenter.git
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -19,9 +19,9 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 10m0s
+  interval: 30s
   path: ./clusters
   prune: true
   sourceRef:
     kind: GitRepository
-    name: flux-system
+    name: operationscenter-git

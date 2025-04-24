@@ -41,20 +41,20 @@ spec:
       port: 80
 
     volumes:
-      - name: "media-ssd"
+      - name: "entertainment-pvc"
         persistentVolumeClaim:
-          claimName: "media-ssd" # PersistentVolumeClaim created earlier
+          claimName: "entertainment-pvc" # PersistentVolumeClaim created earlier
       - name: "dev-tun"  # Needed for VPN
         hostPath:
           path: "/dev/net/tun"
 
     volumeMounts:
-      - name: "media-ssd"
+      - name: "entertainment-pvc"
         mountPath: "/config"
-        subPath: "configs/jackett" # Path /mnt/ssd/media/configs/jackett where jackett writes the configuration
-      - name: "media-ssd"
+        subPath: "configs/jackett"
+      - name: "entertainment-pvc"
         mountPath: "/downloads"
-        subPath: "downloads/jackett" # Path /mnt/ssd/media/downloads/jackett ???
+        subPath: "downloads/jackett"
 
     securityContext:
       capabilities: # Needed for VPN

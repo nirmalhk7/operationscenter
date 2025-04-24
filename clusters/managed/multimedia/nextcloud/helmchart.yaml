@@ -37,7 +37,7 @@ spec:
       storageClass: milano-v2
 
     nextcloud:
-      host: nextcloud.trusted.nirmalhk7.com
+      host: drive.trusted.nirmalhk7.com
       existingSecret:
         enabled: true
         secretName: nextcloud-credentials

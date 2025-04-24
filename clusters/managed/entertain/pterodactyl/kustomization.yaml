@@ -3,8 +3,13 @@ kind: Kustomization
 
 
 resources:
-  - helmchart.yaml
-  - ingressroute.yaml
+  - secrets.yaml
+  - wings-configmap.yaml
+  - panel-pvc.yaml
+  - pvc.yaml
+  - panel-deployment.yaml
+  - panel-service.yaml
+  - wings-deployment.yaml
 
 labels:
   - pairs:

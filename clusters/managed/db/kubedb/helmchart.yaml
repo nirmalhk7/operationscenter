@@ -1,0 +1,12 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: dbmanager
+spec:
+  chart: oci://ghcr.io/appscode-charts/kubedb
+  version: v2025.3.24
+  targetNamespace: mgd-db
+  valuesContent: |-
+    global:
+      license: |
+        

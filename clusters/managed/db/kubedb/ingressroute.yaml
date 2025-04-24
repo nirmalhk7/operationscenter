@@ -4,20 +4,20 @@ kind: IngressRoute
 metadata:
   name: bugsink-ingress
   annotations:
-    gethomepage.dev/href: "https://bugs.trusted.nirmalhk7.com"
+    gethomepage.dev/href: "https://dbmanager.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Devbench
-    gethomepage.dev/description: "Bugsink"
+    gethomepage.dev/description: "KubeDB"
     gethomepage.dev/icon: "https://www.bugsink.com/static/images/bugsink-logo.7a9597e724ff.webp"
-    gethomepage.dev/app: bugsink # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
-    gethomepage.dev/name: Bugs
-    gethomepage.dev/pod-selector: "app=bugsink"
+    gethomepage.dev/app: kubedb # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: DB Manager
+    gethomepage.dev/pod-selector: "app=dbmanager"
 spec:
   entryPoints:
     - websecure
     - web
   routes:
-    - match: "Host(`bugs.trusted.nirmalhk7.com`)"
+    - match: "Host(`dbmanager.trusted.nirmalhk7.com`)"
       kind: Rule
       services:
         - name: bugsink

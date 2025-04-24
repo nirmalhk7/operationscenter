@@ -3,8 +3,12 @@ kind: Kustomization
 
 
 resources:
-  - helmchart.yaml
+  - secret.yaml
+  - service.yaml
+  - serviceaccount.yaml
+  - statefulset.yaml
   - ingressroute.yaml
+
 
 labels:
   - pairs:

@@ -1,0 +1,25 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: plex
+  annotations:
+    gethomepage.dev/app: plex
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Applications
+    gethomepage.dev/href: https://jelly.trusted.nirmalhk7.com
+    gethomepage.dev/icon: plex-light
+    gethomepage.dev/name: Jellyfin
+    gethomepage.dev/pod-selector: "milano.app=jellygin"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`jelly.trusted.nirmalhk7.com`)
+      kind: Rule
+      middlewares:
+      - name: mgd-ratelimit
+      - name: mgd-headervalidation
+      services:
+        - name: jellyfin
+          port: 8096

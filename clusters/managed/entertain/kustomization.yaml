@@ -4,12 +4,13 @@ kind: Kustomization
 resources:
   - ../_middlewares
   - namespace.yaml
-  - media-pv.yaml
+  - pvc.yaml
   - lodestone
   - jackett
   - plex
   - radarr
   - sonarr
   - transmission
+  - jellyfin
   
 namespace: mgd-entertain

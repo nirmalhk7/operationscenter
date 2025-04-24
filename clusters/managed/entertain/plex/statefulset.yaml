@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: plex-plex-media-server
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: plex
+      app.kubernetes.io/name: plex-media-server
+  serviceName: plex-plex-media-server
+  template:
+    metadata:
+      labels:
+        app: plex-media-server
+        app.kubernetes.io/instance: plex
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: plex-media-server
+        app.kubernetes.io/version: 1.41.5
+        helm.sh/chart: plex-media-server-0.9.1
+        milano.app: plex
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: plex-secret
+        image: index.docker.io/plexinc/pms-docker:latest
+        imagePullPolicy: IfNotPresent
+        name: plex-plex-media-server-pms
+        ports:
+        - containerPort: 32400
+          name: pms
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /config
+          name: pms-config
+        - mountPath: /transcode
+          name: pms-transcode
+        - mountPath: /media
+          name: entertainment-pvc
+      serviceAccountName: plex-plex-media-server
+      terminationGracePeriodSeconds: 120
+      volumes:
+      - emptyDir: {}
+        name: pms-transcode
+      - persistentVolumeClaim:
+          claimName: entertainment-pvc
+        name: entertainment-pvc
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: pms-config
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+      volumeMode: Filesystem

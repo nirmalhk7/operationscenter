@@ -39,4 +39,15 @@ data:
       END IF;
       GRANT ALL PRIVILEGES ON DATABASE docmost TO svc_docmost;
     END
+
+    CREATE DATABASE vaultwarden;
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'svc_vaultwarden') THEN
+        CREATE USER svc_vaultwarden WITH PASSWORD '${SVC_APP_PASSWORD}';
+      ELSE
+        ALTER USER svc_vaultwarden WITH PASSWORD '${SVC_APP_PASSWORD}';
+      END IF;
+      GRANT ALL PRIVILEGES ON DATABASE vaultwarden TO svc_vaultwarden;
+    END
     $$;

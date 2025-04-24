@@ -49,18 +49,18 @@ spec:
       port: 80
 
     volumes:
-      - name: "media-ssd"
+      - name: "entertainment-pvc"
         persistentVolumeClaim:
-          claimName: "media-ssd" # PersistentVolumeClaim created earlier
+          claimName: "entertainment-pvc" # PersistentVolumeClaim created earlier
       - name: "dev-tun" # Needed for VPN
         hostPath:
           path: "/dev/net/tun"
 
     volumeMounts:
-      - name: "media-ssd"
+      - name: "entertainment-pvc"
         mountPath: "/data"
         subPath: "configs/transmission-data" # Path /mnt/ssd/media/configs/transmission-data where transmission writes the configuration
-      - name: "media-ssd"
+      - name: "entertainment-pvc"
         mountPath: "/downloads/transmission"
         subPath: "downloads/transmission"
       - name: "dev-tun"

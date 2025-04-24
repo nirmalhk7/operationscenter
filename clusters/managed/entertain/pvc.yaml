@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: media-pvc
-  namespace: media
+  name: entertainment-pvc
+  namespace: mgd-entertain
 spec:
   accessModes:
     - ReadWriteMany  
