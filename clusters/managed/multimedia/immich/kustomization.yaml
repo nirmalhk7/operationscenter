@@ -4,7 +4,8 @@ kind: Kustomization
 
 resources:
   - pvc.yaml
-  - helmchart.yaml
+  - helmrelease.yaml
+  - helmrepository.yaml
   - ingressroute.yaml
   - secret.yaml
   - redis-deployment.yaml

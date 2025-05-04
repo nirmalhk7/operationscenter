@@ -3,7 +3,8 @@ kind: Kustomization
 
 resources:
   - secret.yaml
-  - helmchart.yaml
+  - helmrelease.yaml
+  - helmrepository.yaml
   - ingressroute.yaml
 
 
