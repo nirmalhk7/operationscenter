@@ -3,8 +3,4 @@ kind: Kustomization
 
 
 resources:
-  - helmchart.yaml
-
-labels:
-  - pairs:
-      milano.app: mailu
+  - controller.yaml

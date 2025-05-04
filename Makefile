@@ -12,6 +12,11 @@ encrypt:
 		kubeseal --format=yaml --cert=pub-sealed-secrets.pem < $(FILE) > $$DIR/$$BASE.yaml; \
 	fi
 
+reencrypt:
+	@echo "Reencrypting all .px.yaml files in clusters directory..."
+	@find clusters -type f -name "*.px.yaml" -exec echo "Processing {}" \; -exec make encrypt FILE={} \;
+	@echo "Reencryption complete."
+
 backup:
 	mkdir -p opcenter.bkp
 	cp .env opcenter.bkp/

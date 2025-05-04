@@ -5,7 +5,6 @@ resources:
   - ../_middlewares
   - namespace.yaml
   - pvc.yaml
-  - lodestone
   - jackett
   - plex
   - radarr
