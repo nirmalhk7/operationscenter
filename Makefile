@@ -14,6 +14,7 @@ encrypt:
 
 reencrypt:
 	@echo "Reencrypting all .px.yaml files in clusters directory..."
+	kubeseal --fetch-cert > pub-sealed-secrets.pem
 	@find clusters -type f -name "*.px.yaml" -exec echo "Processing {}" \; -exec make encrypt FILE={} \;
 	@echo "Reencryption complete."
 
