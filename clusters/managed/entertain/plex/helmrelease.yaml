@@ -10,7 +10,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: plex
-        namespace: flux-system
   values:
     persistence: 
       media:

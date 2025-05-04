@@ -12,7 +12,7 @@ spec:
       chart: sonarr
       sourceRef:
         kind: HelmRepository
-        name: geek-charts
+        name: bananaspliff-geek-charts
       version: "*"
   values:
     replicaCount: 1

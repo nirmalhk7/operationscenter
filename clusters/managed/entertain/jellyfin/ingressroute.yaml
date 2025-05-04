@@ -1,7 +1,7 @@
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: plex
+  name: jelly
   annotations:
     gethomepage.dev/app: plex
     gethomepage.dev/enabled: "true"

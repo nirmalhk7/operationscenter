@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - ../_middlewares
+  - _repositories
   - namespace.yaml
   - homepage
   - task

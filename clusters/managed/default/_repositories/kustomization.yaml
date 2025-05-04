@@ -3,8 +3,4 @@ kind: Kustomization
 
 
 resources:
-  - helmrelease.yaml
-
-labels:
-  - pairs:
-      milano.app: jackett
+  - kolaente.yaml

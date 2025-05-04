@@ -1,8 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: radarr
-  namespace: flux-system
+  name: plcnk
 spec:
-  url: https://bananaspliff.github.io/geek-charts
+  url: https://charts.plcnk.net
   interval: 1h

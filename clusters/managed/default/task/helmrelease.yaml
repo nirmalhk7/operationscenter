@@ -12,7 +12,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: kolaente
-        namespace: flux-system
   values:
     vikunja:
       configMaps:

@@ -1,8 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: locust
-  namespace: flux-system
+  name: deliveryhero-helm-charts
 spec:
   url: https://raw.githubusercontent.com/deliveryhero/helm-charts/refs/heads/master/
   interval: 1h

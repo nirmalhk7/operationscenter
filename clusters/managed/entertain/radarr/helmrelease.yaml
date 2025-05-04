@@ -10,8 +10,7 @@ spec:
       chart: radarr
       sourceRef:
         kind: HelmRepository
-        name: radarr
-        namespace: flux-system
+        name: bananaspliff-geek-charts
       version: "*"
   values:
     replicaCount: 1
