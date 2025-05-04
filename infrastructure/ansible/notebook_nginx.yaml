@@ -1,0 +1,56 @@
+---
+- name: Deploy Nginx Configuration
+  hosts: nginx_vms
+  become: yes
+  vars:
+    repo_url: https://github.com/nirmalhk7/operationscenter.git
+    repo_dest: /tmp/operationscenter
+    nginx_conf_dir: /etc/nginx
+
+  tasks:
+    - name: Ensure git is installed
+      package:
+        name: git
+        state: present
+
+    - name: Clone/update repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ repo_dest }}"
+        version: main
+        force: yes
+
+    - name: Copy Nginx configuration files
+      copy:
+        src: "{{ repo_dest }}/nginx/"
+        dest: "{{ nginx_conf_dir }}/"
+        remote_src: yes
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Test Nginx configuration
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display Nginx configuration test results
+      debug:
+        msg: "{{ nginx_test.stdout_lines }}"
+
+    - name: Restart Nginx service if configuration test passed
+      service:
+        name: nginx
+        state: restarted
+      when: nginx_test.rc == 0
+
+    - name: Fail if Nginx configuration test failed
+      fail:
+        msg: "Nginx configuration test failed: {{ nginx_test.stderr }}"
+      when: nginx_test.rc != 0
+
+    - name: Clean up temporary files
+      file:
+        path: "{{ repo_dest }}"
+        state: absent
