@@ -1,8 +1,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: hashicorp
+  name: authentik
   namespace: flux-system
 spec:
-  url: https://helm.releases.hashicorp.com
   interval: 1h
+  url: https://charts.goauthentik.io/

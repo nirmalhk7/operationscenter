@@ -1,8 +1,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: hashicorp
+  name: bananaspliff-geek-charts
   namespace: flux-system
 spec:
-  url: https://helm.releases.hashicorp.com
+  url: https://bananaspliff.github.io/geek-charts
   interval: 1h

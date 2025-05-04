@@ -1,12 +1,19 @@
-apiVersion: helm.cattle.io/v1
-kind: HelmChart
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
 metadata:
   name: transmission
 spec:
-  chart: transmission-openvpn
-  repo: https://bananaspliff.github.io/geek-charts
-  targetNamespace: mgd-entertain
-  valuesContent: |-
+  releaseName: transmission
+  chart:
+    spec:
+      chart: transmission-openvpn
+      sourceRef:
+        kind: HelmRepository
+        name: geek-charts
+        namespace: flux-system
+      version: "*"
+  interval: 1m
+  values:
     replicaCount: 1
 
     image:

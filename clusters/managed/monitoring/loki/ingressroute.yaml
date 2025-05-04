@@ -1,0 +1,31 @@
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: loki
+  labels:
+    app.kubernetes.io/name: loki
+  annotations:
+    gethomepage.dev/href: "https://logs.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Observability
+    gethomepage.dev/icon: loki
+    gethomepage.dev/app: loki # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: loki
+    gethomepage.dev/widget.type: "loki"
+    gethomepage.dev/widget.url: "https://logs.trusted.nirmalhk7.com"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/name=loki"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`logs.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: main-loki
+          port: 80
+      middlewares:
+        - name: mgd-ratelimit
+        # - name: mgd-https
+        - name: mgd-headervalidation

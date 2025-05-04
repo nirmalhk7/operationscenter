@@ -5,6 +5,7 @@ namespace: mgd-devbench
 
 resources:
   - helmchart.yaml
+  - helmrelease.yaml
   - ingressroute.yaml
 
 labels:

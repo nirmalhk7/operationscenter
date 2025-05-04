@@ -1,8 +1,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
+kind: OCIRepository
 metadata:
-  name: plcnk
+  name: kolaente
   namespace: flux-system
 spec:
-  url: https://charts.plcnk.net
   interval: 1h
+  url: oci://kolaente.dev/vikunja

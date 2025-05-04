@@ -3,11 +3,10 @@ kind: Kustomization
 
 
 resources:
-  - helmchart.yaml
   - ingressroute.yaml
-  - redis_deploy.yaml
-  - redis_svc.yaml
+  - helmrelease.yaml
+  - helmrepository.yaml
 
 labels:
   - pairs:
-      milano.app: docs
+      milano.app: loki

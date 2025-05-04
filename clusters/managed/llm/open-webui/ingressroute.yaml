@@ -2,7 +2,6 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
   name: ollama-ingress
-  namespace: mgd-default
   annotations:
     gethomepage.dev/href: "https://llms.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"

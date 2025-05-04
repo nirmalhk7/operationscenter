@@ -1,0 +1,27 @@
+
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: tools
+spec:
+  releaseName: tools
+  chart:
+    spec:
+      chart: it-tools
+      sourceRef:
+        kind: HelmRepository
+        name: plcnk
+        namespace: flux-system
+      version: "*"
+  values:
+    controllers:
+      main:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/sharevb/it-tools
+              tag: nightly
+
+    persistence:
+      data:
+        storageClass: milano-v2

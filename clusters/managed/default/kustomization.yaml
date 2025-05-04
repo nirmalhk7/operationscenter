@@ -6,6 +6,5 @@ resources:
   - namespace.yaml
   - homepage
   - task
-  - docs
 
 namespace: mgd-default

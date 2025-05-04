@@ -1,9 +1,0 @@
-apiVersion: helm.cattle.io/v1
-kind: HelmChart
-metadata:
-  name: velero
-spec:
-  chart: velero
-  version: 8.4.0
-  repo: https://vmware-tanzu.github.io/helm-charts/
-  targetNamespace: mgd-security

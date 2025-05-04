@@ -12,7 +12,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: hashicorp
-        namespace: mgd-security
+        namespace: flux-system
   values:
     global:
       namespace: mgd-security

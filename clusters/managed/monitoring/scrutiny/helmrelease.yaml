@@ -11,4 +11,4 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: scrutiny-repo
-        namespace: mgd-monitoring
+        namespace: flux-system
