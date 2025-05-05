@@ -10,15 +10,13 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: bitnami
-        namespace: flux-system
-  interval: 1h
+  interval: 10m
   releaseName: gitea
   targetNamespace: mgd-devbench
   values:
     commonLabels:
       milano.app: gitea
       milano.level: managed
-
     postgresql:
       enabled: false
 

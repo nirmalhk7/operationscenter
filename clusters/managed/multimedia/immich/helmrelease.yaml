@@ -11,9 +11,8 @@ spec:
       version: 0.9.2
       sourceRef:
         kind: HelmRepository
-        name: immich
-        namespace: flux-system
-  interval: 1m
+        name: immich-helm-charts
+  interval: 10m
   values:
     image:
       tag: v1.130.3

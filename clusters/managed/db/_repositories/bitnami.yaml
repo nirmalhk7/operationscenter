@@ -1,8 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: open-webui
-  namespace: flux-system
+  name: bitnami
 spec:
-  url: https://helm.openwebui.com
+  url: https://charts.bitnami.com/bitnami
   interval: 1h

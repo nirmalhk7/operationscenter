@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: mgd-devbench
 
 resources:
-  - helmrepository.yaml
   - helmrelease.yaml
   - ingressroute.yaml
 

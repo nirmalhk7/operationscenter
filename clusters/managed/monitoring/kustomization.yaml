@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ../_middlewares
   - namespace.yaml
+  - _repositories
   - grafana
   - prometheus
   - scrutiny

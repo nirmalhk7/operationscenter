@@ -4,6 +4,7 @@ kind: HelmRelease
 metadata:
   name: tools
 spec:
+  interval: 10m
   releaseName: tools
   chart:
     spec:
@@ -11,7 +12,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: plcnk
-        namespace: flux-system
       version: "*"
   values:
     controllers:

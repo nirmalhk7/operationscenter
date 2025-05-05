@@ -1,8 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: vmware-tanzu
-  namespace: flux-system
+  name: gissilabs
 spec:
   interval: 1h
-  url: https://vmware-tanzu.github.io/helm-charts/
+  url: https://gissilabs.github.io/charts/

@@ -11,7 +11,7 @@ spec:
         kind: HelmRepository
         name: bananaspliff-geek-charts
       version: "*"
-  interval: 1m
+  interval: 10m
   values:
     replicaCount: 1
 

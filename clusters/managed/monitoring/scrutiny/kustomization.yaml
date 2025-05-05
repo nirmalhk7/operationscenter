@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - helmrelease.yaml
-  - helmrepository.yaml
   - ingressroute.yaml
 
 labels:

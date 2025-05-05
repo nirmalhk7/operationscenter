@@ -1,8 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: gissilabs
-  namespace: flux-system
+  name: authentik
 spec:
   interval: 1h
-  url: https://gissilabs.github.io/charts/
+  url: https://charts.goauthentik.io/

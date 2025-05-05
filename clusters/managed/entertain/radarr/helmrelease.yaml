@@ -4,7 +4,7 @@ metadata:
   name: radarr
 spec:
   releaseName: radarr
-  interval: 1h
+  interval: 10m
   chart:
     spec:
       chart: radarr

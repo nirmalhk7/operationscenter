@@ -10,8 +10,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
-        namespace: flux-system
-  interval: 1h
+  interval: 10m
   releaseName: main
   targetNamespace: mgd-monitoring
   values:

@@ -5,7 +5,6 @@ kind: Kustomization
 resources:
   - ingressroute.yaml
   - helmrelease.yaml
-  - helmrepository.yaml
 
 labels:
   - pairs:
