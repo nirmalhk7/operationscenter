@@ -127,7 +127,7 @@ spec:
         command:
         - controller
         env: []
-        image: docker.io/bitnami/sealed-secrets-controller:0.26.0
+        image: docker.io/bitnami/sealed-secrets-controller:0.29.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
