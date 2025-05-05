@@ -10,7 +10,7 @@ spec:
       chart: vikunja
       version: 1.0.0
       sourceRef:
-        kind: HelmRepository
+        kind: OCIRepository
         name: kolaente
   values:
     vikunja:
