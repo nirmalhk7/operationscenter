@@ -3,5 +3,5 @@ kind: Kustomization
 
 
 resources:
-  - immich-helm-charts
-  - nextcloud-helm
+  - immich-helm-charts.yaml
+  - nextcloud-helm.yaml

@@ -3,5 +3,5 @@ kind: Kustomization
 
 resources:
 - bananaspliff-geek-charts.yaml
-- bjw-s-helm-charts.yaml
+- beluga-cloud.yaml
 - plex.yaml

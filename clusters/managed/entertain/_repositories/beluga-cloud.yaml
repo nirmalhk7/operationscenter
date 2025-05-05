@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: bjw-s-helm-charts
+  name: beluga-cloud
 spec:
-  url: https://bjw-s.github.io/helm-charts
+  url: https://beluga-cloud.github.io/charts/
   interval: 1h
