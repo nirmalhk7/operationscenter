@@ -4,6 +4,7 @@ kind: HelmRelease
 metadata:
   name: tools
 spec:
+  interval: 1h
   releaseName: tools
   chart:
     spec:

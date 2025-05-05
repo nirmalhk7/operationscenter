@@ -3,6 +3,7 @@ kind: HelmRelease
 metadata:
   name: jellyfin
 spec:
+  interval: 1h
   releaseName: jellyfin
   chart:
     spec:
