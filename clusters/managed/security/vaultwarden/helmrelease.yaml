@@ -18,10 +18,10 @@ spec:
       type: postgresql
 
     vaultwarden:
-      allowSignups: true
+      allowSignups: false
       verifySignup: false
       requireEmail: false
-      allowInvitation: true
+      allowInvitation: false
       showPasswordHint: false
       enableWebVault: true
       enableSends: true

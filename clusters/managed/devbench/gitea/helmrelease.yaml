@@ -3,13 +3,9 @@ kind: HelmRelease
 metadata:
   name: gitea
 spec:
-  chart:
-    spec:
-      chart: gitea
-      version: 3.2.1
-      sourceRef:
-        kind: HelmRepository
-        name: bitnami
+  chartRef:
+    kind: OCIRepository
+    name: bitnami
   interval: 10m
   releaseName: gitea
   targetNamespace: mgd-devbench

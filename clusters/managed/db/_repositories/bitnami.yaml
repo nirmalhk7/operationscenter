@@ -1,7 +1,9 @@
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
 metadata:
   name: bitnami
 spec:
-  url: https://charts.bitnami.com/bitnami
   interval: 1h
+  url: oci://registry-1.docker.io/bitnamicharts
+  layerSelector:
+    mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
