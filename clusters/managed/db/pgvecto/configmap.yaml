@@ -28,6 +28,7 @@ data:
       END IF;
       GRANT ALL PRIVILEGES ON DATABASE authentik TO svc_authentik;
     END
+    $$;
 
     CREATE DATABASE docmost;
     DO $$
@@ -39,6 +40,7 @@ data:
       END IF;
       GRANT ALL PRIVILEGES ON DATABASE docmost TO svc_docmost;
     END
+    $$;
 
     CREATE DATABASE vaultwarden;
     DO $$

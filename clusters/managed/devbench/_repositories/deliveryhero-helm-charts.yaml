@@ -5,3 +5,4 @@ metadata:
 spec:
   url: https://raw.githubusercontent.com/deliveryhero/helm-charts/refs/heads/master/
   interval: 1h
+  type: oci 
