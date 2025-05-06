@@ -14,17 +14,17 @@ spec:
         name: kolaente
   values:
     vikunja:
-      configMaps:
-        api-config:
-          enabled: true
-          data:
-            config.yml: |
-              typesense:
-                url: "http://{{ printf \"%s-typesense\" .Release.Name }}:8108"
-                apiKey: "{{ .Values.typesense.env.TYPESENSE_API_KEY }}"
-              redis:
-                host: "{{ printf \"%s-redis-master\" .Release.Name }}:6379"
-                db: "{{ .Release.Name }}"
+      # configMaps:
+      #   api-config:
+      #     enabled: true
+      #     data:
+      #       config.yml: |
+      #         typesense:
+      #           url: "http://{{`{{ printf "%s-typesense" .Release.Name }}`}}:8108"
+      #           apiKey: "{{`{{ .Values.typesense.env.TYPESENSE_API_KEY }}`}}"
+      #         redis:
+      #           host: "{{`{{ printf "%s-redis-master" .Release.Name }}`}}:6379"
+      #           db: "{{`{{ .Release.Name }}`}}"
       env:
         VIKUNJA_API_URL: https://task.trusted.nirmalhk7.com
         VIKUNJA_DATABASE_TYPE: "mysql"

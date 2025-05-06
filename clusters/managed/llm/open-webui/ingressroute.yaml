@@ -9,6 +9,7 @@ metadata:
     gethomepage.dev/icon: "open-webui-light"
     gethomepage.dev/app: "open-webui" # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: "Open WebUI"
+    gethomepage.dev/pod-selector: "milano.app=open-webui"
 spec:
   entryPoints:
     - websecure
