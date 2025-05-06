@@ -12,5 +12,6 @@ resources:
   - sonarr
   - transmission
   - jellyfin
+  - pterodactyl
   
 namespace: mgd-entertain
