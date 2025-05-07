@@ -5,3 +5,4 @@ resources:
   - bitnami.yaml
   - deliveryhero-helm-charts.yaml
   - plcnk.yaml
+  - sonarqube.yaml
