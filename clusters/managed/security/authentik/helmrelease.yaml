@@ -68,7 +68,7 @@ spec:
       error_reporting:
         enabled: false
       postgresql:
-        password: 
+        password: "testvlaue"
 
     redis:
       enabled: true
