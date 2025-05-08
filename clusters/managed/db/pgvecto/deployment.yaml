@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgvecto
+  labels:
+    app: pgvecto-db
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pgvecto-db
+  template:
+    metadata:
+      labels:
+        app: pgvecto-db
+        milano.app: immich
+        milano.level: managed
+    spec:
+      containers:
+        - name: pgvecto-rs
+          image: tensorchord/pgvecto-rs:pg14-v0.2.0
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: pgvecto
+                  key: POSTGRESQL_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgvecto
+                  key: POSTGRESQL_PASSWORD
+            - name: POSTGRES_DB
+              value: default
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgresql-data
+              mountPath: /bitnami/postgresql
+            - name: pgvecto-init-script
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: postgresql-data
+          persistentVolumeClaim:
+            claimName: pgvecto
+        - name: pgvecto-init-script
+          configMap:
+            name: pgvecto-init-script
