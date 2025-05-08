@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - _repositories
-  - pgvecto
-  - maria
+  - cloudnativepg
 
 namespace: mgd-db

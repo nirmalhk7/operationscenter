@@ -3,5 +3,8 @@ kind: Kustomization
 
 
 resources:
-  - bitnami.yaml
-  - cnpg.yaml
+  - helmrelease.yaml
+
+labels:
+  - pairs:
+      milano.app: cloudnativepg
