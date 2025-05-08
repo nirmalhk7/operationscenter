@@ -4,6 +4,11 @@ metadata:
   name: cn-postgres
 spec:
   instances: 3
+  superuserSecret:
+    name: cn-postgres-secret
+  envFrom:
+    - secretRef: 
+        name: cn-postgres-secret
   imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:16.8
   storage:
     size: 2Gi
@@ -11,8 +16,50 @@ spec:
   postgresql:
     shared_preload_libraries:
       - "vectors.so"
+  managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: "cn-postgres-np"
+            spec:
+              type: NodePort
   bootstrap:
     initdb:
       postInitSQL:
         - ALTER SYSTEM SET search_path TO "$user", public, vectors;
         - CREATE EXTENSION IF NOT EXISTS "vectors";
+        - CREATE DATABASE authentik;
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'svc_authentik') THEN
+              CREATE USER svc_authentik WITH PASSWORD '${SVC_APP_PASSWORD}';
+            ELSE
+              ALTER USER svc_authentik WITH PASSWORD '${SVC_APP_PASSWORD}';
+            END IF;
+            GRANT ALL PRIVILEGES ON DATABASE authentik TO svc_authentik;
+          END
+          $$;
+        - CREATE DATABASE docmost;
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'svc_docmost') THEN
+              CREATE USER svc_docmost WITH PASSWORD '${SVC_APP_PASSWORD}';
+            ELSE
+              ALTER USER svc_docmost WITH PASSWORD '${SVC_APP_PASSWORD}';
+            END IF;
+            GRANT ALL PRIVILEGES ON DATABASE docmost TO svc_docmost;
+          END
+          $$;
+        - CREATE DATABASE vaultwarden;
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'svc_vaultwarden') THEN
+              CREATE USER svc_vaultwarden WITH PASSWORD '${SVC_APP_PASSWORD}';
+            ELSE
+              ALTER USER svc_vaultwarden WITH PASSWORD '${SVC_APP_PASSWORD}';
+            END IF;
+            GRANT ALL PRIVILEGES ON DATABASE vaultwarden TO svc_vaultwarden;
+          END
+          $$;
