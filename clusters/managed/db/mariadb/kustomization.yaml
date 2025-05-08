@@ -3,9 +3,10 @@ kind: Kustomization
 
 
 resources:
-  - helmrelease.yaml
+  - mariadb-operator.yaml
+  - mariadb-operator-crds.yaml
   - dbcluster.yaml
 
 labels:
   - pairs:
-      milano.app: cloudnative-pg
+      milano.app: cloudnative-maria

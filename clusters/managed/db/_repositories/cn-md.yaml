@@ -1,0 +1,7 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: cnmd
+spec:
+  url: https://helm.mariadb.com/mariadb-operator
+  interval: 1h
