@@ -25,6 +25,9 @@ spec:
               name: "cn-postgres-np"
             spec:
               type: NodePort
+              ports:
+                - port: 5432
+                  nodePort: 30555
   bootstrap:
     initdb:
       postInitSQL:
