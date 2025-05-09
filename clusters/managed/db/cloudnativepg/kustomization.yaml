@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - helmrelease.yaml
   - dbcluster.yaml
+  - cn-postgres-secret.yaml
 
 labels:
   - pairs:

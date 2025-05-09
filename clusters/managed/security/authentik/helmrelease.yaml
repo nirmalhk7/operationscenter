@@ -18,9 +18,6 @@ spec:
       podLabels:
         milano.app: authentik
         milano.level: managed
-      additionalLabels:
-        milano.app: authentik
-        milano.level: managed
       env:
         - name: AUTHENTIK_POSTGRESQL__HOST
           valueFrom:

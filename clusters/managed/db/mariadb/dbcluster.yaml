@@ -6,3 +6,8 @@ spec:
   storage:
     size: 2Gi
     storageClassName: milano-v2
+
+  username: root
+  rootPasswordSecretKeyRef:
+    name: abc_secretname
+    key: abc_secretkey
