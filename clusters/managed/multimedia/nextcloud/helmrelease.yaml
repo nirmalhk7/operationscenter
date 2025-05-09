@@ -55,7 +55,7 @@ spec:
       enabled: true
       type: mysql
       database: nextcloud
-      host: maria-mariadb-primary.mgd-db.svc.cluster.local:3306
+      host: cn-mariadb.mgd-db.svc.cluster.local:3306
       existingSecret:
         enabled: true
         secretName: nextcloud-credentials

@@ -28,8 +28,11 @@ spec:
               ports:
                 - port: 5432
                   nodePort: 30555
+  enableSuperuserAccess: true
   bootstrap:
     initdb:
+      secret:
+        name: cn-postgres-secret
       postInitSQL:
         - ALTER SYSTEM SET search_path TO "$user", public, vectors;
         - CREATE EXTENSION IF NOT EXISTS "vectors";
