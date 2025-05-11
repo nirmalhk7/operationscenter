@@ -6,6 +6,7 @@ resources:
   - helmrelease.yaml
   - dbcluster.yaml
   - cn-postgres-secret.yaml
+  - cn-postscriptscm.yaml
 
 labels:
   - pairs:

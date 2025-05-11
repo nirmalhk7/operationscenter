@@ -31,41 +31,10 @@ spec:
   enableSuperuserAccess: true
   bootstrap:
     initdb:
-      secret:
-        name: cn-postgres-secret
-      postInitSQL:
-        - ALTER SYSTEM SET search_path TO "$user", public, vectors;
-        - CREATE EXTENSION IF NOT EXISTS "vectors";
-        - CREATE DATABASE authentik;
-        - DO $$
-          BEGIN
-            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'svc_authentik') THEN
-              EXECUTE format('CREATE USER svc_authentik WITH PASSWORD %L', '${SVC_APP_PASSWORD}');
-            ELSE
-              EXECUTE format('ALTER USER svc_authentik WITH PASSWORD %L', '${SVC_APP_PASSWORD}');
-            END IF;
-            GRANT ALL PRIVILEGES ON DATABASE authentik TO svc_authentik;
-          END
-          $$ LANGUAGE plpgsql;
-        - CREATE DATABASE docmost;
-        - DO $$
-          BEGIN
-            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'svc_docmost') THEN
-              EXECUTE format('CREATE USER svc_docmost WITH PASSWORD %L', '${SVC_APP_PASSWORD}');
-            ELSE
-              EXECUTE format('ALTER USER svc_docmost WITH PASSWORD %L', '${SVC_APP_PASSWORD}');
-            END IF;
-            GRANT ALL PRIVILEGES ON DATABASE docmost TO svc_docmost;
-          END
-          $$ LANGUAGE plpgsql;
-        - CREATE DATABASE vaultwarden;
-        - DO $$
-          BEGIN
-            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'svc_vaultwarden') THEN
-              EXECUTE format('CREATE USER svc_vaultwarden WITH PASSWORD %L', '${SVC_APP_PASSWORD}');
-            ELSE
-              EXECUTE format('ALTER USER svc_vaultwarden WITH PASSWORD %L', '${SVC_APP_PASSWORD}');
-            END IF;
-            GRANT ALL PRIVILEGES ON DATABASE vaultwarden TO svc_vaultwarden;
-          END
-          $$ LANGUAGE plpgsql;
+      postInitTemplateSQLRefs:
+        configMapRefs:
+          - name: cn-postscriptscm
+            key: setup.sql
+        secretRefs:
+          - name: cn-postgres-secret
+            key: SVC_APP_PASSWORD
