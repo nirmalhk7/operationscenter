@@ -5,10 +5,7 @@ metadata:
 spec:
   instances: 3
   superuserSecret:
-    name: cn-postgres-secret
-  envFrom:
-    - secretRef: 
-        name: cn-postgres-secret
+    name: secret-postgres
   imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:16.8
   storage:
     size: 2Gi
@@ -28,13 +25,23 @@ spec:
               ports:
                 - port: 5432
                   nodePort: 30555
+    roles:
+      - name: svc_authentik
+        comment: Authentik Credentials
+        ensure: present
+        login: true
+        passwordSecret:
+          name: secret-other
+      - name: svc_vaultwarden
+        comment: Vaultwarden Credentials
+        ensure: present
+        login: true
+        passwordSecret:
+          name: secret-other
+      - name: svc_docsmost
+        comment: Docsmost Credentials
+        ensure: present
+        login: true
+        passwordSecret:
+          name: secret-other
   enableSuperuserAccess: true
-  bootstrap:
-    initdb:
-      postInitTemplateSQLRefs:
-        configMapRefs:
-          - name: cn-postscriptscm
-            key: setup.sql
-        secretRefs:
-          - name: cn-postgres-secret
-            key: SVC_APP_PASSWORD
