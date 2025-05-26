@@ -6,3 +6,4 @@ resources:
   - deliveryhero-helm-charts.yaml
   - plcnk.yaml
   - gitea.yaml
+  - sonarqube.yaml

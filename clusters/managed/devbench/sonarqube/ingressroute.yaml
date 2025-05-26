@@ -1,0 +1,25 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarqube
+  annotations:
+    gethomepage.dev/href: "https://sonarqube.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Devbench
+    gethomepage.dev/icon: sonarqube
+    gethomepage.dev/app: sonarqube # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: sonarqube
+    gethomepage.dev/pod-selector: "milano.app=sonarqube"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`sonarqube.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: sonarqube-sonarqube
+          port: 9000
+      middlewares:
+        # - name: mgd-https
+        - name: mgd-headervalidation

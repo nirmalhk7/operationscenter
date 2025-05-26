@@ -1,0 +1,18 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sonarqube
+spec:
+  interval: 10m
+  releaseName: sonarqube
+  chart:
+    spec:
+      chart: sonarqube
+      sourceRef:
+        kind: HelmRepository
+        name: sonarqube
+      version: "*"
+  values:
+    edition: developer
+    monitoringPasscodeSecretName: sonarqube-secret
+    monitoringPasscodeSecretKey: MONITORING_PASSCODE
