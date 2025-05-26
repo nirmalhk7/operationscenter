@@ -3,20 +3,20 @@ kind: IngressRoute
 metadata:
   name: gitea
   annotations:
-    gethomepage.dev/href: "https://gitea.trusted.nirmalhk7.com"
+    gethomepage.dev/href: "https://git.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Devbench
     gethomepage.dev/description: "Gitea"
     gethomepage.dev/icon: gitea
     gethomepage.dev/app: gitea # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
-    gethomepage.dev/name: gitea
+    gethomepage.dev/name: Git
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=gitea"
 spec:
   entryPoints:
     - websecure
     - web
   routes:
-    - match: Host(`gitea.trusted.nirmalhk7.com`)
+    - match: Host(`git.trusted.nirmalhk7.com`)
       kind: Rule
       services:
         - name: gitea-http

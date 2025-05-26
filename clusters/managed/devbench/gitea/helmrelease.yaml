@@ -4,26 +4,10 @@ metadata:
   name: gitea
 spec:
   chartRef:
-    kind: OCIRepository
-    name: bitnami
+    kind: HelpRepository
+    name: gitea
   interval: 10m
   releaseName: gitea
   targetNamespace: mgd-devbench
   values:
-    commonLabels:
-      milano.app: gitea
-      milano.level: managed
-    postgresql:
-      enabled: false
-
-    postgresql-ha:
-      enabled: false
-
-    adminUsername: nirmalhk7
-    adminEmail: nirmalhk7
-    extraEnvVarsSecret: gitea-secrets
     
-    rootURL: gitea.trusted.nirmalhk7.com
-    externalDatabase:
-      existingSecret: "gitea-secrets"
-      existingSecretPasswordKey: "DB-PASSWORD"

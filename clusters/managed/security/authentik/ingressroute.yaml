@@ -3,14 +3,15 @@ kind: IngressRoute
 metadata:
   name: authentik
   annotations:
-    gethomepage.dev/href: "https://authentik.trusted.nirmalhk7.com"
+    gethomepage.dev/href: "https://secure.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Security
     gethomepage.dev/icon: authentik
     gethomepage.dev/app: authentik # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
-    gethomepage.dev/name: Authentik
+    gethomepage.dev/name: Secure
+    gethomepage.dev/description: "Authentik"
     gethomepage.dev/widget.type: "authentik"
-    gethomepage.dev/widget.url: "https://authentik.trusted.nirmalhk7.com"
+    gethomepage.dev/widget.url: "https://secure.trusted.nirmalhk7.com"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=authentik"
     gethomepage.dev/widget.key: L2cP2qFi88g2a6vMFrHBPiaGxJOrGUfHbFldFtRVXjxrDJyW3slG5gca1Sss
 spec:
@@ -18,7 +19,7 @@ spec:
     - websecure
     - web
   routes:
-    - match: Host(`authentik.trusted.nirmalhk7.com`)
+    - match: Host(`secure.trusted.nirmalhk7.com`)
       kind: Rule
       services:
         - name: authentik-server
