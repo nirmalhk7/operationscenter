@@ -25,7 +25,3 @@ spec:
       services:
         - name: main-loki
           port: 80
-      middlewares:
-        - name: mgd-ratelimit
-        # - name: mgd-https
-        - name: mgd-headervalidation

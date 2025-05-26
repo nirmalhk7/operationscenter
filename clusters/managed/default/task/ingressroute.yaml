@@ -23,7 +23,3 @@ spec:
       services:
         - name: vikunja
           port: 3456
-      middlewares:
-        # - name: mgd-https
-        - name: mgd-ratelimit
-        - name: mgd-headervalidation

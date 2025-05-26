@@ -22,10 +22,6 @@ spec:
   routes:
   - kind: Rule
     match: Host(`drive.trusted.nirmalhk7.com`)
-    middlewares:
-    # - name: mgd-https
-    - name: mgd-ratelimit
-    - name: mgd-headervalidation
     services:
     - name: nextcloud
       port: 8080

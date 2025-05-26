@@ -21,7 +21,3 @@ spec:
       services:
         - name: tools-it-tools
           port: 8080
-      middlewares:
-        # - name: mgd-https
-        - name: mgd-ratelimit
-        - name: mgd-headervalidation

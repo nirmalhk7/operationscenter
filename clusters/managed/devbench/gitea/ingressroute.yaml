@@ -21,6 +21,3 @@ spec:
       services:
         - name: gitea-http
           port: 3000
-      middlewares:
-        # - name: mgd-https
-        - name: mgd-headervalidation

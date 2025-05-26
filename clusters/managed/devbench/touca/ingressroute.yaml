@@ -20,7 +20,3 @@ spec:
       services:
         - name: touca-touca
           port: 8080
-      middlewares:
-        # - name: mgd-https
-        - name: mgd-ratelimit
-        - name: mgd-headervalidation

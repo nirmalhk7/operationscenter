@@ -17,9 +17,6 @@ spec:
   routes:
     - match: Host(`media.trusted.nirmalhk7.com`)
       kind: Rule
-      middlewares:
-      - name: mgd-ratelimit
-      - name: mgd-headervalidation
       services:
         - name: plex-plex-media-server
           port: 32400

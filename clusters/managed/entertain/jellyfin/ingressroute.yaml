@@ -17,9 +17,6 @@ spec:
   routes:
     - match: Host(`jelly.trusted.nirmalhk7.com`)
       kind: Rule
-      middlewares:
-      - name: mgd-ratelimit
-      - name: mgd-headervalidation
       services:
         - name: jellyfin
           port: 8096
