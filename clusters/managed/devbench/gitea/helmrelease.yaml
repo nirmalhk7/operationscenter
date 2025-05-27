@@ -3,9 +3,12 @@ kind: HelmRelease
 metadata:
   name: gitea
 spec:
-  chartRef:
-    kind: HelpRepository
-    name: gitea
+  chart:
+    spec:
+      chart: gitea
+      sourceRef:
+        kind: HelmRepository
+        name: gitea
   interval: 10m
   releaseName: gitea
   targetNamespace: mgd-devbench
