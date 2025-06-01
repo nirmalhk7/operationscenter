@@ -19,6 +19,8 @@ spec:
         milano.app: authentik
         milano.level: managed
       env:
+        - name: AUTHENTIK_HOST_BROWSER
+          value: "https://secure.trusted.nirmalhk7.com"
         - name: AUTHENTIK_POSTGRESQL__HOST
           valueFrom:
             secretKeyRef:
