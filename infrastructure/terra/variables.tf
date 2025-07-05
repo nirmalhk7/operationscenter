@@ -35,4 +35,10 @@ locals {
     alpine    = "local:vztmpl/alpine-3.18-default_20230607_amd64.tar.xz"
     centos9   = "local:vztmpl/centos-9-stream-default_20221109_amd64.tar.xz"
   }
+  os_isos = {
+    ubuntu    = "local:iso/ubuntu-22.04.2-desktop-amd64.iso"
+    kalilinux = "local:iso/kali-linux-2024.4-installer-netinst-amd64.iso"
+    debian = "local:iso/debian-12.9.0-amd64-DVD-1.iso"
+    alpine = "local:iso/alpine-standard-3.21.3-x86_64.iso"
+  }
 }

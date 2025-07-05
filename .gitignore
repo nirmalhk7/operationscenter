@@ -19,3 +19,4 @@ wikis
 **/terraform.tfplan.*
 **/*.tfvars
 !terraform.tfvars.example
+*.terraform.lock.hcl

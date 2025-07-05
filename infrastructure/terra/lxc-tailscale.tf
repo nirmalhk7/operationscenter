@@ -1,10 +1,10 @@
 locals {
   tailscale = {
-    resourceId = 211
+    resourceId = 200
   }
 }
 
-resource "proxmox_lxc" "testlxc" {
+resource "proxmox_lxc" "tailscale" {
   target_node  = "milano"
   hostname     = "tailscale"
   vmid         = local.tailscale.resourceId
