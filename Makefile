@@ -1,4 +1,3 @@
-
 install:
 	curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | \
   sh -s -- install
@@ -34,3 +33,10 @@ nginx_logs:
 
 encrypt_newkey:
 	kubeseal --fetch-cert --controller-name=sealed-secrets-controller --controller-namespace=flux-system > pub-sealed-secrets.pem
+
+terraform-reset:
+	cd infrastructure/terra && terraform state rm proxmox_lxc.testlxc || true
+	cd infrastructure/terra && terraform destroy -auto-approve
+
+terraform-apply:
+	cd infrastructure/terra && terraform init && terraform plan && terraform apply -auto-approve

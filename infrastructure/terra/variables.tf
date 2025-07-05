@@ -1,3 +1,38 @@
-variable "pm_api_url" {}
-variable "pm_user" {}
-variable "pm_password" {}
+variable "pm_api_url" {
+  description = "Proxmox API URL"
+  type        = string
+}
+
+variable "pm_user" {
+  description = "Proxmox user"
+  type        = string
+}
+
+variable "pm_password" {
+  description = "Proxmox password"
+  type        = string
+  sensitive   = true
+}
+
+variable "lxc_password" {
+  description = "LXC password"
+  type        = string
+  sensitive   = true
+}
+
+variable "vm_password" {
+  description = "VM password"
+  type        = string
+  sensitive   = true
+}
+
+locals {
+  os_templates = {
+    debian12  = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
+    debian11  = "local:vztmpl/debian-11-standard_11.7-1_amd64.tar.zst"
+    ubuntu22  = "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
+    ubuntu20  = "local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.zst"
+    alpine    = "local:vztmpl/alpine-3.18-default_20230607_amd64.tar.xz"
+    centos9   = "local:vztmpl/centos-9-stream-default_20221109_amd64.tar.xz"
+  }
+}

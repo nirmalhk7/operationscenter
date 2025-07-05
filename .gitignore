@@ -5,6 +5,17 @@ opcenter.bkp.zip
 .DS_Store
 start.sh
 wikis
-**/*.terraform.tfvars
-**/*.terraform
 .vscode
+
+# Terraform
+**/*terraform.tfvars
+**/*.terraform/
+**/*.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.backup
+**/.terraform/
+**/terraform.tfplan
+**/terraform.tfplan.*
+**/*.tfvars
+!terraform.tfvars.example
