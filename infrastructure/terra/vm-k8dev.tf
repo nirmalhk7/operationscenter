@@ -18,7 +18,7 @@ resource "proxmox_vm_qemu" "k8mgd" {
 
   # Disk
   disk {
-    size     = "100G"
+    size     = "50G"
     type     = "scsi"
     storage  = "local"
   }
