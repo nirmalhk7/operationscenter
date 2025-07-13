@@ -44,3 +44,13 @@ terraform-reset:
 
 terraform-apply:
 	cd infrastructure/terra && terraform init && terraform plan && terraform apply -auto-approve
+
+# --- Ansible ---
+ansible-install:
+	pip install --user ansible
+
+ansible-notebooks: ansible-install
+	cd infrastructure/ansible && for nb in *.ansible.yml; do \
+	  echo "Running $$nb"; \
+	  ansible-playbook -i inventory.ini "$$nb"; \
+	done

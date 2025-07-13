@@ -28,7 +28,13 @@ data:
             - icon: linkace
               href: https://dashboardicons.com/icons
   services.yaml: |
-    - Networking/ OS:
+    - Devbench:
+        - DevWorld:
+            icon: appwrite
+            href: https://devworld.trusted.nirmalhk7.com/
+            description: Appwrite
+            siteMonitor: https://devworld.trusted.nirmalhk7.com/
+    - Networking:
         - Tailscale:
             icon: tailscale-light	
             href: https://login.tailscale.com/admin/machines

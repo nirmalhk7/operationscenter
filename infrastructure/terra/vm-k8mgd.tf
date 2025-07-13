@@ -18,10 +18,11 @@ resource "proxmox_vm_qemu" "k8mgd" {
 
   # Disk
   disk {
-    size     = "50G"
+    size     = 50
     type     = "scsi"
     storage  = "local"
   }
+
 
   # Network
   network {
