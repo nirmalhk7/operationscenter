@@ -38,6 +38,9 @@ nginx-logs:
 	tail -f /var/log/nginx/error.log /var/log/nginx/access.log
 
 # --- Terraform ---
+terraform-clear:
+	cd infrastructure/terra && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup
+
 terraform-reset:
 	cd infrastructure/terra && terraform state rm proxmox_lxc.testlxc || true
 	cd infrastructure/terra && terraform destroy -auto-approve

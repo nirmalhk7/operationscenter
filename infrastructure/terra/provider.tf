@@ -2,16 +2,18 @@ terraform {
   required_version = ">= 0.13.0"
   required_providers {
     proxmox = {
-        source = "telmate/proxmox"
-        version = "2.9.14"
+      source = "bpg/proxmox"
+      version = "0.79.0"
     }
   }
 }
 
 provider "proxmox" {
-  pm_api_url = var.pm_api_url
-  pm_user = var.pm_user
-  pm_password = var.pm_password
-  
-  pm_tls_insecure = true
+  endpoint = var.pm_api_url
+  username = var.pm_user
+  password = var.pm_password
+  insecure = true
+  ssh {
+    agent = true
+  }
 }
