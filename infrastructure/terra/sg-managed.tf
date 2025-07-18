@@ -3,41 +3,33 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
   comment = "Managed"
 
   rule {
-    action   = "ACCEPT"
-    comment  = "SSH access"
-    dest     = "+dc/mgd_ips"
-    dport    = "22"
     enabled  = true
-    log      = "nolog"
-    proto    = "tcp"
+    action   = "ACCEPT"
     type     = "in"
+    comment  = "Allow all inward access"
+    dest     = "+dc/ipset-mgd"
+    log      = "debug"
   }
 
   rule {
-    action   = "ACCEPT"
-    comment  = "Allow intra-group traffic"
-    dest     = "+dc/mgd_ips"
     enabled  = true
-    log      = "nolog"
-    source   = "+dc/mgd_ips"
-    type     = "in"
-  }
-
-  rule {
     action   = "DROP"
-    comment  = "Drop all other traffic"
-    dest     = "+dc/mgd_ips"
-    enabled  = true
-    log      = "nolog"
     type     = "in"
+    comment  = "Drop packets from dev"
+    source   = "+dc/ipset-dev"
+    dest     = "+dc/ipset-mgd"
+    log      = "debug"
   }
 
+
   rule {
-    action   = "ACCEPT"
-    comment  = "Allow global/dev internet traffic"
     enabled  = true
-    log      = "nolog"
-    source   = "+dc/mgd_ips"
+    action   = "ACCEPT"
     type     = "out"
+    source   = "+dc/ipset-mgd"
+    comment  = "Allow outbound internet traffic"
+    log      = "debug"
   }
+  
+  depends_on = [ proxmox_virtual_environment_container.lxc-tailscale ]
 }

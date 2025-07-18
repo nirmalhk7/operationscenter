@@ -4,29 +4,20 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
 
   rule {
     action   = "ACCEPT"
-    comment  = "Allow traffic from anywhere"
-    dest     = "+dc/dev_ips"
-    enabled  = true
-    log      = "nolog"
     type     = "in"
+    dest     = "+dc/ipset-dev"
+    comment  = "Allow traffic from anywhere"
+    log      = "nolog"
+    enabled  = true
   }
 
   rule {
     action   = "DROP"
+    source   = "+dc/ipset-dev"
+    type     = "out"
+    dest     = "+dc/ipset-mgd"
     comment  = "Drop traffic to managed"
-    dest     = "+dc/mgd_ips"
+    log      = "info"
     enabled  = true
-    log      = "nolog"
-    source   = "+dc/dev_ips"
-    type     = "out"
-  }
-
-  rule {
-    action   = "ACCEPT"
-    comment  = "Allow all global internet traffic"
-    enabled  = true
-    log      = "nolog"
-    source   = "+dc/dev_ips"
-    type     = "out"
   }
 }

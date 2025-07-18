@@ -42,4 +42,6 @@ locals {
     alpine = "local:iso/alpine-standard-3.21.3-x86_64.iso"
   }
   machineIp = "10.0.0.10"
+  machineSubnet = "172.16.0."
+  nodeName = "milano"
 }

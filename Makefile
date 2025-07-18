@@ -46,7 +46,7 @@ terraform-reset:
 	cd infrastructure/terra && terraform destroy -auto-approve
 
 terraform-apply:
-	cd infrastructure/terra && terraform init && terraform plan && terraform apply -auto-approve
+	cd infrastructure/terra && terraform init -upgrade && terraform plan && terraform apply -auto-approve
 
 # --- Ansible ---
 ansible-install:

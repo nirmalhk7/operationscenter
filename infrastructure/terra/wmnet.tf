@@ -1,8 +1,9 @@
 resource "proxmox_virtual_environment_network_linux_bridge" "wmnet" {
-  node_name   = "milano"
   name        = "wmnet"
-  address     = "172.16.0.0/24"
-  vlan_aware  = false
+  node_name   = local.nodeName
+  address     = "${local.machineSubnet}0/24"
+  gateway     = "${local.machineSubnet}1"
   autostart   = true
   comment     = "Main VM/LXC Intranet"
+  vlan_aware  = false
 }

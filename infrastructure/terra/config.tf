@@ -10,49 +10,25 @@ resource "proxmox_virtual_environment_cluster_firewall" "options" {
 }
 
 resource "proxmox_virtual_environment_dns" "milano" {
-  node_name = "milano"
+  node_name = local.nodeName
   domain    = "ns1.cloudflare.com"
   servers   = ["1.1.1.1", "1.0.0.1"]
 }
 
 resource "proxmox_virtual_environment_time" "milano" {
-  node_name  = "milano"
+  node_name  = local.nodeName
   time_zone  = "America/Denver"
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "inbound" {
-  node_name = "milano"
+  node_name = local.nodeName
 
   rule {
     type    = "in"
     action  = "ACCEPT"
-    comment = "Allow HTTP"
-    source  = local.machineIp
-    dport   = "80"
-    proto   = "tcp"
-    log     = "nolog"
-    enabled = true
-  }
-
-  rule {
-    type    = "in"
-    action  = "ACCEPT"
-    comment = "Allow HTTPS"
+    comment = "Allow internal traffic"
     dest    = local.machineIp
-    dport   = "443"
-    proto   = "tcp"
-    log     = "nolog"
-    enabled = true
-  }
-
-  rule {
-    type    = "in"
-    action  = "ACCEPT"
-    comment = "Allow SSH"
-    dest    = local.machineIp
-    dport   = "22"
-    proto   = "tcp"
-    log     = "nolog"
+    log     = "debug"
     enabled = true
   }
 
@@ -61,8 +37,7 @@ resource "proxmox_virtual_environment_firewall_rules" "inbound" {
     action  = "ACCEPT"
     comment = "All external traffic"
     dest    = local.machineIp
-    proto   = "tcp"
-    log     = "nolog"
+    log     = "debug"
     enabled = true
   }
 }
