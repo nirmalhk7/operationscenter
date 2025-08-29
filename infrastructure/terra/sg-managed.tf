@@ -31,5 +31,5 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     log      = "debug"
   }
   
-  depends_on = [ proxmox_virtual_environment_container.lxc-tailscale ]
+  
 }

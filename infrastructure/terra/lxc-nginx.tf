@@ -1,23 +1,24 @@
-resource "proxmox_virtual_environment_container" "lxc-tailscale" {
+resource "proxmox_virtual_environment_container" "lxc-nginx" {
 
-  description = "Tailscale entry point"
+  description = "NginX"
   node_name = local.nodeName
-  vm_id     = 102
+  vm_id     = 101
   tags = ["mgd"]
   pool_id = "${proxmox_virtual_environment_pool.pool-mgd.pool_id}"
 
   initialization {
-    hostname = "tailscale"
+    hostname = "nginx"
 
     ip_config {
       ipv4 {
-        address = "${local.machineSubnet}102/24"
+        address = "${local.machineSubnet}101/24"
         gateway = "${local.machineSubnet}1"
       }
     }
 
     user_account {
-        password = "${var.vm_password}102"
+        keys = [local.sshKeys.mgd]
+        password = "${var.vm_password}101"
     }
   }
 
@@ -57,14 +58,14 @@ resource "proxmox_virtual_environment_container" "lxc-tailscale" {
   }
 }
 
-resource "proxmox_virtual_environment_firewall_rules" "lxc-tailscale-sg" {
+resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
   depends_on = [ 
-    proxmox_virtual_environment_container.lxc-tailscale,
+    proxmox_virtual_environment_container.lxc-nginx,
     proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
   ]
 
   node_name = local.nodeName
-  vm_id     = proxmox_virtual_environment_container.lxc-tailscale.vm_id
+  vm_id     = proxmox_virtual_environment_container.lxc-nginx.vm_id
   
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
@@ -74,10 +75,10 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-tailscale-sg" {
   }
 }
 
-resource "proxmox_virtual_environment_firewall_options" "lxc-tailscale-config" {
-  depends_on = [ proxmox_virtual_environment_container.lxc-tailscale ]
+resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
+  depends_on = [ proxmox_virtual_environment_container.lxc-nginx ]
   node_name = local.nodeName
-  vm_id     = proxmox_virtual_environment_container.lxc-tailscale.vm_id
+  vm_id     = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
   enabled       = true
 }

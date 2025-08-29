@@ -20,3 +20,6 @@ wikis
 **/*.tfvars
 !terraform.tfvars.example
 *.terraform.lock.hcl
+
+# Ansible
+**/*.var.yaml

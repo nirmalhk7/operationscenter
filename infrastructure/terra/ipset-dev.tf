@@ -1,6 +1,7 @@
 resource "proxmox_virtual_environment_firewall_ipset" "ipset-dev" {
   node_name = local.nodeName
   name    = "ipset-dev"
+  comment = "Dev-tier IP set"
 
   cidr {
     name    = "${local.machineSubnet}200/30"

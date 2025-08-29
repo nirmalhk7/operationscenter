@@ -1,6 +1,7 @@
 resource "proxmox_virtual_environment_firewall_ipset" "ipset-mgd" {
   node_name = local.nodeName
   name    = "ipset-mgd"
+  comment = "Managed-tier IP set"
 
   cidr {
     name    = "${local.machineSubnet}100/30"
