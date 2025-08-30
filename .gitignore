@@ -2,6 +2,7 @@
 .env
 **/*.px.yaml
 opcenter.bkp.zip
+repo.bkp.zip
 .DS_Store
 start.sh
 wikis
@@ -23,3 +24,5 @@ wikis
 
 # Ansible
 **/*.var.yaml
+
+scripts/

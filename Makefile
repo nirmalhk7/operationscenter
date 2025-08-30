@@ -21,13 +21,21 @@ reencrypt:
 encrypt_newkey:
 	kubeseal --fetch-cert --controller-name=sealed-secrets-controller --controller-namespace=flux-system > pub-sealed-secrets.pem
 
+
+
 # --- Backup ---
-backup:
-	mkdir -p opcenter.bkp
-	cp .env opcenter.bkp/ || true
-	find . -type f -name "*.px.yaml" -exec rsync -R {} opcenter.bkp/ \;
-	zip -r opcenter.bkp.zip opcenter.bkp
-	rm -rf opcenter.bkp
+backup_nginx:
+	mkdir -p nginx.bkp
+	rsync -a nginx/ nginx.bkp/
+	(cd nginx.bkp && zip -r ../nginx.bkp.zip .)
+	rm -rf nginx.bkp
+
+backup_repo:
+	mkdir -p repo.bkp
+	cp .env repo.bkp/ || true
+	rsync -a --exclude='repo.bkp' --exclude='repo.bkp.zip' ./ repo.bkp/
+	zip -r repo.bkp.zip repo.bkp
+	rm -rf repo.bkp
 
 # --- Nginx ---
 nginx-build:
@@ -57,3 +65,11 @@ ansible-notebooks: ansible-install
 	  echo "Running $$nb"; \
 	  ansible-playbook -i inventory.ini "$$nb"; \
 	done
+
+# --- Kubernetes ---
+kubernetes-init:
+# 	kubectl apply -f https://raw.githubusercontent.com/mariadb-operator/mariadb-operator/v0.20.0/deploy/crds/mariadb.mariadb.com_mariadbs.yaml
+# 	kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.22/manifests/cnpg.io_clusters.yaml
+# 	kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.22/manifests/cnpg.io_databases.yaml
+# 	kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1alpha1.yaml
+	kubectl apply -k ./clusters/managed

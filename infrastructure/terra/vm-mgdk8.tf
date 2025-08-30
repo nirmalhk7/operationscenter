@@ -19,14 +19,14 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   }
 
   memory {
-    dedicated = 2048
+    dedicated = 1024*8
   }
 
   disk {
     datastore_id = "local"
     import_from  = proxmox_virtual_environment_download_file.debian-13-generic-amd64-qcow2.id
     interface    = "scsi0"
-    size = 32
+    size = 100
   }
 
   
@@ -63,4 +63,21 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   }
 
   serial_device {}
+}
+
+resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
+  depends_on = [ 
+    proxmox_virtual_environment_vm.vm-k8mgd,
+    proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
+  ]
+
+  node_name = local.nodeName
+  vm_id     = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
+  
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
+    comment        = "Dev Test"
+    iface          = "net0"
+    enabled        = true
+  }
 }

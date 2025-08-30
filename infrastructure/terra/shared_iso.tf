@@ -14,10 +14,10 @@ resource "proxmox_virtual_environment_download_file" "ubuntu-noble-server-cloudi
   file_name = "ubuntu-noble-server-cloudimg-amd64.qcow2"
 }
 
-resource "proxmox_virtual_environment_download_file" "ubuntu-noble-server-cloudimg-amd64-img" {
+resource "proxmox_virtual_environment_download_file" "alpine" {
   content_type = "import"
   datastore_id = "local"
   node_name    = "milano"
   url = "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-x86_64-bios-cloudinit-r0.qcow2"
-  file_name = "ubuntu-noble-server-cloudimg-amd64.qcow2"
+  file_name = "generic_alpine-3.22.1-x86_64-bios-cloudinit-r0.qcow2"
 }
