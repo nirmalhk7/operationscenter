@@ -21,8 +21,6 @@ reencrypt:
 encrypt_newkey:
 	kubeseal --fetch-cert --controller-name=sealed-secrets-controller --controller-namespace=flux-system > pub-sealed-secrets.pem
 
-
-
 # --- Backup ---
 backup_nginx:
 	mkdir -p nginx.bkp
