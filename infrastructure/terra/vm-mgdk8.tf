@@ -19,7 +19,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   }
 
   memory {
-    dedicated = 1024*8
+    dedicated = 1024*10
   }
 
   disk {
