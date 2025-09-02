@@ -2,6 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: scrutiny
+  namespace: mgd-monitoring
 spec:
   interval: 10m
   chart:

@@ -2,6 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: sonarqube
+  namespace: mgd-devbench
 spec:
   interval: 10m
   releaseName: sonarqube

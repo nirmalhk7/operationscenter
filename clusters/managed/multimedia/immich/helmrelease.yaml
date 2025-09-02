@@ -3,6 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: immich
+  namespace: mgd-multimedia
 spec:
   releaseName: immich
   chart:

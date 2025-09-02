@@ -2,6 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: vikunja
+  namespace: mgd-default
 spec:
   interval: 10m
   releaseName: vikunja

@@ -6,8 +6,7 @@
   "kubernetes": {
     "fileMatch": ["clusters/.+\\.yaml$"]
   },
-  "helmRelease": {
-    "enabled": true,
-    "fileMatch": ["clusters/.+\\.yaml$"]
+  "flux": {
+    "managerFilePatterns": ["clusters/.+\\.yaml$"]
   }
 }
