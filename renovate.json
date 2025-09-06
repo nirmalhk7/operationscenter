@@ -4,9 +4,14 @@
     "config:recommended"
   ],
   "kubernetes": {
-    "fileMatch": ["clusters/.+\\.yaml$"]
+    "fileMatch": [
+      "clusters/.+/.*deployment\\.yaml$",
+      "clusters/.+/.*statefulset\\.yaml$",
+      "clusters/managed/kube-systems/sealedsecrets.yaml",
+      "clusters/managed/flux-system/fluxcd/gotk-components.yaml"
+    ]
   },
   "flux": {
-    "managerFilePatterns": ["clusters/.+\\.yaml$"]
+    "managerFilePatterns": ["clusters/.+/.*helmrelease\\.yaml$"]
   }
 }

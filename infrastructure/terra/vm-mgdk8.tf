@@ -14,12 +14,12 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   pool_id = proxmox_virtual_environment_pool.pool-mgd.id
 
   cpu {
-    cores        = 2
+    cores        = 3
     type         = "x86-64-v2-AES"  # recommended for modern CPUs
   }
 
   memory {
-    dedicated = 1024*10
+    dedicated = 1024*12
   }
 
   disk {
