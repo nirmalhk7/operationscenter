@@ -3,6 +3,7 @@ kind: Kustomization
 
 
 resources:
+  - cn-postscriptscm.yaml
   - helmrelease.yaml
   - dbcluster.yaml
   - db-authentik.yaml

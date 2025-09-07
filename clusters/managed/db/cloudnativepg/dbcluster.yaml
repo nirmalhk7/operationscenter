@@ -3,6 +3,12 @@ kind: Cluster
 metadata:
   name: cn-postgres
 spec:
+  bootstrap:
+    initdb:
+      postInitApplicationSQLRefs:
+        configMapRefs:
+        - name: cn-postscriptscm
+          key: postinit.sql
   instances: 3
   superuserSecret:
     name: secret-postgres
