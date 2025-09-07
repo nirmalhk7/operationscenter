@@ -66,8 +66,21 @@ ansible-notebooks: ansible-install
 
 # --- Kubernetes ---
 kubernetes-init:
-# 	kubectl apply -f https://raw.githubusercontent.com/mariadb-operator/mariadb-operator/v0.20.0/deploy/crds/mariadb.mariadb.com_mariadbs.yaml
+	@echo "Applying MariaDB Operator CRDs..."
+	kubectl apply -f https://github.com/mariadb-operator/mariadb-operator/releases/download/mariadb-operator-crds-25.8.3/crds.yaml
+	@echo "Installing FluxCD..."
+	kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
+	@echo "Applying managed cluster manifests..."
+	kubectl apply -k ./clusters/managed
 # 	kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.22/manifests/cnpg.io_clusters.yaml
 # 	kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.22/manifests/cnpg.io_databases.yaml
 # 	kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1alpha1.yaml
-	kubectl apply -k ./clusters/managed
+
+
+kubernetes-clean:
+	kubectl delete -k clusters/managed || true
+	for ns in $(kubectl get ns --no-headers | awk '{print $$1}' | grep -vE 'kube-system|kube-public|kube-node-lease'); do \
+	  echo "Force deleting namespace: $$ns"; \
+	  kubectl get namespace $$ns -o json | jq 'del(.spec.finalizers)' | kubectl replace --raw "/api/v1/namespaces/$$ns/finalize" -f -; \
+	done
+	

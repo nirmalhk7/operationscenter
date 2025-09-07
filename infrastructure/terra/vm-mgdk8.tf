@@ -6,6 +6,11 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   node_name = local.nodeName
   vm_id     = 105
   
+  agent {
+    # read 'Qemu guest agent' section, change to true only when ready
+    enabled = true
+  }
+  
   # if agent is not enabled, the VM may not be able to shutdown properly, and may need to be forced off
   stop_on_destroy = true
 
