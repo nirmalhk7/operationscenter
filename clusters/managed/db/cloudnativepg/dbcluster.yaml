@@ -16,7 +16,8 @@ spec:
   bootstrap: 
     initdb:
       owner: postgresql
-      secret: secret-postgres
+      secret: 
+        name: secret-postgres
   managed:
     services:
       additional:
