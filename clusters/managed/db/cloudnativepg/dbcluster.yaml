@@ -3,7 +3,7 @@ kind: Cluster
 metadata:
   name: cn-postgres
 spec:
-  instances: 3
+  instances: 1
   superuserSecret:
     name: secret-postgres
   imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:16.8
@@ -30,23 +30,4 @@ spec:
               ports:
                 - port: 5432
                   nodePort: 30555
-    roles:
-      - name: svc_authentik
-        comment: Authentik Credentials
-        ensure: present
-        login: true
-        passwordSecret:
-          name: secret-other
-      - name: svc_vaultwarden
-        comment: Vaultwarden Credentials
-        ensure: present
-        login: true
-        passwordSecret:
-          name: secret-other
-      - name: svc_docsmost
-        comment: Docsmost Credentials
-        ensure: present
-        login: true
-        passwordSecret:
-          name: secret-other
   enableSuperuserAccess: true
