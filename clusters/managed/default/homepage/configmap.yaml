@@ -18,7 +18,15 @@ data:
     disableCollapse: true
     target: _blank
   custom.css: ""
-  custom.js: ""
+  custom.js: |
+    const elements = document.querySelectorAll('.service');
+    if(window.location.host === '10.0.0.10'){
+      elements.forEach(el => {
+        if (!el.id.startsWith('vpn-')) {
+          el.remove();
+        }
+      });
+    }
   bookmarks.yaml: |
     - Quick Links:
         - Operations Center Agile:
@@ -36,6 +44,7 @@ data:
             siteMonitor: https://devworld.trusted.nirmalhk7.com/
     - Networking:
         - Tailscale:
+            id: vpn-tailscale
             icon: tailscale-light	
             href: https://login.tailscale.com/admin/machines
             widget:
@@ -43,6 +52,7 @@ data:
               deviceid: ${TSKEY_DEVICEID}
               key: ${TSKEY_API}
         - Cloudflare:
+            id: vpn-cloudflare
             icon: cloudflare
             href: https://dash.cloudflare.com/397ae3d0f15c4e696b2a31307963d57c/nirmalhk7.com
         - Proxmox:
