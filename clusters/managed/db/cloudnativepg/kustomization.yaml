@@ -6,9 +6,6 @@ resources:
   - cn-postscriptscm.yaml
   - helmrelease.yaml
   - dbcluster.yaml
-  - db-authentik.yaml
-  - db-docsmost.yaml
-  - db-vaultwarden.yaml
   - secret-postgres.yaml
   - secret-other.yaml
 
