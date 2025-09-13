@@ -27,4 +27,4 @@ wikis
 
 scripts/
 
-docker/**/init.sh
+docker/vectorchord/init.sh
