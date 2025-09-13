@@ -26,3 +26,5 @@ wikis
 **/*.var.yaml
 
 scripts/
+
+docker/**/init.sh
