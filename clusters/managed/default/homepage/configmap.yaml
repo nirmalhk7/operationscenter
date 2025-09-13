@@ -6,6 +6,10 @@ data:
   kubernetes.yaml: |
     mode: cluster
     traefik: true
+  proxmox.yaml: |
+    url: https://10.0.0.10:8006
+    token: ${PROXMOX_USERNAME}
+    secret: ${PROXMOX_PASSWORD}
   settings.yaml: |
     title: "Operations Center Boulder - MILANO"
     description: "Welcome to Milano!"
