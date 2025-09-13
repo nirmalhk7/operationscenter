@@ -21,11 +21,16 @@ data:
   custom.js: |
     const elements = document.querySelectorAll('.service');
     if(window.location.host === '10.0.0.10'){
-      elements.forEach(el => {
-        if (!el.id.startsWith('vpn-')) {
-          el.remove();
+      Array.from(document.querySelectorAll('.services-list')).map(e=>{
+        Array.from(e.children).forEach(el => {
+            if (!el.id.startsWith('local-')) {
+              el.remove();
+            }
+        });
+        if(e.children.length===0){
+          return e?.parentElement?.parentElement?.parentElement.remove()
         }
-      });
+      })
     }
   bookmarks.yaml: |
     - Quick Links:
@@ -44,7 +49,7 @@ data:
             siteMonitor: https://devworld.trusted.nirmalhk7.com/
     - Networking:
         - Tailscale:
-            id: vpn-tailscale
+            id: local-tailscale
             icon: tailscale-light	
             href: https://login.tailscale.com/admin/machines
             widget:
@@ -52,7 +57,7 @@ data:
               deviceid: ${TSKEY_DEVICEID}
               key: ${TSKEY_API}
         - Cloudflare:
-            id: vpn-cloudflare
+            id: local-cloudflare
             icon: cloudflare
             href: https://dash.cloudflare.com/397ae3d0f15c4e696b2a31307963d57c/nirmalhk7.com
         - Proxmox:

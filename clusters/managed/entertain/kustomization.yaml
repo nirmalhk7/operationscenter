@@ -6,12 +6,6 @@ resources:
   - _repositories
   - namespace.yaml
   - pvc.yaml
-  - jackett
-  - plex
-  - radarr
-  - sonarr
-  - transmission
-  - jellyfin
   - pterodactyl
   
 namespace: mgd-entertain
