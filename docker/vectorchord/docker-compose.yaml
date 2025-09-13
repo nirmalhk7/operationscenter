@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  db:
+    # Use the image specified in the .env file
+    image: tensorchord/pgvecto-rs:pg16-v0.2.1
+    container_name: tensorchord-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # This is crucial for pgvecto.rs/VectorChord to work correctly
+      # It preloads the extension at startup
+      POSTGRES_SHARED_PRELOAD_LIBRARIES: vectors.so
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+    driver: local

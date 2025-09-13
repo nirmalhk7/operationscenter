@@ -51,6 +51,27 @@ data:
             href: https://devworld.trusted.nirmalhk7.com/
             description: Appwrite
             siteMonitor: https://devworld.trusted.nirmalhk7.com/
+    - Infrastructure:
+        - lxc_nginx:
+            name: NginX
+            description: LXC
+            href: "https://10.0.0.10:8006/#v1:0:=lxc%2F101:4::::::=consolejs"
+            proxmoxNode: milano
+            proxmoxVMID: 101
+            proxmoxType: lxc
+        - lxc_tailscale:
+            name: Tailscale
+            description: LXC
+            href: "https://10.0.0.10:8006/#v1:0:=lxc%2F102:4::::::=consolejs"
+            proxmoxNode: milano
+            proxmoxVMID: 102
+            proxmoxType: lxc
+        - vm_kubernetes:
+            name: Kubernetes
+            description: VM
+            href: "https://10.0.0.10:8006/#v1:0:=qemu%2F105:4::::::=consolejs"
+            proxmoxNode: milano
+            proxmoxVMID: 105
     - Networking:
         - Tailscale:
             id: local-tailscale
@@ -72,7 +93,7 @@ data:
               url: https://10.0.0.10:8006/
               username: ${PROXMOX_USERNAME}
               password: ${PROXMOX_PASSWORD}
-              node: ocb-1
+              node: milano
   widgets.yaml: |
     - greeting:
         text_size: xl
@@ -89,6 +110,11 @@ data:
           cpu: true
           memory: true
           showLabel: false
+    - openmeteo:
+        units: metric # or imperial
+        cache: 5 # Time in minutes to cache API responses, to stay within limits
+        format: # optional, Intl.NumberFormat options
+          maximumFractionDigits: 1
     - resources:
         backend: resources
         expanded: true
