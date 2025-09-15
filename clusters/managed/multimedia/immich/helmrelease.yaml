@@ -21,7 +21,11 @@ spec:
       DB_HOSTNAME: 172.16.0.106
       DB_DATABASE_NAME: immich
       DB_USERNAME: immich_rw
-      DB_PASSWORD: "lefsln34h5534*&#@"
+      DB_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: immich-credentials
+            key: DB_PASSWORD
       REDIS_HOSTNAME: immich-redis
       REDIS_PASSWORD:
         valueFrom:
