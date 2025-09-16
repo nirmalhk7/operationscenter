@@ -28,3 +28,4 @@ wikis
 scripts/
 
 docker/vectorchord/init.sh
+docker/mariadb/init.sh

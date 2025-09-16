@@ -83,4 +83,8 @@ kubernetes-clean:
 	  echo "Force deleting namespace: $$ns"; \
 	  kubectl get namespace $$ns -o json | jq 'del(.spec.finalizers)' | kubectl replace --raw "/api/v1/namespaces/$$ns/finalize" -f -; \
 	done
-	
+
+sync:
+	git add .
+	git commit --amend --no-edit
+	git push --force
