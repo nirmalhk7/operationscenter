@@ -30,6 +30,7 @@ spec:
           enabled: true
           # ConfigMaps with this label will be mounted and loaded
           label: milano_grafana_dashboard
+          labelValue: true
           # Look for dashboard ConfigMaps in all namespaces
           searchNamespace: ALL
 
