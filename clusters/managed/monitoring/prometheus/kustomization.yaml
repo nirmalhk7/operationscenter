@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - helmrelease.yaml
   - ingressroute.yaml
+  - nginx_scrapeconfigs.yaml
 
 labels:
   - pairs:

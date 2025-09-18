@@ -37,6 +37,9 @@ spec:
       prometheusSpec:
         externalUrl: "https://prometheus.trusted.nirmalhk7.com"
         routePrefix: /
+        scrapeConfigSelector:
+          matchLabels:
+            prometheus: prometheus_scraper
 
     commonLabels:
       milano.level: managed
