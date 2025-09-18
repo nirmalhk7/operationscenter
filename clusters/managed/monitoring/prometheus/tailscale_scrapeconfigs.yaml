@@ -1,0 +1,13 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: tailscale-metrics
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  staticConfigs:
+    - labels:
+        job: main-tailscale
+      targets:
+        - 172.16.0.102:8080
+  metricsPath: /metrics

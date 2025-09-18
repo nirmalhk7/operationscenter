@@ -5,6 +5,8 @@ resources:
   - helmrelease.yaml
   - ingressroute.yaml
   - nginx_scrapeconfigs.yaml
+  - tailscale_scrapeconfigs.yaml
+  - docker_scrapeconfigs.yaml
 
 labels:
   - pairs:
