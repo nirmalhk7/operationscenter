@@ -14,4 +14,33 @@ spec:
   releaseName: gitea
   targetNamespace: mgd-devbench
   values:
-    
+    postgresql-ha:
+      enabled: false
+    persistence:
+      claimName: gitea-storage
+      storageClass: milano-v2
+      size: 20Gi
+      labels:
+        milano.app: gitea
+    valkey:
+      enabled: true
+    valkey-cluster:
+      enabled: false
+    gitea:
+      additionalConfigFromEnvs:
+      - name: GITEA__database__DB_TYPE
+        value: mysql
+      - name: GITEA__database__NAME
+        value: gitea
+      - name: GITEA__database__HOST
+        value: 172.16.0.106:3306
+      - name: GITEA__database__USER
+        valueFrom:
+          secretKeyRef:
+            name: gitea-credentials
+            key: DB_USER
+      - name: GITEA__database__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: gitea-credentials
+            key: DB_PASSWORD
