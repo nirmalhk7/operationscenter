@@ -17,6 +17,11 @@ spec:
         image: bugsink/bugsink:1.7
         ports:
         - containerPort: 8000
+        env:
+        - name: BEHIND_HTTPS_PROXY
+          value: "true"
+        - name: DJANGO_SECURE_PROXY_SSL_HEADER
+          value: "HTTP_X_FORWARDED_PROTO,https"
         envFrom:
         - secretRef:
             name: bugsink-credentials

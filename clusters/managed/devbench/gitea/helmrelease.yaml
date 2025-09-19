@@ -23,7 +23,7 @@ spec:
       labels:
         milano.app: gitea
     valkey:
-      enabled: true
+      enabled: false
     valkey-cluster:
       enabled: false
     gitea:

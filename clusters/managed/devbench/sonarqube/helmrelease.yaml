@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sonarqube
-      version: 2025.2.0
+      version: 2025.4.2
       sourceRef:
         kind: HelmRepository
         name: sonarqube
@@ -21,11 +21,15 @@ spec:
       storageClass: milano-v2
     jdbcOverwrite:
       enabled: true
-      jdbcUrl: "jdbc:postgresql://myPostgress/myDatabase"
-      jdbcSecretName: "sonarqube-jdbc"
-      jdbcSecretPasswordKey: "jdbc-password"
+      jdbcUrl: "jdbc:postgresql://172.16.0.106:5432/sonarqube"
+      jdbcUsername: "sonarqube_rw"
+      jdbcSecretName: "sonarqube-credentials"
+      jdbcSecretPasswordKey: "DB_PASSWORD"
     postgresql:
       enabled: false
     elasticsearch:
-      bootstrapChecks: false
-    monitoringPasscode: "define_it"
+      bootstrapChecks: true
+      
+    monitoringPasscode: "monitoring123!"
+    # Configure JVM options for better stability
+    jvmOpts: "-Xmx1536m -Xms512m"
