@@ -8,6 +8,8 @@ resources:
   - secret.yaml
   - ingressroute.yaml
 
+
+
 labels:
   - pairs:
       milano.app: sonarqube

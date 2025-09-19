@@ -21,9 +21,10 @@ spec:
       storageClass: milano-v2
     jdbcOverwrite:
       enabled: true
-      jdbcUrl: "jdbc:postgresql://myPostgress/myDatabase"
-      jdbcSecretName: "sonarqube-jdbc"
-      jdbcSecretPasswordKey: "jdbc-password"
+      jdbcUrl: "jdbc:mariadb://172.16.0.106:3306/sonarqube"
+      jdbcUsername: "sonarqube_rw"
+      jdbcSecretName: "sonarqube-credentials"
+      jdbcSecretPasswordKey: "DB_PASSWORD"
     postgresql:
       enabled: false
     elasticsearch:

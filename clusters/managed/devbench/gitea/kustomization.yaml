@@ -6,6 +6,7 @@ resources:
   - helmrelease.yaml
   - secret.yaml
 
+
 labels:
   - pairs:
       milano.app: gitea
