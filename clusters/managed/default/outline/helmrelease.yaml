@@ -1,0 +1,36 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: outline
+spec:
+  chart:
+    spec:
+      chart: outline
+      sourceRef:
+        kind: HelmRepository
+        name: community-charts
+  interval: 10m
+  releaseName: outline
+  targetNamespace: mgd-default
+  values:
+    web:
+      forceHttps: true
+    url: "https://outline.trusted.nirmalhk7.com"
+    fileStorage:
+      local:
+        persistence:
+          storageClass: milano-v2
+    minio:
+      persistence:
+        storageClass: milano-v2
+    podLabels:
+      milano.app: outline
+    externalPostgresql:
+      host: "172.16.0.106"
+      port: 5432
+      username: "outline_rw"
+      database: "outline"
+      existingSecret: outline-credentials
+      passwordSecretKey: "DB_PASSWORD"
+    redis:
+      enabled: true

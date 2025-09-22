@@ -6,5 +6,6 @@ resources:
   - _repositories
   - namespace.yaml
   - homepage
+  - outline
   
 namespace: mgd-default

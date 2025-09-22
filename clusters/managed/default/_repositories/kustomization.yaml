@@ -4,3 +4,4 @@ kind: Kustomization
 
 resources:
   - kolaente.yaml
+  - community-charts.yaml
