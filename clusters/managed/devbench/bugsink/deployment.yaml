@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: bugsink
-        image: bugsink/bugsink:1.7
+        image: bugsink/bugsink:2.0
         ports:
         - containerPort: 8000
         env:
