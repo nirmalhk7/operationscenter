@@ -7,3 +7,4 @@ resources:
   - plcnk.yaml
   - gitea.yaml
   - sonarqube.yaml
+  - prometheus-community.yaml
