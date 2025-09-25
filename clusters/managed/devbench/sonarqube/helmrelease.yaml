@@ -28,8 +28,6 @@ spec:
     postgresql:
       enabled: false
     elasticsearch:
-      bootstrapChecks: true
-      
-    monitoringPasscode: "monitoring123!"
-    # Configure JVM options for better stability
-    jvmOpts: "-Xmx1536m -Xms512m"
+      bootstrapChecks: false
+    prometheusExporter:
+      enabled: true
