@@ -8,6 +8,7 @@ resources:
   - grafana
   - prometheus
   - scrutiny
+  - loki
   - portainer
 
 namespace: mgd-monitoring

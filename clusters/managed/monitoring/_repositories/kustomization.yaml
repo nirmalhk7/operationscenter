@@ -6,3 +6,4 @@ resources:
   - prometheus-helm-charts.yaml
   - vhdirk-helm-charts.yaml
   - portainer.yaml
+  - grafana.yaml
