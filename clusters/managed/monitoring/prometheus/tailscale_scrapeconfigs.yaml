@@ -9,5 +9,5 @@ spec:
     - labels:
         job: main-tailscale
       targets:
-        - 172.16.0.102:8080
+        - 100.87.0.43:5252
   metricsPath: /metrics
