@@ -12,6 +12,6 @@
     ]
   },
   "flux": {
-    "managerFilePatterns": ["clusters/.+/.*helmrelease\\.yaml$"]
+    "managerFilePatterns": ["/clusters/.+\\.yaml$/"]
   }
 }
