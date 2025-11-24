@@ -18,7 +18,7 @@ spec:
   values:
     image:
       repository: locustio/locust
-      tag: 2.32.2
+      tag: 2.42.5
       pullPolicy: IfNotPresent
     extraLabels:
       milano.app: locust
