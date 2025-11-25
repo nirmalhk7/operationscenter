@@ -12,3 +12,4 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: vhdirk-helm-charts
+        namespace: mgd-monitoring
