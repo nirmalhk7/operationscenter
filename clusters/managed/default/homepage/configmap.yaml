@@ -32,7 +32,8 @@ data:
             }
         });
         if(e.children.length===0){
-          return e?.parentElement?.parentElement?.parentElement.remove()
+          # console.log(e?.parentElement?.parentElement)
+          return e?.parentElement?.parentElement?.remove()
         }
       })
     }
@@ -86,11 +87,22 @@ data:
             icon: cloudflare
             href: https://dash.cloudflare.com/397ae3d0f15c4e696b2a31307963d57c/nirmalhk7.com
         - Proxmox:
-            icon: proxmox-light	
+            icon: proxmox-light
+            id: local-proxmox
             href: https://10.0.0.10:8006/
             widget:
               type: proxmox
               url: https://10.0.0.10:8006/
+              username: ${PROXMOX_USERNAME}
+              password: ${PROXMOX_PASSWORD}
+              node: milano
+        - Proxmox:
+            icon: proxmox-light
+            id: vpn-proxmox
+            href: https://proxmox.trusted.nirmalhk7.com/
+            widget:
+              type: proxmox
+              url: https://proxmox.trusted.nirmalhk7.com/
               username: ${PROXMOX_USERNAME}
               password: ${PROXMOX_PASSWORD}
               node: milano
