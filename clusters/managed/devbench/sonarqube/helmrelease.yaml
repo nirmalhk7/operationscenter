@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sonarqube
-      version: 2025.4.2
+      version: 2025.4.3
       sourceRef:
         kind: HelmRepository
         name: sonarqube
@@ -31,3 +31,5 @@ spec:
       bootstrapChecks: false
     prometheusExporter:
       enabled: true
+    monitoringPasscodeSecretName: sonarqube-credentials
+    monitoringPasscodeSecretKey: MONITORING_PASSCODE

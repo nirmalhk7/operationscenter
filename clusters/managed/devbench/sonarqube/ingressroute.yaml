@@ -8,8 +8,8 @@ metadata:
     gethomepage.dev/group: Devbench
     gethomepage.dev/icon: sonarqube
     gethomepage.dev/app: sonarqube # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
-    gethomepage.dev/name: sonarqube
-    gethomepage.dev/pod-selector: "milano.app=sonarqube"
+    gethomepage.dev/name: Sonarqube
+    gethomepage.dev/pod-selector: "app=sonarqube"
 spec:
   entryPoints:
     - websecure
