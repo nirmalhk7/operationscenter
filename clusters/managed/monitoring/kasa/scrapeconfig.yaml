@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: kasa-scrapeconfig
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  staticConfigs:
+    - labels:
+        # Use a descriptive job name
+        job: tplink-kasa-local
+      targets:
+        - 10.0.0.154 
+  metricsPath: /scrape
+  relabelings:
+    - sourceLabels: [__address__]
+      targetLabel: __param_target
+      action: replace
+    - sourceLabels: [__param_target]
+      targetLabel: instance
+      action: replace
+    - targetLabel: __address__
+      replacement: kasa-exporter-svc.mgd-monitoring.svc.cluster.local:9233 
+      action: replace

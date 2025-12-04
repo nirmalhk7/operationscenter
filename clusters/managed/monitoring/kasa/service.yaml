@@ -1,0 +1,14 @@
+# kasa-exporter-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kasa-exporter-svc
+spec:
+  type: ClusterIP 
+  selector:
+    app: kasa-exporter
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 9233
+      targetPort: 9233

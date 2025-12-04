@@ -1,0 +1,25 @@
+# tplink-exporter-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kasa-exporter
+  labels:
+    app: kasa-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kasa-exporter
+  template:
+    metadata:
+      labels:
+        app: kasa-exporter
+    spec:
+      containers:
+      - name: kasa-exporter
+        # The local-only TP-Link plug exporter image
+        image: fffonion/tplink-plug-exporter:latest 
+        ports:
+        - containerPort: 9233 # Default listening port for this exporter
+          name: http-metrics
+        # No environment variables are needed for local discovery/scraping

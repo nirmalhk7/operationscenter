@@ -8,6 +8,7 @@ resources:
   - grafana
   - prometheus
   - scrutiny
+  - kasa
   - loki
   - portainer
 
