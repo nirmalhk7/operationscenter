@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - authentik.yaml
+  - authelia.yaml
   - gissilabs.yaml
   - hashicorp.yaml
   - vmware.yaml

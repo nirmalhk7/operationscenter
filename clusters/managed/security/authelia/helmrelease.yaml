@@ -1,0 +1,37 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authelia
+  namespace: mgd-security
+spec:
+  chart:
+    spec:
+      chart: authelia
+      version: 0.9.0
+      sourceRef:
+        kind: HelmRepository
+        name: authelia
+  interval: 1h
+  releaseName: authelia
+  targetNamespace: mgd-security
+  values:
+    podLabels:
+      milano.app: authelia
+      milano.level: managed
+
+    env:
+      - name: AUTHELIA_STORAGE_MYSQL_ADDRESS
+        valueFrom:
+          secretKeyRef:
+            name: authentik-credentials
+            key: AUTHENTIK_POSTGRESQL__HOST
+      - name: AUTHELIA_STORAGE_MYSQL_DATABASE
+        valueFrom:
+          secretKeyRef:
+            name: authentik-credentials
+            key: AUTHENTIK_POSTGRESQL__NAME
+
+    redis:
+      enabled: true
+      auth:
+        enabled: false
