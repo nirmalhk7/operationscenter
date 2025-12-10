@@ -22,5 +22,5 @@ spec:
     - match: Host(`auth.trusted.nirmalhk7.com`)
       kind: Rule
       services:
-        - name: authelia-server
+        - name: authelia
           port: 80
