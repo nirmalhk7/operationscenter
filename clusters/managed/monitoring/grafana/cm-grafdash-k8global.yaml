@@ -7,6 +7,49 @@ metadata:
 data:
   grafdash-k8global.json: |
     {
+      "__inputs": [
+        {
+          "name": "DS_PROMETHEUS",
+          "label": "Prometheus",
+          "description": "",
+          "type": "datasource",
+          "pluginId": "prometheus",
+          "pluginName": "Prometheus"
+        }
+      ],
+      "__elements": {},
+      "__requires": [
+        {
+          "type": "panel",
+          "id": "bargauge",
+          "name": "Bar gauge",
+          "version": ""
+        },
+        {
+          "type": "grafana",
+          "id": "grafana",
+          "name": "Grafana",
+          "version": "10.3.1"
+        },
+        {
+          "type": "datasource",
+          "id": "prometheus",
+          "name": "Prometheus",
+          "version": "1.0.0"
+        },
+        {
+          "type": "panel",
+          "id": "stat",
+          "name": "Stat",
+          "version": ""
+        },
+        {
+          "type": "panel",
+          "id": "timeseries",
+          "name": "Time series",
+          "version": ""
+        }
+      ],
       "annotations": {
         "list": [
           {
@@ -66,14 +109,18 @@ data:
         ]
       },
       "description": "This is a modern 'Global View' dashboard for your Kubernetes cluster(s). Made for kube-prometheus-stack and take advantage of the latest Grafana features. GitHub repository: https://github.com/dotdc/grafana-dashboards-kubernetes",
-      "editable": true,
+      "editable": false,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
-      "id": 1,
       "links": [],
+      "liveNow": false,
       "panels": [
         {
           "collapsed": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "gridPos": {
             "h": 1,
             "w": 24,
@@ -124,12 +171,6 @@ data:
           "id": 77,
           "options": {
             "displayMode": "lcd",
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": false
-            },
             "maxVizHeight": 300,
             "minVizHeight": 10,
             "minVizWidth": 0,
@@ -146,7 +187,7 @@ data:
             "sizing": "auto",
             "valueMode": "color"
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "11.2.0",
           "targets": [
             {
               "datasource": {
@@ -278,12 +319,6 @@ data:
           "id": 78,
           "options": {
             "displayMode": "lcd",
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": false
-            },
             "maxVizHeight": 300,
             "minVizHeight": 10,
             "minVizWidth": 0,
@@ -301,7 +336,7 @@ data:
             "text": {},
             "valueMode": "color"
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "11.2.0",
           "targets": [
             {
               "datasource": {
@@ -440,7 +475,7 @@ data:
             "textMode": "value",
             "wideLayout": true
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "11.2.0",
           "targets": [
             {
               "datasource": {
@@ -541,12 +576,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -751,7 +785,7 @@ data:
             "textMode": "value",
             "wideLayout": true
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "11.2.0",
           "targets": [
             {
               "datasource": {
@@ -814,7 +848,7 @@ data:
             "textMode": "auto",
             "wideLayout": true
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "11.2.0",
           "targets": [
             {
               "datasource": {
@@ -970,7 +1004,7 @@ data:
             "textMode": "auto",
             "wideLayout": true
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "11.2.0",
           "targets": [
             {
               "datasource": {
@@ -1122,7 +1156,7 @@ data:
             "textMode": "value",
             "wideLayout": true
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "11.2.0",
           "targets": [
             {
               "datasource": {
@@ -1140,6 +1174,10 @@ data:
         },
         {
           "collapsed": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "gridPos": {
             "h": 1,
             "w": 24,
@@ -1236,12 +1274,11 @@ data:
               "showLegend": false
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "single",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -1372,12 +1409,11 @@ data:
               "showLegend": false
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "single",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -1509,12 +1545,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "single",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "10.4.0",
           "targets": [
             {
               "datasource": {
@@ -1617,12 +1652,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "single",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -1724,12 +1758,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "single",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -1844,12 +1877,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "single",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -1970,12 +2002,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -2081,12 +2112,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -2200,12 +2230,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -2318,12 +2347,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -2425,12 +2453,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -2532,12 +2559,11 @@ data:
               "sortDesc": true
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -2558,6 +2584,10 @@ data:
         },
         {
           "collapsed": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "gridPos": {
             "h": 1,
             "w": 24,
@@ -2646,12 +2676,11 @@ data:
               "showLegend": false
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -2787,12 +2816,11 @@ data:
               "showLegend": false
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "none"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -2973,12 +3001,11 @@ data:
               "showLegend": false
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "desc"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -3086,12 +3113,11 @@ data:
               "showLegend": false
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "desc"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -3227,12 +3253,11 @@ data:
               "showLegend": false
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "desc"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -3369,12 +3394,11 @@ data:
               "showLegend": false
             },
             "tooltip": {
-              "hideZeros": false,
               "mode": "multi",
               "sort": "desc"
             }
           },
-          "pluginVersion": "11.5.1",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "datasource": {
@@ -3407,26 +3431,30 @@ data:
           "type": "timeseries"
         }
       ],
-      "preload": false,
       "refresh": "30s",
-      "schemaVersion": 40,
+      "schemaVersion": 39,
       "tags": [
-        "Infrastructure",
-        "Kubernetes"
+        "Kubernetes",
+        "Prometheus"
       ],
       "templating": {
         "list": [
           {
             "current": {
+              "selected": false,
               "text": "",
               "value": ""
             },
+            "hide": 0,
             "includeAll": false,
+            "multi": false,
             "name": "datasource",
             "options": [],
             "query": "prometheus",
+            "queryValue": "",
             "refresh": 1,
             "regex": "",
+            "skipUrlSync": false,
             "type": "datasource"
           },
           {
@@ -3436,7 +3464,9 @@ data:
               "uid": "${datasource}"
             },
             "definition": "label_values(kube_node_info,cluster)",
+            "hide": 0,
             "includeAll": false,
+            "multi": false,
             "name": "cluster",
             "options": [],
             "query": {
@@ -3446,15 +3476,19 @@ data:
             },
             "refresh": 1,
             "regex": "",
+            "skipUrlSync": false,
             "sort": 1,
             "type": "query"
           },
           {
             "current": {
+              "selected": false,
               "text": "30s",
               "value": "30s"
             },
+            "hide": 0,
             "includeAll": false,
+            "multi": false,
             "name": "resolution",
             "options": [
               {
@@ -3489,10 +3523,13 @@ data:
               }
             ],
             "query": "1s, 15s, 30s, 1m, 3m, 5m",
+            "queryValue": "",
+            "skipUrlSync": false,
             "type": "custom"
           },
           {
             "current": {
+              "selected": false,
               "text": "",
               "value": ""
             },
@@ -3501,6 +3538,7 @@ data:
               "uid": "${datasource}"
             },
             "definition": "label_values(node_cpu_seconds_total{cluster=\"$cluster\"},job)",
+            "hide": 0,
             "includeAll": false,
             "multi": true,
             "name": "job",
@@ -3512,6 +3550,7 @@ data:
             },
             "refresh": 1,
             "regex": "",
+            "skipUrlSync": false,
             "sort": 1,
             "type": "query"
           }
@@ -3523,8 +3562,8 @@ data:
       },
       "timepicker": {},
       "timezone": "",
-      "title": "Kubernetes / Global",
+      "title": "Kubernetes / Views / Global",
       "uid": "k8s_views_global",
-      "version": 1,
+      "version": 43,
       "weekStart": ""
     }
