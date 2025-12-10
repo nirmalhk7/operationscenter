@@ -1,11 +1,3 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafdash-power
-  labels:
-    milano_grafana_dashboard: "true" # This label is what the sidecar looks for
-data:
-  grafdash-power.json: |
     {
       "annotations": {
         "list": [

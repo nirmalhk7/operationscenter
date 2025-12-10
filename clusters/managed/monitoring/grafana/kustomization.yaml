@@ -1,14 +1,20 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-
 resources:
   - ingressroute.yaml
-  - cm-grafdash-k8global.yaml
-  - cm-grafdash-k8ns.yaml
-  - cm-grafdash-k8pods.yaml
-  - cm-grafdash-power.yaml
 
 labels:
   - pairs:
       milano.app: prometheusstack
+configMapGenerator:
+  - name: flux-grafana-dashboards
+    files:
+      - dashboards/k8global.json
+      - dashboards/k8ns.json
+      - dashboards/k8pods.json
+      - dashboards/power.json
+      - dashboards/tailscale.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
