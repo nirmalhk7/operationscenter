@@ -23,7 +23,7 @@ data:
           }
         ]
       },
-      "editable": true,
+      "editable": false,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
       "id": 4,
@@ -327,32 +327,7 @@ data:
               },
               "unit": "amp"
             },
-            "overrides": [
-              {
-                "__systemRef": "hideSeriesFrom",
-                "matcher": {
-                  "id": "byNames",
-                  "options": {
-                    "mode": "exclude",
-                    "names": [
-                      "{__name__=\"kasa_current\", alias=\"Server Switch\", id=\"80068E33BFE737D1250FB933F9674E4624291C01\", instance=\"10.0.0.154\", job=\"tplink-kasa-local\"}"
-                    ],
-                    "prefix": "All except:",
-                    "readOnly": true
-                  }
-                },
-                "properties": [
-                  {
-                    "id": "custom.hideFrom",
-                    "value": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": true
-                    }
-                  }
-                ]
-              }
-            ]
+            "overrides": []
           },
           "gridPos": {
             "h": 10,
@@ -389,7 +364,7 @@ data:
               "fullMetaSearch": false,
               "includeNullMetadata": true,
               "instant": false,
-              "legendFormat": "__auto",
+              "legendFormat": "{{alias}}",
               "range": true,
               "refId": "A",
               "useBackend": false
