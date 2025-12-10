@@ -5,6 +5,7 @@ resources:
   - helmrelease.yaml
   - ingressroute.yaml
   - nginx_scrapeconfigs.yaml
+  - flux_podmonitor.yaml
   - tailscale_scrapeconfigs.yaml
   - docker_scrapeconfigs.yaml
 
