@@ -15,22 +15,43 @@ spec:
   releaseName: authelia
   targetNamespace: mgd-security
   values:
+    persistence:
+      enabled: true
+      storageClass: milano-v2
+    secret:
+      additionalSecrets:
+        authelia-credentials:
+          items:
+            - key: storage.mysql.password
+              path: storage.mysql.password.txt
     podLabels:
       milano.app: authelia
       milano.level: managed
-    redis:
-      enabled: true
-      auth:
-        enabled: false
     configMap:
-      session:
-        redis:
+      authentication_backend:
+        file:
           enabled: true
+        ldap:
+          enabled: false
+      session:
+        cookies:
+          - name: authelia_session
+            domain: nirmalhk7.com
+        redis:
+          enabled: false
+      notifier:
+        filesystem:
+          enabled: true
+          filename: /config/notification.txt
       storage:
+        local:
+          enabled: false
+        postgres:
+          enabled: false
         mysql:
           enabled: true
           address: 'tcp://172.16.0.106:3306'
           database: 'authelia'
-          username: 'svc_authelia'
+          username: 'authelia_rw'
           password:
             secret_name: authelia-credentials
