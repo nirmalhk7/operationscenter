@@ -18,20 +18,19 @@ spec:
     podLabels:
       milano.app: authelia
       milano.level: managed
-
-    env:
-      - name: AUTHELIA_STORAGE_MYSQL_ADDRESS
-        valueFrom:
-          secretKeyRef:
-            name: authentik-credentials
-            key: AUTHENTIK_POSTGRESQL__HOST
-      - name: AUTHELIA_STORAGE_MYSQL_DATABASE
-        valueFrom:
-          secretKeyRef:
-            name: authentik-credentials
-            key: AUTHENTIK_POSTGRESQL__NAME
-
     redis:
       enabled: true
       auth:
         enabled: false
+    configMap:
+      session:
+        redis:
+          enabled: true
+      storage:
+        mysql:
+          enabled: true
+          address: 'tcp://172.16.0.106:3306'
+          database: 'authelia'
+          username: 'svc_authelia'
+          password:
+            secret_name: authelia-credentials
