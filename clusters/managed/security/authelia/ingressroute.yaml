@@ -19,7 +19,7 @@ spec:
     - websecure
     - web
   routes:
-    - match: Host(`auth.trusted.nirmalhk7.com`)
+    - match: Host(`secure.trusted.nirmalhk7.com`)
       kind: Rule
       services:
         - name: authelia

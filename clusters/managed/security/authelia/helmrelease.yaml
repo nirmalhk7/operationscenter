@@ -15,6 +15,16 @@ spec:
   releaseName: authelia
   targetNamespace: mgd-security
   values:
+    pod:
+      extraVolumes:
+          - name: authelia-credentials
+            secret:
+              secretName: authelia-credentials
+      extraVolumeMounts:
+        - name: authelia-credentials
+          mountPath: /config/users_database.yaml
+          subPath: users_database.yaml
+          readOnly: true
     persistence:
       enabled: true
       storageClass: milano-v2
@@ -28,9 +38,16 @@ spec:
       milano.app: authelia
       milano.level: managed
     configMap:
+      access_control:
+        default_policy: 'one_factor'
+      theme: 'dark'
+      telemetry:
+        metrics:
+          enabled: true
       authentication_backend:
         file:
           enabled: true
+          path: /config/users_database.yaml
         ldap:
           enabled: false
       session:
@@ -55,3 +72,4 @@ spec:
           username: 'authelia_rw'
           password:
             secret_name: authelia-credentials
+        
