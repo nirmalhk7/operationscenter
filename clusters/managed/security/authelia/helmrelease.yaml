@@ -38,6 +38,18 @@ spec:
       milano.app: authelia
       milano.level: managed
     configMap:
+      identity_providers:
+        oidc:
+          enabled: true
+          clients:
+            - client_id: grafana
+              client_name: Grafana
+              scopes:
+              - openid
+              - profile
+              - email
+              - groups
+              
       access_control:
         default_policy: 'one_factor'
       theme: 'dark'
