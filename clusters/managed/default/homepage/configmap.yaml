@@ -46,12 +46,6 @@ data:
             - icon: linkace
               href: https://dashboardicons.com/icons
   services.yaml: |
-    - Devbench:
-        - DevWorld:
-            icon: appwrite
-            href: https://devworld.trusted.nirmalhk7.com/
-            description: Appwrite
-            siteMonitor: https://devworld.trusted.nirmalhk7.com/
     - Infrastructure:
         - lxc_nginx:
             name: NginX

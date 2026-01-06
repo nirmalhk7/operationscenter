@@ -1,0 +1,20 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: nfsprovisioner
+spec:
+  chart:
+    spec:
+      chart: nfs-subdir-external-provisioner
+      sourceRef:
+        kind: HelmRepository
+        name: k8-sigs-charts
+  interval: 10m
+  targetNamespace: mgd-default
+  values:
+    nfs:
+      server: 172.16.0.108
+      path: /mnt/2tbhdd
+    storageClass:
+      name: milano-v3
+      reclaimPolicy: Retain

@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
   - kolaente.yaml
   - community-charts.yaml
+  - kubernetes-sigs.yaml

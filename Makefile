@@ -54,6 +54,9 @@ terraform-reset:
 terraform-apply:
 	cd infrastructure/terra && terraform init -upgrade && terraform plan && TF_LOG=DEBUG terraform apply -auto-approve
 
+terraform-sync:
+	cd infrastructure/terra && terraform import $(R) pve/$(V)
+
 # --- Ansible ---
 ansible-install:
 	pip install --user ansible

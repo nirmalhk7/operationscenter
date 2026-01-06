@@ -11,7 +11,5 @@ resources:
   - tools
   - touca
   - sonarqube
-  - loki
-  # - sentry
 
 namespace: mgd-devbench

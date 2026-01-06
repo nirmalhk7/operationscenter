@@ -7,5 +7,6 @@ resources:
   - namespace.yaml
   - homepage
   - outline
+  - nfsprovisioner
   
 namespace: mgd-default

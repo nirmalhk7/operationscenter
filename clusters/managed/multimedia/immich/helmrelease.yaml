@@ -38,4 +38,5 @@ spec:
         enabled: true
       persistence:
         library:
+          enabled: true
           existingClaim: immich-pvc

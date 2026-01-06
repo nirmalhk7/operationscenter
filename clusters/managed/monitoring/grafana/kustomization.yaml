@@ -7,13 +7,29 @@ resources:
 labels:
   - pairs:
       milano.app: prometheusstack
+
 configMapGenerator:
-  - name: flux-grafana-dashboards
+  - name: grafana-dash-k8global
     files:
       - dashboards/k8global.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
+  - name: grafana-dash-k8misc
+    files:
       - dashboards/k8ns.json
       - dashboards/k8pods.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
+  - name: grafana-dash-power
+    files:
       - dashboards/power.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
+  - name: grafana-dash-tailscale
+    files:
       - dashboards/tailscale.json
     options:
       labels:

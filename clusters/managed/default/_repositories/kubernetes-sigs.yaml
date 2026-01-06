@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: plex
+  name: k8-sigs-charts
 spec:
-  url: https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages
+  url: https://k8s-edu.github.io/Bkv2_main/helm-charts/
   interval: 1h

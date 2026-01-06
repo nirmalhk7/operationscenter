@@ -1,9 +1,0 @@
-apiVersion: postgresql.cnpg.io/v1
-kind: Database
-metadata:
-  name: db-docsmost
-spec:
-  name: docsmost
-  owner: svc_docsmost
-  cluster:
-    name: cn-postgres

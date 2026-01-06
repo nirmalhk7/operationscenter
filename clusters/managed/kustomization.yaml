@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - _storageclasses
-  - db
   - default
   - devbench
   - flux-system
@@ -12,7 +11,6 @@ resources:
   - monitoring
   - multimedia
   - security
-  - entertain
 
 labels:
   - pairs:
