@@ -17,9 +17,9 @@ spec:
     postgresql-ha:
       enabled: false
     persistence:
-      claimName: gitea-storage
-      storageClass: milano-v2
-      size: 20Gi
+      claimName: gitea-pvc-1
+      storageClass: milano-v3
+      size: 10Gi
       labels:
         milano.app: gitea
     valkey:
