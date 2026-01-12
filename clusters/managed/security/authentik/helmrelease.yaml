@@ -1,74 +1,74 @@
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
-metadata:
-  name: authentik
-  namespace: mgd-security
-spec:
-  chart:
-    spec:
-      chart: authentik
-      version: 2024.12.3
-      sourceRef:
-        kind: HelmRepository
-        name: authentik
-  interval: 1h
-  releaseName: authentik
-  targetNamespace: mgd-security
-  values:
-    global:
-      podLabels:
-        milano.app: authentik
-        milano.level: managed
-      env:
-        - name: AUTHENTIK_HOST_BROWSER
-          value: "https://secure.trusted.nirmalhk7.com"
-        - name: AUTHENTIK_POSTGRESQL__HOST
-          valueFrom:
-            secretKeyRef:
-              name: authentik-credentials
-              key: AUTHENTIK_POSTGRESQL__HOST
-        - name: AUTHENTIK_POSTGRESQL__NAME
-          valueFrom:
-            secretKeyRef:
-              name: authentik-credentials
-              key: AUTHENTIK_POSTGRESQL__NAME
-        - name: AUTHENTIK_POSTGRESQL__PORT
-          valueFrom:
-            secretKeyRef:
-              name: authentik-credentials
-              key: AUTHENTIK_POSTGRESQL__PORT
-        - name: AUTHENTIK_POSTGRESQL__USER
-          valueFrom:
-            secretKeyRef:
-              name: authentik-credentials
-              key: AUTHENTIK_POSTGRESQL__USER
-        - name: AUTHENTIK_POSTGRESQL__PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: authentik-credentials
-              key: AUTHENTIK_POSTGRESQL__PASSWORD
-        - name: AUTHENTIK_SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              name: authentik-credentials
-              key: AUTHENTIK_SECRET_KEY
+# apiVersion: helm.toolkit.fluxcd.io/v2
+# kind: HelmRelease
+# metadata:
+#   name: authentik
+#   namespace: mgd-security
+# spec:
+#   chart:
+#     spec:
+#       chart: authentik
+#       version: 2024.12.3
+#       sourceRef:
+#         kind: HelmRepository
+#         name: authentik
+#   interval: 1h
+#   releaseName: authentik
+#   targetNamespace: mgd-security
+#   values:
+#     global:
+#       podLabels:
+#         milano.app: authentik
+#         milano.level: managed
+#       env:
+#         - name: AUTHENTIK_HOST_BROWSER
+#           value: "https://secure.trusted.nirmalhk7.com"
+#         - name: AUTHENTIK_POSTGRESQL__HOST
+#           valueFrom:
+#             secretKeyRef:
+#               name: authentik-credentials
+#               key: AUTHENTIK_POSTGRESQL__HOST
+#         - name: AUTHENTIK_POSTGRESQL__NAME
+#           valueFrom:
+#             secretKeyRef:
+#               name: authentik-credentials
+#               key: AUTHENTIK_POSTGRESQL__NAME
+#         - name: AUTHENTIK_POSTGRESQL__PORT
+#           valueFrom:
+#             secretKeyRef:
+#               name: authentik-credentials
+#               key: AUTHENTIK_POSTGRESQL__PORT
+#         - name: AUTHENTIK_POSTGRESQL__USER
+#           valueFrom:
+#             secretKeyRef:
+#               name: authentik-credentials
+#               key: AUTHENTIK_POSTGRESQL__USER
+#         - name: AUTHENTIK_POSTGRESQL__PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: authentik-credentials
+#               key: AUTHENTIK_POSTGRESQL__PASSWORD
+#         - name: AUTHENTIK_SECRET_KEY
+#           valueFrom:
+#             secretKeyRef:
+#               name: authentik-credentials
+#               key: AUTHENTIK_SECRET_KEY
 
-    server: 
-      podLabels:
-        milano.app: authentik
-        milano.level: managed
+#     server: 
+#       podLabels:
+#         milano.app: authentik
+#         milano.level: managed
 
-    worker:
-      podLabels:
-        milano.app: authentik
-        milano.level: managed
+#     worker:
+#       podLabels:
+#         milano.app: authentik
+#         milano.level: managed
 
-    authentik:
-      secret_key: "dummy"
-      error_reporting:
-        enabled: false
-      postgresql:
-        password: "testvlaue"
+#     authentik:
+#       secret_key: "dummy"
+#       error_reporting:
+#         enabled: false
+#       postgresql:
+#         password: "testvlaue"
 
-    redis:
-      enabled: true
+#     redis:
+#       enabled: true

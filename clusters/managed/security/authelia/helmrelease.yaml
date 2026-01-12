@@ -29,6 +29,7 @@ spec:
       enabled: true
       storageClass: milano-v2
     secret:
+      existingSecret: authelia-app-secrets
       additionalSecrets:
         authelia-credentials:
           items:
@@ -43,12 +44,9 @@ spec:
           enabled: true
           clients:
             - client_id: grafana
+              client_secret: { path: /secrets/client-grafana/client_secret.txt }
+              scopes: [ openid, email, profile, grafana ]
               client_name: Grafana
-              scopes:
-              - openid
-              - profile
-              - email
-              - groups
               
       access_control:
         default_policy: 'one_factor'
