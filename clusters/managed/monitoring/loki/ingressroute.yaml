@@ -1,0 +1,24 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: loki
+  annotations:
+    gethomepage.dev/href: "https://loki.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Observability
+    gethomepage.dev/icon: loki
+    gethomepage.dev/app: loki # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: Prometheus
+    gethomepage.dev/widget.type: "loki"
+    gethomepage.dev/widget.url: "https://loki.trusted.nirmalhk7.com"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/name=loki"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`loki.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: main-loki
+          port: 3100
