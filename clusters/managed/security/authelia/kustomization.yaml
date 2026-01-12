@@ -5,6 +5,7 @@ resources:
   - helmrelease.yaml
   - ingressroute.yaml
   - secret.yaml
+  - app-secret.yaml
 
 labels:
   - pairs:

@@ -2,6 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: outline
+  namespace: mgd-default
 spec:
   chart:
     spec:
@@ -11,7 +12,6 @@ spec:
         name: community-charts
   interval: 10m
   releaseName: outline
-  targetNamespace: mgd-default
   values:
     web:
       forceHttps: true

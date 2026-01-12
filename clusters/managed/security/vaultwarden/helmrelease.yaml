@@ -14,7 +14,6 @@ spec:
         namespace: mgd-security
   interval: 1h
   releaseName: credentials
-  targetNamespace: mgd-security
   values:
     database:
       type: postgresql

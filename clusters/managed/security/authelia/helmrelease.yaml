@@ -13,7 +13,6 @@ spec:
         name: authelia
   interval: 1h
   releaseName: authelia
-  targetNamespace: mgd-security
   values:
     pod:
       extraVolumes:
@@ -39,6 +38,11 @@ spec:
       milano.app: authelia
       milano.level: managed
     configMap:
+      identity_validation: 
+        reset_password:
+          secret:
+            secret_name: authelia-credentials
+            path: jwt_secret
       identity_providers:
         oidc:
           enabled: true
@@ -47,6 +51,8 @@ spec:
               client_secret: { path: /secrets/client-grafana/client_secret.txt }
               scopes: [ openid, email, profile, grafana ]
               client_name: Grafana
+              redirect_uris: [ 'https://oidc.example.com/oauth2/callback' ]
+
               
       access_control:
         default_policy: 'one_factor'

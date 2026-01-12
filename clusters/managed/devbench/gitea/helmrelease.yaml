@@ -12,7 +12,6 @@ spec:
         name: gitea
   interval: 10m
   releaseName: gitea
-  targetNamespace: mgd-devbench
   values:
     postgresql-ha:
       enabled: false

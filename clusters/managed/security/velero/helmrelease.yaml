@@ -14,4 +14,3 @@ spec:
         namespace: mgd-security
   interval: 1h
   releaseName: velero
-  targetNamespace: mgd-security

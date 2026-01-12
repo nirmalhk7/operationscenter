@@ -2,23 +2,16 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: loki
+  namespace: mgd-monitoring
 spec:
   chart:
     spec:
-      chart: grafana/loki
-      version: "6.44.0"
+      chart: loki
       sourceRef:
         kind: HelmRepository
         name: grafana-charts
-        namespace: mgd-monitoring
   interval: 10m
   releaseName: main
-  targetNamespace: mgd-monitoring
-  valuesFrom:
-    - kind: Secret
-      name: minio-loki-env-configuration
-      valuesKey: helm-release-loki-values
-  # Default values: https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml
   values:
     lokiCanary:
       enabled: false

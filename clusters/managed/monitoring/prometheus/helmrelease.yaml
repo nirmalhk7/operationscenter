@@ -13,7 +13,6 @@ spec:
         name: prometheus-community
   interval: 10m
   releaseName: main
-  targetNamespace: mgd-monitoring
   values:
     grafana:
       defaultDashboardsEnabled: false
