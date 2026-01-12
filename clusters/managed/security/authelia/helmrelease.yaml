@@ -7,12 +7,11 @@ spec:
   chart:
     spec:
       chart: authelia
-      version: 0.9.0
+      version: 0.10.49
       sourceRef:
         kind: HelmRepository
         name: authelia
   interval: 1h
-  releaseName: authelia
   values:
     pod:
       extraVolumes:
@@ -28,163 +27,43 @@ spec:
       enabled: true
       storageClass: milano-v2
     secret:
-      existingSecret: authelia-app-secrets
-      additionalSecrets:
-        authelia-credentials:
-          items:
-            - key: storage.mysql.password
-              path: storage.mysql.password.txt
+      existingSecret: authelia-credentials
     podLabels:
       milano.app: authelia
       milano.level: managed
     configMap:
-      theme: auto
-      
-      log:
-        level: info
-        format: text
-      
-      totp:
-        issuer: home.nirmalhk7.com
-        period: 30
-        skew: 1
-      
-      # Authentication backend - LDAP (lldap)
-      authentication_backend:
-        password_reset:
-          disable: false
-        refresh_interval: 5m
-        ldap:
-          enabled: true
-          implementation: lldap
-          address: ldap://authelia-lldap:3890
-          timeout: 5s
-          start_tls: false
-          base_dn: dc=home,dc=coredev,dc=uk
-          additional_users_dn: ou=people
-          users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))'
-          additional_groups_dn: ou=groups
-          groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
-          user: uid=admin,ou=people,dc=home,dc=coredev,dc=uk
-          password:
-            secret_name: authelia-credentials
-            path: lldap-admin-password
-          attributes:
-            username: uid
-            display_name: cn
-            mail: mail
-            member_of: memberOf
-            group_name: cn
-      
-      # Access control
       access_control:
-        default_policy: deny
-        rules:
-          - domain: secure.trusted.nirmalhk7.com
-            policy: bypass
-          # Default authentication for all other paths
-          - domain: '*.home.nirmalhk7.com'
-            policy: one_factor
-      
-      # Session configuration with Redis
+        default_policy: 'one_factor'
+      theme: 'dark'
+      telemetry:
+        metrics:
+          enabled: true
+      authentication_backend:
+        file:
+          enabled: true
+          path: /config/users_database.yaml
+        ldap:
+          enabled: false
       session:
         cookies:
-          - subdomain: auth
-            domain: home.nirmalhk7.com
-            authelia_url: https://secure.trusted.nirmalhk7.com
-            default_redirection_url: https://home.trusted.nirmalhk7.com
-            name: authelia_session
-            same_site: lax
-            expiration: 1h
-            inactivity: 5m
-            remember_me: 1M
+          - name: authelia_session
+            domain: nirmalhk7.com
         redis:
-          host: redis
-          port: 6379
-      
-      # Rate limiting
-      regulation:
-        max_retries: 3
-        find_time: 2m
-        ban_time: 5m
-      
-      # Storage backend - SQLite
-      storage:
-        local:
-          enabled: true
-          path: /config/db.sqlite3
-        encryption_key:
-          secret_name: authelia-credentials
-          path: storage-encryption-key
-      
-      # Notifier - filesystem
+          enabled: false
       notifier:
-        disable_startup_check: false
         filesystem:
           enabled: true
           filename: /config/notification.txt
-      
-      # Identity validation
-      identity_validation:
-        reset_password:
-          secret:
-            secret_name: authelia-credentials
-            path: jwt-secret
-      
-      # OIDC Identity Providers
-      identity_providers:
-        oidc:
+      storage:
+        local:
+          enabled: false
+        postgres:
+          enabled: false
+        mysql:
           enabled: true
-          hmac_secret:
+          address: 'tcp://172.16.0.106:3306'
+          database: 'authelia'
+          username: 'authelia_rw'
+          password:
             secret_name: authelia-credentials
-            path: oidc-hmac-secret
-          jwks:
-            - key:
-                path: /secrets/authelia-credentials/oidc-private-key
-          lifespans:
-            access_token: 1h
-            authorize_code: 1m
-            id_token: 1h
-            refresh_token: 90m
-          enable_client_debug_messages: false
-          enforce_pkce: public_clients_only
-          cors:
-            endpoints:
-              - authorization
-              - token
-              - revocation
-              - introspection
-            allowed_origins_from_client_redirect_uris: true
-          
-          # Claims policies for clients that don't properly support OIDC
-          claims_policies:
-            grafana:
-              id_token:
-                - email
-                - name
-                - groups
-                - preferred_username
-          
-          # OIDC Clients
-          clients:
-            # Grafana client
-            - client_id: grafana
-              client_name: Grafana Monitoring
-              claims_policy: grafana
-              client_secret:
-                path: /secrets/authelia-credentials/grafana-client-secret
-              public: false
-              authorization_policy: one_factor
-              redirect_uris:
-                - https://grafana.trusted.nirmalhk7.com/login/generic_oauth
-              scopes:
-                - openid
-                - profile
-                - email
-                - groups
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_basic
-              grant_types:
-                - authorization_code
-              response_types:
-                - code
+        

@@ -7,7 +7,6 @@ resources:
   - namespace.yaml
   - authentik
   - authelia
-  - hashivault
   - vaultwarden
 
 namespace: mgd-security
