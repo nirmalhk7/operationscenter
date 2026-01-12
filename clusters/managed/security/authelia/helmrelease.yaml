@@ -28,9 +28,7 @@ spec:
       storageClass: milano-v2
     secret:
       existingSecret: authelia-credentials
-    podLabels:
-      milano.app: authelia
-      milano.level: managed
+
     configMap:
       access_control:
         default_policy: 'one_factor'
@@ -50,6 +48,8 @@ spec:
             domain: nirmalhk7.com
         redis:
           enabled: false
+        encryption_key:
+          path: 'passwwww'
       notifier:
         filesystem:
           enabled: true
