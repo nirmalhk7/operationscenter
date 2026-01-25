@@ -2,8 +2,6 @@
 - hosts: nginx
   name: Install nginx on 172.16.0.101 via jump host 10.0.0.10
   gather_facts: false
-  vars:
-    ansible_ssh_common_args: '-o ProxyJump=10.0.0.10'
   tasks:
     # - name: Print the SSH password (for debugging, not recommended in production)
     #   debug:

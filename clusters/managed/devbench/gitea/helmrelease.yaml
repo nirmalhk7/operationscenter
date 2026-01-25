@@ -1,17 +1,17 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: gitea
+  name: &app gitea
   namespace: mgd-devbench
 spec:
   chart:
     spec:
-      chart: gitea
+      chart: *app
       sourceRef:
         kind: HelmRepository
-        name: gitea
+        name: *app
   interval: 10m
-  releaseName: gitea
+  releaseName: *app
   values:
     postgresql-ha:
       enabled: false
@@ -20,7 +20,7 @@ spec:
       storageClass: milano-v3
       size: 10Gi
       labels:
-        milano.app: gitea
+        milano.app: *app
     valkey:
       enabled: false
     valkey-cluster:
@@ -30,7 +30,7 @@ spec:
       - name: GITEA__database__DB_TYPE
         value: mysql
       - name: GITEA__database__NAME
-        value: gitea
+        value: *app
       - name: GITEA__database__HOST
         value: 172.16.0.106:3306
       - name: GITEA__database__USER

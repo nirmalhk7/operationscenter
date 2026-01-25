@@ -1,17 +1,17 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: outline
+  name: &app outline
   namespace: mgd-default
 spec:
   chart:
     spec:
-      chart: outline
+      chart: *app
       sourceRef:
         kind: HelmRepository
         name: community-charts
   interval: 10m
-  releaseName: outline
+  releaseName: *app
   values:
     web:
       forceHttps: true
@@ -24,12 +24,12 @@ spec:
       persistence:
         storageClass: milano-v2
     podLabels:
-      milano.app: outline
+      milano.app: *app
     externalPostgresql:
       host: "172.16.0.106"
       port: 5432
       username: "outline_rw"
-      database: "outline"
+      database: *app
       existingSecret: outline-credentials
       passwordSecretKey: "DB_PASSWORD"
     redis:
