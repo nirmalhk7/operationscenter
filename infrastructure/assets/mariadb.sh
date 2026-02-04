@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+: "${MARIADB_ROOT_PASSWORD:?}"
+: "${MARIADB_RW_PASSWORD:?}"
+
+docker exec -i maria mariadb -uroot -p"${MARIADB_ROOT_PASSWORD}" <<SQL
+CREATE DATABASE IF NOT EXISTS nextcloud;
+CREATE USER IF NOT EXISTS 'nextcloud_rw'@'%' IDENTIFIED BY '${MARIADB_RW_PASSWORD}';
+GRANT ALL PRIVILEGES ON nextcloud.* TO 'nextcloud_rw'@'%';
+
+CREATE DATABASE IF NOT EXISTS gitea;
+CREATE USER IF NOT EXISTS 'gitea_rw'@'%' IDENTIFIED BY '${MARIADB_RW_PASSWORD}';
+GRANT ALL PRIVILEGES ON gitea.* TO 'gitea_rw'@'%';
+
+CREATE DATABASE IF NOT EXISTS sonarqube;
+CREATE USER IF NOT EXISTS 'sonarqube_rw'@'%' IDENTIFIED BY '${MARIADB_RW_PASSWORD}';
+GRANT ALL PRIVILEGES ON sonarqube.* TO 'sonarqube_rw'@'%';
+
+CREATE DATABASE IF NOT EXISTS bugsink;
+CREATE USER IF NOT EXISTS 'bugsink_rw'@'%' IDENTIFIED BY '${MARIADB_RW_PASSWORD}';
+GRANT ALL PRIVILEGES ON bugsink.* TO 'bugsink_rw'@'%';
+
+CREATE DATABASE IF NOT EXISTS authelia;
+CREATE USER IF NOT EXISTS 'authelia_rw'@'%' IDENTIFIED BY '${MARIADB_RW_PASSWORD}';
+GRANT ALL PRIVILEGES ON authelia.* TO 'authelia_rw'@'%';
+
+FLUSH PRIVILEGES;
+SQL
