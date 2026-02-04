@@ -70,36 +70,23 @@
 
     - name: Container setup - collecting artifacts
       block:
-        - name: Fetch repo archive
-          ansible.builtin.get_url:
-            url: "https://github.com/nirmalhk7/operationscenter/archive/refs/heads/main.tar.gz"
-            dest: /tmp/operationscenter-main.tar.gz
-            mode: '0644'
-
-        - name: Unarchive docker assets
-          ansible.builtin.unarchive:
-            src: /tmp/operationscenter-main.tar.gz
-            dest: /tmp
-            remote_src: true
-            extra_opts: ["--strip-components=2", "operationscenter-main/infrastructure/assets"]
-
-        - name: Copy artifacts folder to /root/operationscenter-artifacts/
-          ansible.builtin.copy:
-            src: /tmp/assets/
-            dest: /root/operationscenter-artifacts/
-            owner: root
-            group: root
-            mode: '0750'
-            directory_mode: '0755'
-            remote_src: true
-
-        - name: Ensure helper scripts are executable
+        - name: Ensure artifacts directory exists
           ansible.builtin.file:
-            path: "/root/operationscenter-artifacts/{{ item }}"
+            path: /root/operationscenter-artifacts
+            state: directory
+            mode: '0755'
+
+        - name: Download MariaDB seed script
+          ansible.builtin.get_url:
+            url: "https://raw.githubusercontent.com/nirmalhk7/operationscenter/refs/heads/main/infrastructure/assets/mariadb.sh"
+            dest: /root/operationscenter-artifacts/mariadb.sh
             mode: '0750'
-          loop:
-            - mariadb.sh
-            - vectorchorddb.sh
+
+        - name: Download VectorChord seed script
+          ansible.builtin.get_url:
+            url: "https://raw.githubusercontent.com/nirmalhk7/operationscenter/refs/heads/main/infrastructure/assets/vectorchorddb.sh"
+            dest: /root/operationscenter-artifacts/vectorchorddb.sh
+            mode: '0750'
       
     - name: Perform docker deployments
       block:
