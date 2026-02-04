@@ -63,6 +63,7 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
 
     user_account {
       password = "${var.vm_password}108"
+      keys = [local.sshKeys.mgd]
       username = "root"
     }
   }

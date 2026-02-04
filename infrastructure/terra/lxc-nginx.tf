@@ -17,6 +17,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
     }
 
     user_account {
+        username = "root"
         keys = [local.sshKeys.mgd]
         password = "${var.vm_password}101"
     }

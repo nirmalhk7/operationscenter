@@ -1,0 +1,165 @@
+---
+- name: Install Docker stack on k8docker VM
+  hosts: vm_k8docker
+  become: true
+  gather_facts: false
+
+  vars:
+    docker_repo: "https://download.docker.com/linux/debian"
+    docker_gpg: "/etc/apt/keyrings/docker.asc"
+    repo_list: "/etc/apt/sources.list.d/docker.list"
+    mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
+    mariadb_rw_password: "{{ lookup('env', 'MARIADB_RW_PASSWORD') }}"
+    vectorchord_pg_password: "{{ lookup('env', 'VECTORCHORD_PG_PASSWORD') }}" 
+    vectorchord_image: "tensorchord/vchord-postgres:pg17-v0.4.3"
+    vectorchord_db_users:
+      - { name: "immich", user: "immich_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
+      - { name: "authentik", user: "authentik_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
+      - { name: "sonarqube", user: "sonarqube_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
+      - { name: "outline", user: "outline_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
+
+  tasks:
+    - name: Check if docker is installed
+      ansible.builtin.stat:
+        path: /usr/bin/docker
+      register: docker_bin
+
+    - name: Docker setup
+      block:
+        - name: Ensure base deps
+          ansible.builtin.apt:
+            update_cache: true
+            name: [ca-certificates, curl]
+            state: present
+
+        - name: Ensure keyrings directory exists
+          ansible.builtin.file:
+            path: /etc/apt/keyrings
+            state: directory
+            mode: '0755'
+
+        - name: Download Docker GPG key
+          ansible.builtin.get_url:
+            url: "{{ docker_repo }}/gpg"
+            dest: "{{ docker_gpg }}"
+            mode: '0644'
+
+        - name: Add Docker apt repository
+          ansible.builtin.copy:
+            dest: "{{ repo_list }}"
+            mode: '0644'
+            content: |
+              deb [arch={{ ansible_architecture }} signed-by={{ docker_gpg }}] {{ docker_repo }} {{ ansible_lsb.codename | default('bookworm') }} stable
+
+        - name: Update apt cache after adding Docker repo
+          ansible.builtin.apt:
+            update_cache: true
+
+        - name: Install Docker packages
+          ansible.builtin.apt:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-buildx-plugin
+              - docker-compose-plugin
+              - docker-compose
+            state: present
+      when: not docker_bin.stat.exists
+      tags: [docker_setup]
+
+    - name: Container setup - collecting artifacts
+      block:
+        - name: Fetch repo archive
+          ansible.builtin.get_url:
+            url: "https://github.com/nirmalhk7/operationscenter/archive/refs/heads/main.tar.gz"
+            dest: /tmp/operationscenter-main.tar.gz
+            mode: '0644'
+
+        - name: Unarchive docker assets
+          ansible.builtin.unarchive:
+            src: /tmp/operationscenter-main.tar.gz
+            dest: /tmp
+            remote_src: true
+            extra_opts: ["--strip-components=2", "operationscenter-main/infrastructure/assets"]
+
+        - name: Copy artifacts folder to /root/operationscenter-artifacts/
+          ansible.builtin.copy:
+            src: /tmp/assets/
+            dest: /root/operationscenter-artifacts/
+            owner: root
+            group: root
+            mode: '0750'
+            directory_mode: '0755'
+            remote_src: true
+
+        - name: Ensure helper scripts are executable
+          ansible.builtin.file:
+            path: "/root/operationscenter-artifacts/{{ item }}"
+            mode: '0750'
+          loop:
+            - mariadb.sh
+            - vectorchorddb.sh
+      
+    - name: Perform docker deployments
+      block:
+        - name: MariaDB deployment
+          tags: mariadb
+          block: 
+          - name: Ensure MariaDB container is running
+            ansible.builtin.command: >
+              docker run --detach --name maria
+              --env MARIADB_ROOT_PASSWORD={{ mariadb_root_password }}
+              --volume mariadb_data:/var/lib/mysql
+              --restart unless-stopped
+              --health-cmd="mariadb-admin ping -uroot -p{{ mariadb_root_password }}"
+              --health-interval=30s --health-timeout=10s --health-retries=5
+              -p 3306:3306 mariadb:12
+            register: maria_run
+            failed_when: maria_run.rc not in [0,125]
+            changed_when: maria_run.rc == 0
+          - name: Wait for MariaDB healthy
+            ansible.builtin.shell: docker inspect -f '{{"{{"}}.State.Health.Status{{"}}"}}' maria
+            register: maria_health
+            retries: 20
+            delay: 5
+            until: maria_health.stdout == "healthy"
+            changed_when: false
+          - name: Seed MariaDB databases and users
+            ansible.builtin.command: /root/operationscenter-artifacts/mariadb.sh
+            environment:
+              MARIADB_ROOT_PASSWORD: "{{ mariadb_root_password }}"
+              MARIADB_RW_PASSWORD: "{{ mariadb_rw_password }}"
+            changed_when: false
+
+        - name: VectorChord deployment
+          tags: vectorchord
+          block:
+          - name: Ensure VectorChord DB container is running
+            ansible.builtin.command: >
+              docker run --name vectorchorddb --restart unless-stopped
+              -e POSTGRES_PASSWORD="{{ vectorchord_pg_password }}"
+              -p 5432:5432 -v vectorchorddb_data:/var/lib/postgresql/data
+              -d {{ vectorchord_image }}
+            register: vchord_run
+            failed_when: vchord_run.rc not in [0,125]
+            changed_when: vchord_run.rc == 0
+
+          - name: Wait for VectorChord DB healthy
+            ansible.builtin.shell: docker inspect -f '{{"{{"}}.State.Health.Status{{"}}"}}' vectorchorddb
+            register: vchord_health
+            retries: 20
+            delay: 5
+            until: vchord_health.stdout == "healthy"
+            changed_when: false
+
+          - name: Create databases and users on VectorChord DB
+            ansible.builtin.command: /root/operationscenter-artifacts/vectorchorddb.sh
+            environment:
+              VECTORCHORD_PG_PASSWORD: "{{ vectorchord_pg_password }}"
+              IMMICH_PASSWORD: "{{ vectorchord_db_users[0].pass }}"
+              AUTHENTIK_PASSWORD: "{{ vectorchord_db_users[1].pass }}"
+              SONARQUBE_PASSWORD: "{{ vectorchord_db_users[2].pass }}"
+              OUTLINE_PASSWORD: "{{ vectorchord_db_users[3].pass }}"
+            changed_when: false
+      tags: [deployments]

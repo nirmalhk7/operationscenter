@@ -46,6 +46,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 
     user_account {
       password = "${var.vm_password}105"
+      keys = [local.sshKeys.mgd]
       username = "root"
     }
   }
