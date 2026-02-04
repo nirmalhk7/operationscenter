@@ -59,13 +59,24 @@ terraform-sync:
 
 # --- Ansible ---
 ansible-install:
-	pip install --user ansible
+	@if command -v ansible >/dev/null 2>&1; then \
+	  echo "Ansible already installed."; \
+	else \
+	  pip install --user ansible; \
+	fi
 
 ansible-notebooks: ansible-install
-	cd infrastructure/ansible && for nb in *.ansible.yml; do \
-	  echo "Running $$nb"; \
-	  ansible-playbook -i inventory.ini "$$nb"; \
-	done
+	cd infrastructure/ansible && ( \
+	  if [ -f .env ]; then \
+	    set -a; \
+	    . .env; \
+	    set +a; \
+	  fi; \
+	  for nb in *.ansible.yaml; do \
+	    echo "Running $$nb #########################################"; \
+	    ansible-playbook -i inventory.ini "$$nb" --skip-tags disabled; \
+	  done; \
+	)
 
 # --- Kubernetes ---
 kubernetes-init:

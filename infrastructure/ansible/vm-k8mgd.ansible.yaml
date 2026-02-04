@@ -1,0 +1,69 @@
+---
+- name: Install k3s if missing and show cert data
+  hosts: vm_k8mgd
+  become: true
+  gather_facts: false
+  vars:
+    k3s_config: /etc/rancher/k3s/k3s.yaml
+    tls_san: 10.0.0.10
+
+  tasks:
+    - name: Check if k3s is installed
+      tags:
+      - k8
+      - mgd
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_bin
+
+    - name: Install k3s when missing
+      tags:
+      - k8
+      - mgd
+      ansible.builtin.shell: curl -sfL https://get.k3s.io | sh -s - server --tls-san {{ tls_san }} --cluster-init
+      args:
+        creates: /usr/local/bin/k3s
+      when: not k3s_bin.stat.exists
+
+    - name: Ensure yq is installed
+      tags:
+      - k8
+      - mgd
+      ansible.builtin.apt:
+        update_cache: true
+        name: yq
+        state: present
+
+    - name: Read certificate-authority-data
+      tags:
+      - k8
+      - mgd
+      ansible.builtin.command: yq -r '.clusters[0].cluster."certificate-authority-data"' {{ k3s_config }}
+      register: ca_data
+      changed_when: false
+
+    - name: Read client-certificate-data
+      tags:
+      - k8
+      - mgd
+      ansible.builtin.command: yq -r '.users[0].user."client-certificate-data"' {{ k3s_config }}
+      register: client_cert_data
+      changed_when: false
+
+    - name: Read client-key-data
+      tags:
+      - k8
+      - mgd
+      ansible.builtin.command: yq -r '.users[0].user."client-key-data"' {{ k3s_config }}
+      register: client_key_data
+      changed_when: false
+
+    - name: Show cert data
+      tags:
+      - k8
+      - mgd
+      ansible.builtin.debug:
+        msg:
+          - "certificate-authority-data: {{ ca_data.stdout }}"
+          - "client-certificate-data: {{ client_cert_data.stdout }}"
+          - "client-key-data: {{ client_key_data.stdout }}"

@@ -1,0 +1,302 @@
+---
+- name: Operations Center Host Setup
+  hosts: proxmox
+  become: true
+  vars:
+    homelab_path: /root/operationscenter
+    # Network Configuration
+    host_ip: "10.0.0.10"
+    int_subnet: "172.16.0.0/24"
+    nginx_ip: "172.16.0.101"
+    k8s_ip: "172.16.0.105"
+    nfs_ip: "172.16.0.108"
+    vpn_ip: "100.87.0.43"
+    wan_iface: "wlp4s0"
+    lan_iface: "wmnet"
+    vpn_iface: "tailscale0"
+    tailscale_auth_key: "{{ lookup('env', 'TAILSCALE_AUTHKEY') | default('', true) }}"
+    # SSH Key for passwordless auth (ed25519)
+    ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
+
+  tasks:
+    # ==========================================
+    # SSH HARDENING - PROXMOX HOST
+    # ==========================================
+    - name: SSH hardening for Proxmox host
+      tags: ssh
+      block:
+        - name: Deploy ed25519 public key to Proxmox host
+          ansible.posix.authorized_key:
+            user: root
+            key: "{{ ssh_pubkey_ed25519 }}"
+            state: present
+            exclusive: false
+
+        - name: Harden SSH configuration on Proxmox host
+          ansible.builtin.lineinfile:
+            path: /etc/ssh/sshd_config
+            regexp: "{{ item.regexp }}"
+            line: "{{ item.line }}"
+            state: present
+            backup: true
+          loop:
+            - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin prohibit-password' }
+            - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+            - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+            - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding yes' }
+            - { regexp: '^#?ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
+          notify: Restart SSH
+
+    - name: Networking configuration
+      tags: hostconf
+      block:
+        - name: Create operations center networking directory
+          ansible.builtin.file:
+            path: "{{ homelab_path }}/networking"
+            state: directory
+            mode: '0755'
+
+        - name: Create iptables-up.sh script
+          ansible.builtin.copy:
+            dest: "{{ homelab_path }}/networking/iptables-up.sh"
+            mode: '0755'
+            content: |
+              #!/bin/bash
+
+              # ==========================================
+              # OPERATIONS CENTER: Network Up Script
+              # ==========================================
+
+              # --- CONFIGURATION VARIABLES ---
+              HOST_IP="{{ host_ip }}"
+              INT_SUBNET="{{ int_subnet }}"
+
+              NGINX_IP="{{ nginx_ip }}"
+              K8S_IP="{{ k8s_ip }}"
+              VPN_IP="{{ vpn_ip }}"
+
+              WAN_IFACE="{{ wan_iface }}"
+              LAN_IFACE="{{ lan_iface }}"
+              VPN_IFACE="{{ vpn_iface }}"
+              # -------------------------------
+
+              # 1. Enable IP Forwarding
+              echo 1 > /proc/sys/net/ipv4/ip_forward
+
+              # 2. FLUSH EXISTING RULES
+              iptables -F
+              iptables -t nat -F
+              iptables -t mangle -F
+              iptables -X
+
+              # ==========================================
+              # 3. CORE ROUTING & NAT
+              # ==========================================
+
+              # A. ENABLE OUTGOING TAILSCALE TRAFFIC (Masquerade)
+              iptables -t nat -A POSTROUTING -o $VPN_IFACE -s $INT_SUBNET -j MASQUERADE
+
+              # B. ENABLE OUTGOING INTERNET TRAFFIC (SNAT to WiFi)
+              iptables -t nat -A POSTROUTING -o $WAN_IFACE -s $INT_SUBNET -j SNAT --to-source $HOST_IP
+
+              # C. ENABLE FORWARDING
+              iptables -A FORWARD -i $LAN_IFACE -o $WAN_IFACE -j ACCEPT
+              iptables -A FORWARD -i $WAN_IFACE -o $LAN_IFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
+              iptables -A FORWARD -i $LAN_IFACE -o $VPN_IFACE -j ACCEPT
+              iptables -A FORWARD -i $VPN_IFACE -o $LAN_IFACE -j ACCEPT
+
+              # D. Allow ICMP
+              iptables -A INPUT -i $LAN_IFACE -p icmp -j ACCEPT
+              iptables -A OUTPUT -o $LAN_IFACE -p icmp -j ACCEPT
+
+              # ==========================================
+              # 4. LAN PORT FORWARDING (Incoming from {{ host_ip }})
+              # ==========================================
+
+              # Port 80/443 -> Nginx
+              iptables -t nat -A PREROUTING -d $HOST_IP -p tcp --dport 80 -j DNAT --to-destination $NGINX_IP:80
+              iptables -t nat -A PREROUTING -d $HOST_IP -p tcp --dport 443 -j DNAT --to-destination $NGINX_IP:443
+              # Port 6443 -> K8s
+              iptables -t nat -A PREROUTING -d $HOST_IP -p tcp --dport 6443 -j DNAT --to-destination $K8S_IP:6443
+
+              # Port 2049 -> NFS
+              iptables -t nat -A PREROUTING -p tcp --dport 2049 -j DNAT --to-destination {{ nfs_ip }}:2049
+
+              # Redirect RPC Bind (Port 111) - Required for clients to "find" the share
+              iptables -t nat -A PREROUTING -p tcp --dport 111 -j DNAT --to-destination {{ nfs_ip }}:111
+              iptables -t nat -A PREROUTING -p udp --dport 111 -j DNAT --to-destination {{ nfs_ip }}:111
+
+              # Standard Forwarding Allows
+              iptables -A FORWARD -p tcp -d $NGINX_IP --dport 80 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+              iptables -A FORWARD -p tcp -d $NGINX_IP --dport 443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+              iptables -A FORWARD -p tcp -d $K8S_IP --dport 6443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+              iptables -A FORWARD -p tcp -s $NGINX_IP -m state --state ESTABLISHED,RELATED -j ACCEPT
+              iptables -A FORWARD -p tcp -s $K8S_IP -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+              # ==========================================
+              # 5. TAILSCALE INGRESS (Incoming from VPN)
+              # ==========================================
+
+              iptables -t nat -A PREROUTING -i $VPN_IFACE -p tcp --dport 80 -j DNAT --to-destination $NGINX_IP:80
+              iptables -t nat -A PREROUTING -i $VPN_IFACE -p tcp --dport 443 -j DNAT --to-destination $NGINX_IP:443
+              iptables -t nat -A PREROUTING -i $VPN_IFACE -p tcp --dport 6443 -j DNAT --to-destination $K8S_IP:6443
+
+              # ==========================================
+              # 6. LOCALHOST LOOPBACK (Access from Host itself)
+              # ==========================================
+              # Allows 'curl' from the host to work by intercepting local OUTPUT traffic
+
+              iptables -t nat -A OUTPUT -d $VPN_IP -p tcp --dport 80 -j DNAT --to-destination $NGINX_IP:80
+              iptables -t nat -A OUTPUT -d $VPN_IP -p tcp --dport 443 -j DNAT --to-destination $NGINX_IP:443
+              iptables -t nat -A OUTPUT -d $VPN_IP -p tcp --dport 6443 -j DNAT --to-destination $K8S_IP:6443
+
+        - name: Create iptables-down.sh script
+          ansible.builtin.copy:
+            dest: "{{ homelab_path }}/networking/iptables-down.sh"
+            mode: '0755'
+            content: |
+              #!/bin/bash
+
+              # ==========================================
+              # OPERATIONS CENTER: Network Down Script
+              # ==========================================
+
+              # --- CONFIGURATION VARIABLES ---
+              HOST_IP="{{ host_ip }}"
+              INT_SUBNET="{{ int_subnet }}"
+
+              NGINX_IP="{{ nginx_ip }}"
+              K8S_IP="{{ k8s_ip }}"
+              VPN_IP="{{ vpn_ip }}"
+
+              WAN_IFACE="{{ wan_iface }}"
+              LAN_IFACE="{{ lan_iface }}"
+              VPN_IFACE="{{ vpn_iface }}"
+              # -------------------------------
+
+              # 1. Remove Core Routing
+              iptables -t nat -D POSTROUTING -o $VPN_IFACE -s $INT_SUBNET -j MASQUERADE
+              iptables -t nat -D POSTROUTING -o $WAN_IFACE -s $INT_SUBNET -j SNAT --to-source $HOST_IP
+
+              # 2. Remove Forwarding
+              iptables -D FORWARD -i $LAN_IFACE -o $WAN_IFACE -j ACCEPT
+              iptables -D FORWARD -i $WAN_IFACE -o $LAN_IFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
+              iptables -D FORWARD -i $LAN_IFACE -o $VPN_IFACE -j ACCEPT
+              iptables -D FORWARD -i $VPN_IFACE -o $LAN_IFACE -j ACCEPT
+
+              # 3. Remove ICMP
+              iptables -D INPUT -i $LAN_IFACE -p icmp -j ACCEPT
+              iptables -D OUTPUT -o $LAN_IFACE -p icmp -j ACCEPT
+
+              # 4. Remove LAN Port Forwards
+              iptables -t nat -D PREROUTING -d $HOST_IP -p tcp --dport 80 -j DNAT --to-destination $NGINX_IP:80
+              iptables -t nat -D PREROUTING -d $HOST_IP -p tcp --dport 443 -j DNAT --to-destination $NGINX_IP:443
+              iptables -t nat -D PREROUTING -d $HOST_IP -p tcp --dport 6443 -j DNAT --to-destination $K8S_IP:6443
+
+              # Remove NFS and RPC Bind DNAT rules
+              iptables -t nat -D PREROUTING -p tcp --dport 2049 -j DNAT --to-destination {{ nfs_ip }}:2049 2>/dev/null
+              iptables -t nat -D PREROUTING -p tcp --dport 111 -j DNAT --to-destination {{ nfs_ip }}:111 2>/dev/null
+              iptables -t nat -D PREROUTING -p udp --dport 111 -j DNAT --to-destination {{ nfs_ip }}:111 2>/dev/null
+
+              iptables -D FORWARD -p tcp -d $NGINX_IP --dport 80 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+              iptables -D FORWARD -p tcp -d $NGINX_IP --dport 443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+              iptables -D FORWARD -p tcp -d $K8S_IP --dport 6443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+              iptables -D FORWARD -p tcp -s $NGINX_IP -m state --state ESTABLISHED,RELATED -j ACCEPT
+              iptables -D FORWARD -p tcp -s $K8S_IP -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+              # 5. Remove Tailscale Ingress
+              iptables -t nat -D PREROUTING -i $VPN_IFACE -p tcp --dport 80 -j DNAT --to-destination $NGINX_IP:80 2>/dev/null
+              iptables -t nat -D PREROUTING -i $VPN_IFACE -p tcp --dport 443 -j DNAT --to-destination $NGINX_IP:443 2>/dev/null
+              iptables -t nat -D PREROUTING -i $VPN_IFACE -p tcp --dport 6443 -j DNAT --to-destination $K8S_IP:6443 2>/dev/null
+
+              # 6. Remove Localhost Loopback
+              iptables -t nat -D OUTPUT -d $VPN_IP -p tcp --dport 80 -j DNAT --to-destination $NGINX_IP:80 2>/dev/null
+              iptables -t nat -D OUTPUT -d $VPN_IP -p tcp --dport 443 -j DNAT --to-destination $NGINX_IP:443 2>/dev/null
+              iptables -t nat -D OUTPUT -d $VPN_IP -p tcp --dport 6443 -j DNAT --to-destination $K8S_IP:6443 2>/dev/null
+
+        - name: Configure wmnet bridge interface
+          ansible.builtin.blockinfile:
+            path: /etc/network/interfaces
+            marker: "# {mark} ANSIBLE MANAGED - wmnet bridge"
+            block: |
+              auto wmnet
+              iface wmnet inet static
+                  address 172.16.0.1/24
+                  bridge-ports none
+                  bridge-stp off
+                  bridge-fd 0
+                  post-up {{ homelab_path }}/networking/iptables-up.sh
+                  post-down {{ homelab_path }}/networking/iptables-down.sh
+
+    - name: Single node Proxmox configuration
+      tags: singlenode
+      block:
+        - name: Disable HA services (not needed for single node)
+          ansible.builtin.systemd:
+            name: "{{ item }}"
+            state: stopped
+            enabled: false
+          loop:
+            - pve-ha-lrm
+            - pve-ha-crm
+            - corosync
+
+        - name: Disable enterprise repository (unless subscribed)
+          ansible.builtin.file:
+            path: /etc/apt/sources.list.d/pve-enterprise.list
+            state: absent
+
+        - name: Add Proxmox no-subscription repository
+          ansible.builtin.apt_repository:
+            repo: "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription"
+            filename: pve-no-subscription
+            state: present
+    - name: Tailscale setup on Proxmox host
+      tags:
+      - networking
+      - tailscale
+      block:
+        - name: Check if Tailscale is installed
+          ansible.builtin.stat:
+            path: /usr/bin/tailscale
+          register: tailscale_bin
+
+        - name: Install Tailscale when missing
+          ansible.builtin.shell: curl -fsSL https://tailscale.com/install.sh | sh
+          args:
+            warn: false
+          when: not tailscale_bin.stat.exists
+
+        - name: Ensure tailscaled service enabled and running
+          ansible.builtin.systemd:
+            name: tailscaled
+            enabled: true
+            state: started
+
+        - name: Enable IPv4 forwarding for Tailscale
+          ansible.posix.sysctl:
+            name: net.ipv4.ip_forward
+            value: '1'
+            state: present
+            reload: true
+
+        - name: Check Tailscale status
+          ansible.builtin.command: tailscale status --peers=false
+          register: tailscale_status
+          failed_when: false
+          changed_when: false
+
+        - name: Fail if auth key missing when login required
+          ansible.builtin.fail:
+            msg: "TAILSCALE_AUTHKEY env var required to bring Tailscale up"
+          when: (tailscale_status.rc != 0) and (tailscale_auth_key | length == 0)
+
+        - name: Bring Tailscale up when not connected
+          ansible.builtin.command: tailscale up --auth-key={{ tailscale_auth_key }}
+          when: tailscale_status.rc != 0
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted

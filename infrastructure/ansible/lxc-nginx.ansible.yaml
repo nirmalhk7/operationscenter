@@ -1,0 +1,190 @@
+---
+- name: Provision nginx LXC via Proxmox jump
+  hosts: lxc_nginx
+  become: true
+  gather_facts: false
+  vars:
+    certbot_certs: true
+    certbot_cron: false
+    cloudflare_api_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
+    nginx_exporter_version: 1.5.0
+    cert_path: /etc/letsencrypt/live/trusted.nirmalhk7.com/fullchain.pem
+
+  pre_tasks:
+    - name: Guard Cloudflare token when certs enabled
+      ansible.builtin.fail:
+        msg: "Set cloudflare_api_token when certbot_certs=true"
+      when: certbot_certs and (cloudflare_api_token | length == 0)
+
+  tasks:
+    - name: Ensure base packages
+      ansible.builtin.apt:
+        update_cache: true
+        name: [curl, wget, tar, ca-certificates]
+        state: present
+
+    - name: Detect nginx install
+      ansible.builtin.stat:
+        path: /usr/sbin/nginx
+      register: nginx_stat
+
+    - name: nginx_setup
+      block:
+        - name: Install nginx when missing
+          ansible.builtin.apt:
+            name: nginx
+            state: present
+          when: not nginx_stat.stat.exists
+
+        - name: Fetch nginx repo archive
+          ansible.builtin.get_url:
+            url: "https://github.com/nirmalhk7/operationscenter/archive/refs/heads/main.tar.gz"
+            dest: /tmp/operationscenter-main.tar.gz
+            mode: '0644'
+
+        - name: Unarchive nginx assets
+          ansible.builtin.unarchive:
+            src: /tmp/operationscenter-main.tar.gz
+            dest: /tmp
+            remote_src: true
+            extra_opts: ["--strip-components=2", "operationscenter-main/nginx"]
+
+        - name: Deploy nginx config
+          block:
+            - name: Deploy nginx conf.d
+              ansible.builtin.copy:
+                src: /tmp/conf.d/
+                dest: /etc/nginx/conf.d/
+                owner: root
+                group: root
+                mode: '0644'
+                directory_mode: '0755'
+                remote_src: true
+            - name: Deploy nginx mainconf
+              ansible.builtin.copy:
+                src: /tmp/nginx.conf
+                dest: /etc/nginx/nginx.conf
+                owner: root
+                group: root
+                mode: '0644'
+                directory_mode: '0755'
+                remote_src: true
+
+        - name: Restart nginx
+          ansible.builtin.systemd:
+            name: nginx
+            state: restarted
+            enabled: true
+
+      when: true
+      tags: [nginx_setup]
+
+    - name: cloudflare_setup
+      block:
+        - name: Install certbot with DNS plugin
+          ansible.builtin.apt:
+            name: [certbot, python3-certbot-dns-cloudflare]
+            state: present
+
+        - name: Write Cloudflare credentials
+          ansible.builtin.copy:
+            dest: /root/.secrets/certbot/cloudflare.ini
+            content: "dns_cloudflare_api_token = {{ cloudflare_api_token }}\n"
+            owner: root
+            group: root
+            mode: '0600'
+
+      when: certbot_certs
+      tags: [cloudflare_setup]
+
+    - name: ssl_cert_setup
+      block:
+        - name: Check if certificate exists
+          ansible.builtin.stat:
+            path: "{{ cert_path }}"
+          register: cert_stat
+
+        - name: Check certificate expiry (grace 30d)
+          ansible.builtin.command: >
+            openssl x509 -checkend 2592000 -noout -in "{{ cert_path }}"
+          register: cert_expiry_check
+          failed_when: false
+          changed_when: false
+          when: cert_stat.stat.exists
+
+        - name: Obtain or renew certificate
+          ansible.builtin.command: >
+            certbot certonly --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/certbot/cloudflare.ini
+            --dns-cloudflare-propagation-seconds 60 -d "*.trusted.nirmalhk7.com" -d "trusted.nirmalhk7.com"
+          register: certbot_result
+          changed_when: "'Certificate not yet due for renewal' not in certbot_result.stderr"
+          when: (not cert_stat.stat.exists) or (cert_expiry_check.rc | default(1) != 0)
+
+        - name: Install certbot cron job
+          ansible.builtin.cron:
+            name: certbot_renew
+            minute: "0"
+            hour: "3"
+            user: root
+            job: "certbot renew --quiet --post-hook 'systemctl reload nginx'"
+          when: certbot_cron
+      when: certbot_certs
+      tags: [ssl_cert_setup]
+
+      
+    - name: nginx-prometheus-exporter setup
+      block:
+      - name: Download nginx-prometheus-exporter
+        ansible.builtin.get_url:
+          url: "https://github.com/nginx/nginx-prometheus-exporter/releases/download/v{{ nginx_exporter_version }}/nginx-prometheus-exporter_{{ nginx_exporter_version }}_linux_amd64.tar.gz"
+          dest: /tmp/nginx-prometheus-exporter.tar.gz
+          mode: '0644'
+
+      - name: Unarchive nginx-prometheus-exporter
+        ansible.builtin.unarchive:
+          src: /tmp/nginx-prometheus-exporter.tar.gz
+          dest: /tmp
+          remote_src: true
+
+      - name: Install exporter binary
+        ansible.builtin.copy:
+          src: /tmp/nginx-prometheus-exporter
+          dest: /usr/local/bin/nginx-prometheus-exporter
+          owner: root
+          group: root
+          mode: '0755'
+          remote_src: true
+
+      - name: Ensure exporter user exists
+        ansible.builtin.user:
+          name: nginx-prometheus-exporter
+          shell: /usr/sbin/nologin
+          system: true
+          state: present
+
+      - name: Install systemd unit for exporter
+        ansible.builtin.copy:
+          dest: /etc/systemd/system/nginx-prometheus-exporter.service
+          owner: root
+          group: root
+          mode: '0644'
+          content: |
+            [Unit]
+            Description=nginx-prometheus-exporter
+            After=network.target
+
+            [Service]
+            User=nginx-prometheus-exporter
+            Group=nginx-prometheus-exporter
+            Type=simple
+            ExecStart=/usr/local/bin/nginx-prometheus-exporter -nginx.scrape-uri=http://localhost:7777/prometheus
+
+            [Install]
+            WantedBy=multi-user.target
+
+      - name: Reload systemd and enable exporter
+        ansible.builtin.systemd:
+          daemon_reload: true
+          name: nginx-prometheus-exporter
+          state: started
+          enabled: true

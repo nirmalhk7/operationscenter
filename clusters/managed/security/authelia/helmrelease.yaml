@@ -34,7 +34,7 @@ spec:
             - key: storage.encryption.key
               path: storage.encryption.key
             - key: storage.mysql.password
-              path: storage.mysql.password
+              path: storage.mysql.password.txt
             - key: session.encryption.key
               path: session.encryption.key
             - key: jwt-secret
@@ -45,7 +45,6 @@ spec:
               path: oidc-hmac-secret
             - key: oidc-jwks-private-key.pem
               path: oidc-jwks-private-key.pem
-            
         authelia-app-secrets:
           items:
             - key: grafana-client-secret
@@ -82,7 +81,7 @@ spec:
           clients:
             - client_id: grafana
               client_name: Grafana
-              client_secret:
+              client_secret_jwt:
                 path: /secrets/authelia-app-secrets/grafana-client-secret
               redirect_uris:
                 - https://grafana.trusted.nirmalhk7.com/login/generic_oauth
