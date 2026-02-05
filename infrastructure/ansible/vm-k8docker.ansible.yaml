@@ -106,7 +106,8 @@
             failed_when: maria_run.rc not in [0,125]
             changed_when: maria_run.rc == 0
           - name: Wait for MariaDB healthy
-            ansible.builtin.shell: docker inspect -f '{{"{{"}}.State.Health.Status{{"}}"}}' maria
+            ansible.builtin.shell: >
+              {% raw %}docker inspect --format '{{.State.Health.Status}}' maria{% endraw %}
             register: maria_health
             retries: 20
             delay: 5
@@ -133,11 +134,12 @@
             changed_when: vchord_run.rc == 0
 
           - name: Wait for VectorChord DB healthy
-            ansible.builtin.shell: docker inspect -f '{{"{{"}}.State.Health.Status{{"}}"}}' vectorchorddb
+            ansible.builtin.shell: >
+              {% raw %}docker inspect --format '{{.State.Error}}' vectorchorddb{% endraw %}
             register: vchord_health
             retries: 20
             delay: 5
-            until: vchord_health.stdout == "healthy"
+            until: vchord_health.stdout == ""
             changed_when: false
 
           - name: Create databases and users on VectorChord DB

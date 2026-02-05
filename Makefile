@@ -52,10 +52,7 @@ terraform-reset:
 	cd infrastructure/terra && terraform destroy -auto-approve
 
 terraform-apply:
-	cd infrastructure/terra && terraform init -upgrade && terraform plan && TF_LOG=DEBUG terraform apply -auto-approve
-
-terraform-sync:
-	cd infrastructure/terra && terraform import $(R) pve/$(V)
+	cd infrastructure/terra && terraform init -upgrade && terraform plan && terraform apply -auto-approve
 
 # --- Ansible ---
 ansible-install:
@@ -65,18 +62,33 @@ ansible-install:
 	  pip install --user ansible; \
 	fi
 
-ansible-notebooks: ansible-install
+ansible-run: ansible-install
 	cd infrastructure/ansible && ( \
 	  if [ -f .env ]; then \
-	    set -a; \
-	    . .env; \
-	    set +a; \
+		set -a; \
+		. .env; \
+		set +a; \
 	  fi; \
 	  for nb in *.ansible.yaml; do \
-	    echo "Running $$nb #########################################"; \
-	    ansible-playbook -i inventory.ini "$$nb" --skip-tags disabled; \
+		echo "Running $$nb #########################################"; \
+		ansible-playbook -i inventory.ini "$$nb" --skip-tags disabled,upgrade; \
 	  done; \
 	)
+
+ansible-run-one: ansible-install
+	@if [ -z "$(NOTEBOOK)" ]; then \
+	  echo "Usage: make ansible-run-one NOTEBOOK=path/to/playbook.ansible.yaml"; \
+	else \
+	  cd infrastructure/ansible && ( \
+		if [ -f .env ]; then \
+		  set -a; \
+		  . .env; \
+		  set +a; \
+		fi; \
+		echo "Running $(NOTEBOOK) #########################################"; \
+		ansible-playbook -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled; \
+	  ); \
+	fi
 
 # --- Kubernetes ---
 kubernetes-init:

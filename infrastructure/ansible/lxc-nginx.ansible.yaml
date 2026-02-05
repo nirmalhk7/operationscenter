@@ -6,6 +6,7 @@
   vars:
     certbot_certs: true
     certbot_cron: false
+    certbot_email: "{{ lookup('env', 'CERTBOT_EMAIL') }}"
     cloudflare_api_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
     nginx_exporter_version: 1.5.0
     cert_path: /etc/letsencrypt/live/trusted.nirmalhk7.com/fullchain.pem
@@ -15,6 +16,11 @@
       ansible.builtin.fail:
         msg: "Set cloudflare_api_token when certbot_certs=true"
       when: certbot_certs and (cloudflare_api_token | length == 0)
+
+    - name: Guard Certbot email when certs enabled
+      ansible.builtin.fail:
+        msg: "Set certbot_email (or export CERTBOT_EMAIL) when certbot_certs=true"
+      when: certbot_certs and (certbot_email | length == 0)
 
   tasks:
     - name: Ensure base packages
@@ -27,6 +33,75 @@
       ansible.builtin.stat:
         path: /usr/sbin/nginx
       register: nginx_stat
+
+    - name: cloudflare_setup
+      block:
+        - name: Install certbot with DNS plugin
+          ansible.builtin.apt:
+            name: [certbot, python3-certbot-dns-cloudflare]
+            state: present
+
+        - name: Ensure Cloudflare secrets directory exists
+          ansible.builtin.file:
+            path: /root/.secrets/certbot
+            state: directory
+            owner: root
+            group: root
+            mode: '0700'
+
+        - name: Write Cloudflare credentials
+          ansible.builtin.copy:
+            dest: /root/.secrets/certbot/cloudflare.ini
+            content: "dns_cloudflare_api_token = {{ cloudflare_api_token }}\n"
+            owner: root
+            group: root
+            mode: '0600'
+
+      when: certbot_certs
+      tags: [cloudflare_setup]
+
+    - name: ssl_cert_setup
+      block:
+        - name: Check if certificate exists
+          ansible.builtin.stat:
+            path: "{{ cert_path }}"
+          register: cert_stat
+
+        - name: Check certificate expiry (grace 30d)
+          ansible.builtin.command: >
+            openssl x509 -checkend 2592000 -noout -in "{{ cert_path }}"
+          register: cert_expiry_check
+          failed_when: false
+          changed_when: false
+          when: cert_stat.stat.exists
+
+        - name: Obtain or renew certificate
+          ansible.builtin.command: >
+            certbot certonly --non-interactive --agree-tos --no-eff-email --email "{{ certbot_email }}" \
+            --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/certbot/cloudflare.ini \
+            --dns-cloudflare-propagation-seconds 60 -d "*.trusted.nirmalhk7.com" -d "trusted.nirmalhk7.com"
+          timeout: 300
+          register: certbot_result
+          changed_when: "'Certificate not yet due for renewal' not in certbot_result.stderr"
+          when: (not cert_stat.stat.exists) or (cert_expiry_check.rc | default(1) != 0)
+
+        - name: Show certbot output
+          ansible.builtin.debug:
+            msg:
+              - "stdout: {{ certbot_result.stdout | default('') }}"
+              - "stderr: {{ certbot_result.stderr | default('') }}"
+          when: certbot_result is defined
+
+        - name: Install certbot cron job
+          ansible.builtin.cron:
+            name: certbot_renew
+            minute: "0"
+            hour: "3"
+            user: root
+            job: "certbot renew --quiet --post-hook 'systemctl reload nginx'"
+          when: certbot_cron
+      when: certbot_certs
+      tags: [ssl_cert_setup]
 
     - name: nginx_setup
       block:
@@ -78,59 +153,6 @@
 
       when: true
       tags: [nginx_setup]
-
-    - name: cloudflare_setup
-      block:
-        - name: Install certbot with DNS plugin
-          ansible.builtin.apt:
-            name: [certbot, python3-certbot-dns-cloudflare]
-            state: present
-
-        - name: Write Cloudflare credentials
-          ansible.builtin.copy:
-            dest: /root/.secrets/certbot/cloudflare.ini
-            content: "dns_cloudflare_api_token = {{ cloudflare_api_token }}\n"
-            owner: root
-            group: root
-            mode: '0600'
-
-      when: certbot_certs
-      tags: [cloudflare_setup]
-
-    - name: ssl_cert_setup
-      block:
-        - name: Check if certificate exists
-          ansible.builtin.stat:
-            path: "{{ cert_path }}"
-          register: cert_stat
-
-        - name: Check certificate expiry (grace 30d)
-          ansible.builtin.command: >
-            openssl x509 -checkend 2592000 -noout -in "{{ cert_path }}"
-          register: cert_expiry_check
-          failed_when: false
-          changed_when: false
-          when: cert_stat.stat.exists
-
-        - name: Obtain or renew certificate
-          ansible.builtin.command: >
-            certbot certonly --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/certbot/cloudflare.ini
-            --dns-cloudflare-propagation-seconds 60 -d "*.trusted.nirmalhk7.com" -d "trusted.nirmalhk7.com"
-          register: certbot_result
-          changed_when: "'Certificate not yet due for renewal' not in certbot_result.stderr"
-          when: (not cert_stat.stat.exists) or (cert_expiry_check.rc | default(1) != 0)
-
-        - name: Install certbot cron job
-          ansible.builtin.cron:
-            name: certbot_renew
-            minute: "0"
-            hour: "3"
-            user: root
-            job: "certbot renew --quiet --post-hook 'systemctl reload nginx'"
-          when: certbot_cron
-      when: certbot_certs
-      tags: [ssl_cert_setup]
-
       
     - name: nginx-prometheus-exporter setup
       block:
