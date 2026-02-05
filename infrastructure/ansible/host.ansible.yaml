@@ -19,30 +19,43 @@
     ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
 
   tasks:
-    - name: SSH hardening for Proxmox host
-      tags: ssh
+    - name: Routine package update/ basic setup
       block:
-        - name: Deploy ed25519 public key to Proxmox host
-          ansible.posix.authorized_key:
-            user: root
-            key: "{{ ssh_pubkey_ed25519 }}"
-            state: present
-            exclusive: false
+      - name: Update apt cache and upgrade packages
+        ansible.builtin.apt:
+          update_cache: true
+          cache_valid_time: 3600
+          upgrade: safe
+      - name: SSH hardening for Proxmox host
+        tags: ssh
+        block:
+          - name: Update apt cache and upgrade packages
+            ansible.builtin.apt:
+              update_cache: true
+              cache_valid_time: 3600
+              upgrade: safe
 
-        - name: Harden SSH configuration on Proxmox host
-          ansible.builtin.lineinfile:
-            path: /etc/ssh/sshd_config
-            regexp: "{{ item.regexp }}"
-            line: "{{ item.line }}"
-            state: present
-            backup: true
-          loop:
-            - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin prohibit-password' }
-            - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
-            - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
-            - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding yes' }
-            - { regexp: '^#?ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
-          notify: Restart SSH
+          - name: Deploy ed25519 public key to Proxmox host
+            ansible.posix.authorized_key:
+              user: root
+              key: "{{ ssh_pubkey_ed25519 }}"
+              state: present
+              exclusive: false
+
+          - name: Harden SSH configuration on Proxmox host
+            ansible.builtin.lineinfile:
+              path: /etc/ssh/sshd_config
+              regexp: "{{ item.regexp }}"
+              line: "{{ item.line }}"
+              state: present
+              backup: true
+            loop:
+              - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin prohibit-password' }
+              - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+              - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+              - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding yes' }
+              - { regexp: '^#?ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
+            notify: Restart SSH
 
     - name: Networking configuration
       tags: hostconf
@@ -147,8 +160,43 @@
           ansible.builtin.command: tailscale up --auth-key={{ tailscale_auth_key }}
           when: tailscale_status.rc != 0
 
+        - name: Configure Tailscale metrics systemd service
+          ansible.builtin.blockinfile:
+            path: /etc/systemd/system/tailscale-metrics.service
+            mode: '0644'
+            create: true
+            marker: "### {mark} ANSIBLE MANAGED - tailscale metrics ###"
+            block: |
+              [Unit]
+              Description=Tailscale metrics server
+              After=network-online.target tailscaled.service
+              Wants=network-online.target
+              ConditionPathExists=/usr/bin/tailscale
+
+              [Service]
+              Type=simple
+              ExecStart=/usr/bin/tailscale web --listen 127.0.0.1:5252 --quiet
+              Restart=on-failure
+              User=root
+              Group=root
+
+              [Install]
+              WantedBy=multi-user.target
+
+        - name: Ensure Tailscale metrics service running
+          ansible.builtin.systemd:
+            name: tailscale-metrics.service
+            enabled: true
+            state: started
+          notify: Restart Tailscale metrics
+
   handlers:
     - name: Restart SSH
       ansible.builtin.systemd:
         name: sshd
+        state: restarted
+
+    - name: Restart Tailscale metrics
+      ansible.builtin.systemd:
+        name: tailscale-metrics.service
         state: restarted

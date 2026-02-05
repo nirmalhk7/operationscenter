@@ -1,5 +1,12 @@
-**/result
+####OperationsCenterBackup####
 .env
+**/*.var.yaml
+**/*.px.yaml
+**/*.tfvars
+####OperationsCenterBackup####
+
+**/result
+.env            
 **/*.px.yaml
 opcenter.bkp.zip
 repo.bkp.zip
@@ -18,15 +25,13 @@ wikis
 **/.terraform/
 **/terraform.tfplan
 **/terraform.tfplan.*
-**/*.tfvars
+
 !terraform.tfvars.example
 *.terraform.lock.hcl
 
 # Ansible
 **/*.var.yaml
-
 scripts/
-
 docker/vectorchord/init.sh
 docker/mariadb/init.sh
 
