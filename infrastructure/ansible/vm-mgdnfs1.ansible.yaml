@@ -1,0 +1,86 @@
+---
+- name: Prepare NFS node storage and SSH access
+  hosts: vm_mgdnfs1
+  become: true
+  gather_facts: false
+
+  vars:
+    dev_path: "/dev/sdb"
+    mount_point: "/mnt/2tbhdd"
+
+  tasks:
+    - name: Require device path to be set
+      ansible.builtin.assert:
+        that:
+          - dev_path is defined
+          - dev_path | length > 0
+        fail_msg: "Device path is required (e.g., /dev/sdb)"
+
+    - name: Check block device exists
+      ansible.builtin.stat:
+        path: "{{ dev_path }}"
+        follow: true
+        get_checksum: false
+      register: dev_stat
+
+    - name: Fail when device missing
+      ansible.builtin.fail:
+        msg: "Device {{ dev_path }} not found"
+      when: not dev_stat.stat.exists
+
+    - name: Probe filesystem UUID
+      ansible.builtin.command: blkid -s UUID -o value {{ dev_path }}
+      register: blkid_probe
+      changed_when: false
+      failed_when: blkid_probe.rc not in [0, 2]
+
+    - name: Format device as ext4 when uninitialized
+      ansible.builtin.command: mkfs.ext4 -F {{ dev_path }}
+      when: blkid_probe.rc != 0
+
+    - name: Read filesystem UUID
+      ansible.builtin.command: blkid -s UUID -o value {{ dev_path }}
+      register: device_uuid
+      changed_when: false
+
+    - name: Ensure mount point exists
+      ansible.builtin.file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: '0755'
+
+    - name: Persist and mount filesystem
+      ansible.posix.mount:
+        src: "UUID={{ device_uuid.stdout }}"
+        path: "{{ mount_point }}"
+        fstype: ext4
+        opts: defaults,noatime,errors=remount-ro
+        state: mounted
+
+    - name: Verify mount present
+      ansible.builtin.command: df -h {{ mount_point }}
+      changed_when: false
+
+    - name: Enable SSH password and root login
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        backup: true
+      loop:
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin yes' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication yes' }
+      notify: Restart sshd
+
+    - name: Ensure NFS server installed
+      ansible.builtin.apt:
+        name: nfs-kernel-server
+        state: present
+        update_cache: true
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
