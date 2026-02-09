@@ -29,9 +29,10 @@
         name: [curl, wget, tar, ca-certificates]
         state: present
 
-    - name: Detect nginx install
-      ansible.builtin.stat:
-        path: /usr/sbin/nginx
+    - name: Ensure Nginx is at the latest version
+      ansible.builtin.package:
+        name: nginx
+        state: latest
       register: nginx_stat
 
     - name: cloudflare_setup
