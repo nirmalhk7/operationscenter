@@ -4,6 +4,9 @@
   become: true
   gather_facts: false
 
+  vars_files:
+    - vars/versions.yaml
+
   vars:
     docker_repo: "https://download.docker.com/linux/debian"
     docker_gpg: "/etc/apt/keyrings/docker.asc"
@@ -51,20 +54,16 @@
             content: |
               deb [arch={{ ansible_architecture }} signed-by={{ docker_gpg }}] {{ docker_repo }} {{ ansible_lsb.codename | default('bookworm') }} stable
 
-        - name: Update apt cache after adding Docker repo
-          ansible.builtin.apt:
-            update_cache: true
-
-        - name: Install Docker packages
+        - name: Install Docker packages at requested versions
           ansible.builtin.apt:
             name:
-              - docker-ce
-              - docker-ce-cli
-              - containerd.io
-              - docker-buildx-plugin
-              - docker-compose-plugin
-              - docker-compose
+              - "docker-ce={{ docker_ce_version }}"
+              - "docker-ce-cli={{ docker_ce_version }}"
+              - "containerd.io={{ containerd_version }}"
+              - "docker-buildx-plugin={{ docker_buildx_plugin_version }}"
+              - "docker-compose-plugin={{ docker_compose_plugin_version }}"
             state: present
+            update_cache: true
       when: not docker_bin.stat.exists
       tags: [docker_setup]
 

@@ -3,6 +3,8 @@
   hosts: vm_k8mgd
   become: true
   gather_facts: false
+  vars_files:
+    - vars/versions.yaml
   vars:
     k3s_config: /etc/rancher/k3s/k3s.yaml
     tls_san: 10.0.0.10
@@ -23,6 +25,8 @@
       ansible.builtin.shell: curl -sfL https://get.k3s.io | sh -s - server --tls-san {{ tls_san }} --cluster-init
       args:
         creates: /usr/local/bin/k3s
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
       when: not k3s_bin.stat.exists
 
     - name: Ensure yq is installed

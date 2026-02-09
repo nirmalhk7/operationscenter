@@ -1,0 +1,27 @@
+---
+
+# renovate: datasource=github-releases depName=nginx/nginx versioning=semver
+nginx_package_version: "1.29.5" 
+
+# renovate: datasource=github-releases depName=nginxinc/nginx-prometheus-exporter versioning=semver
+nginx_exporter_version: "1.5.0" 
+
+# renovate: datasource=github-releases depName=k3s-io/k3s versioning=loose
+k3s_version: "v1.32.11+k3s3" 
+
+# renovate: datasource=github-releases depName=tailscale/tailscale versioning=semver
+tailscale_version: "v1.94.1" 
+
+# renovate: datasource=deb depName=nfs-kernel-server versioning=loose
+nfs_kernel_server_version: "1:2.6.2-4+deb12u2"
+
+# Docker Engine stack (Docker apt repo)
+# renovate: datasource=deb depName=docker-ce versioning=loose registryUrl=https://download.docker.com/linux/debian
+docker_ce_version: "5:27.3.1-1~debian.12~bookworm"
+
+# renovate: datasource=deb depName=docker-buildx-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian
+docker_buildx_plugin_version: "0.17.1-1~debian.12~bookworm"
+# renovate: datasource=deb depName=docker-compose-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian
+docker_compose_plugin_version: "2.29.7-1~debian.12~bookworm"
+# renovate: datasource=deb depName=containerd.io versioning=loose registryUrl=https://download.docker.com/linux/debian
+containerd_version: "1.7.23-1"

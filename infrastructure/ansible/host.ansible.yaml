@@ -2,6 +2,8 @@
 - name: Operations Center Host Setup
   hosts: proxmox
   become: true
+  vars_files:
+    - vars/versions.yaml
   vars:
     homelab_path: /root/operationscenter
     # Network Configuration
@@ -121,16 +123,17 @@
       - networking
       - tailscale
       block:
-        - name: Check if Tailscale is installed
-          ansible.builtin.stat:
-            path: /usr/bin/tailscale
-          register: tailscale_bin
-
-        - name: Install Tailscale when missing
+        - name: Ensure Tailscale apt repository is configured
           ansible.builtin.shell: curl -fsSL https://tailscale.com/install.sh | sh
           args:
             warn: false
-          when: not tailscale_bin.stat.exists
+            creates: /etc/apt/sources.list.d/tailscale.list
+
+        - name: Install Tailscale at requested version
+          ansible.builtin.apt:
+            update_cache: true
+            name: "tailscale={{ tailscale_version }}"
+            state: present
 
         - name: Ensure tailscaled service enabled and running
           ansible.builtin.systemd:

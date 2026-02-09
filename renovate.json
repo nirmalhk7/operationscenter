@@ -3,6 +3,17 @@
   "extends": [
     "config:recommended"
   ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^infrastructure/ansible/vars/versions\\.yaml$"],
+      "matchStrings": [
+        "(?m)^# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?\\s*$\\n(?<packageName>[A-Za-z0-9_]+):\\s*\"?(?<currentValue>[^\\\"]+)\"?"
+      ],
+      "datasourceTemplate": "{{datasource}}",
+      "depNameTemplate": "{{depName}}",
+      "versioningTemplate": "{{versioning}}"
+    }
+  ],
   "kubernetes": {
     "fileMatch": [
       "clusters/.+/.*deployment\\.yaml$",

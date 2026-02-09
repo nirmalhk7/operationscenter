@@ -3,12 +3,13 @@
   hosts: lxc_nginx
   become: true
   gather_facts: false
+  vars_files:
+    - vars/versions.yaml
   vars:
     certbot_certs: true
     certbot_cron: false
     certbot_email: "{{ lookup('env', 'CERTBOT_EMAIL') }}"
     cloudflare_api_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
-    nginx_exporter_version: 1.5.0
     cert_path: /etc/letsencrypt/live/trusted.nirmalhk7.com/fullchain.pem
 
   pre_tasks:
@@ -29,11 +30,11 @@
         name: [curl, wget, tar, ca-certificates]
         state: present
 
-    - name: Ensure Nginx is at the latest version
-      ansible.builtin.package:
-        name: nginx
-        state: latest
-      register: nginx_stat
+    - name: Ensure Nginx is installed at requested version
+      ansible.builtin.apt:
+        update_cache: true
+        name: "nginx={{ nginx_package_version }}"
+        state: present
 
     - name: cloudflare_setup
       block:
@@ -106,12 +107,6 @@
 
     - name: nginx_setup
       block:
-        - name: Install nginx when missing
-          ansible.builtin.apt:
-            name: nginx
-            state: present
-          when: not nginx_stat.stat.exists
-
         - name: Fetch nginx repo archive
           ansible.builtin.get_url:
             url: "https://github.com/nirmalhk7/operationscenter/archive/refs/heads/main.tar.gz"

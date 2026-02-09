@@ -4,6 +4,9 @@
   become: true
   gather_facts: false
 
+  vars_files:
+    - vars/versions.yaml
+
   vars:
     dev_path: "/dev/sdb"
     mount_point: "/mnt/2tbhdd"
@@ -73,9 +76,9 @@
         - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication yes' }
       notify: Restart sshd
 
-    - name: Ensure NFS server installed
+    - name: Ensure NFS server installed at requested version
       ansible.builtin.apt:
-        name: nfs-kernel-server
+        name: "nfs-kernel-server={{ nfs_kernel_server_version }}"
         state: present
         update_cache: true
 
