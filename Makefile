@@ -63,31 +63,26 @@ ansible-install:
 	fi
 
 ansible-run: ansible-install
-	cd infrastructure/ansible && ( \
-	  if [ -f .env ]; then \
-		set -a; \
-		. .env; \
-		set +a; \
-	  fi; \
-	  for nb in *.ansible.yaml; do \
+	@eval "$$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_homelab && \
+	cd infrastructure/ansible && \
+	if [ -f .env ]; then \
+		set -a; . .env; set +a; \
+	fi; \
+	for nb in *.ansible.yaml; do \
 		echo "Running $$nb #########################################"; \
 		ansible-playbook -i inventory.ini "$$nb" --skip-tags disabled,upgrade; \
-	  done; \
-	)
+	done
 
 ansible-run-one: ansible-install
 	@if [ -z "$(NOTEBOOK)" ]; then \
-	  echo "Usage: make ansible-run-one NOTEBOOK=path/to/playbook.ansible.yaml"; \
+		echo "Usage: make ansible-run-one NOTEBOOK=path/to/playbook.ansible.yaml"; \
 	else \
-	  cd infrastructure/ansible && ( \
+		eval "$$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_homelab && \
+		cd infrastructure/ansible && \
 		if [ -f .env ]; then \
-		  set -a; \
-		  . .env; \
-		  set +a; \
+			set -a; . .env; set +a; \
 		fi; \
-		echo "Running $(NOTEBOOK) #########################################"; \
-		ansible-playbook -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled; \
-	  ); \
+		ansible-playbook -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade; \
 	fi
 
 # --- Kubernetes ---

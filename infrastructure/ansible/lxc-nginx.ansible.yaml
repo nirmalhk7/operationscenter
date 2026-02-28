@@ -24,17 +24,20 @@
       when: certbot_certs and (certbot_email | length == 0)
 
   tasks:
+  
     - name: Ensure base packages
       ansible.builtin.apt:
-        update_cache: true
-        name: [curl, wget, tar, ca-certificates]
-        state: present
+        cache_valid_time: 3600
+        pkg: 
+        - curl
+        - wget
+        - tar
+        - ca-certificates
 
     - name: Ensure Nginx is installed at requested version
       ansible.builtin.apt:
         update_cache: true
         name: "nginx={{ nginx_package_version }}"
-        state: present
 
     - name: cloudflare_setup
       block:

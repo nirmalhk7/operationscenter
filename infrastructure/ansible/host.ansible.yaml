@@ -80,11 +80,25 @@
             dest: "{{ homelab_path }}/networking/iptables-down.sh"
             mode: '0755'
 
+        - name: Enable IPv4 forwarding for Tailscale
+          ansible.posix.sysctl:
+            name: net.ipv4.ip_forward
+            value: '1'
+            state: present
+            reload: true
+
         - name: Configure wmnet bridge interface
           ansible.builtin.blockinfile:
             path: /etc/network/interfaces
             marker: "# {mark} ANSIBLE MANAGED - wmnet bridge"
             block: |
+
+              auto wlp4s0
+              iface wlp4s0 inet static
+                      address 10.0.0.10/24
+                      gateway 10.0.0.1
+              #Machine to Wifi interface. CRITICAL DO NOT REMOVE
+              
               auto wmnet
               iface wmnet inet static
                   address 172.16.0.1/24
@@ -94,6 +108,9 @@
                   post-up {{ homelab_path }}/networking/iptables-up.sh
                   post-down {{ homelab_path }}/networking/iptables-down.sh
 
+        - name: Reload network configuration
+          ansible.builtin.command: ifreload -a
+          
     - name: Single node Proxmox configuration
       tags: singlenode
       block:
@@ -123,30 +140,30 @@
       - networking
       - tailscale
       block:
-        - name: Ensure Tailscale apt repository is configured
-          ansible.builtin.shell: curl -fsSL https://tailscale.com/install.sh | sh
-          args:
-            warn: false
-            creates: /etc/apt/sources.list.d/tailscale.list
+        - name: Ensure Tailscale repository key is installed
+          ansible.builtin.get_url:
+            url: https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg
+            dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+            mode: '0644'
+
+        - name: Configure Tailscale apt repository
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main"
+            filename: tailscale
+            state: present
 
         - name: Install Tailscale at requested version
           ansible.builtin.apt:
             update_cache: true
             name: "tailscale={{ tailscale_version }}"
-            state: present
+            force_apt_get: true
+            allow_downgrade: true
 
         - name: Ensure tailscaled service enabled and running
           ansible.builtin.systemd:
             name: tailscaled
             enabled: true
             state: started
-
-        - name: Enable IPv4 forwarding for Tailscale
-          ansible.posix.sysctl:
-            name: net.ipv4.ip_forward
-            value: '1'
-            state: present
-            reload: true
 
         - name: Check Tailscale status
           ansible.builtin.command: tailscale status --peers=false

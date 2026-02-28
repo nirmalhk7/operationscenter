@@ -33,7 +33,6 @@
           ansible.builtin.apt:
             update_cache: true
             name: [ca-certificates, curl]
-            state: present
 
         - name: Ensure keyrings directory exists
           ansible.builtin.file:
@@ -62,7 +61,6 @@
               - "containerd.io={{ containerd_version }}"
               - "docker-buildx-plugin={{ docker_buildx_plugin_version }}"
               - "docker-compose-plugin={{ docker_compose_plugin_version }}"
-            state: present
             update_cache: true
       when: not docker_bin.stat.exists
       tags: [docker_setup]
