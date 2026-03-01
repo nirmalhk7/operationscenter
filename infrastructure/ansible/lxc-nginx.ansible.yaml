@@ -13,6 +13,22 @@
     cert_path: /etc/letsencrypt/live/trusted.nirmalhk7.com/fullchain.pem
 
   pre_tasks:
+    - name: Ensure gpg is installed (for apt_key)
+      ansible.builtin.apt:
+        name: gnupg
+        state: present
+
+    - name: Add Nginx signing key
+      ansible.builtin.apt_key:
+        url: https://nginx.org/keys/nginx_signing.key
+        state: present
+
+    - name: Add official nginx.org apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb http://nginx.org/packages/debian bookworm nginx"
+        filename: nginx
+        state: present
+
     - name: Guard Cloudflare token when certs enabled
       ansible.builtin.fail:
         msg: "Set cloudflare_api_token when certbot_certs=true"
@@ -36,6 +52,7 @@
 
     - name: Ensure Nginx is installed at requested version
       ansible.builtin.apt:
+        allow_unauthenticated: true
         update_cache: true
         name: "nginx={{ nginx_package_version }}"
 

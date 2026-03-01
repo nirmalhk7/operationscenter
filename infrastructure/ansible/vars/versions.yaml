@@ -1,7 +1,7 @@
 ---
 
-# renovate: datasource=github-releases depName=nginx/nginx versioning=semver
-nginx_package_version: "1.29.5" 
+# renovate: datasource=deb depName=nginx versioning=loose registryUrl=http://nginx.org/packages/debian
+nginx_package_version: "1.28.2-1~bookworm"
 
 # renovate: datasource=github-releases depName=nginxinc/nginx-prometheus-exporter versioning=semver
 nginx_exporter_version: "1.5.0" 
@@ -21,7 +21,9 @@ docker_ce_version: "5:27.3.1-1~debian.12~bookworm"
 
 # renovate: datasource=deb depName=docker-buildx-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian
 docker_buildx_plugin_version: "0.17.1-1~debian.12~bookworm"
+
 # renovate: datasource=deb depName=docker-compose-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian
 docker_compose_plugin_version: "2.29.7-1~debian.12~bookworm"
+
 # renovate: datasource=deb depName=containerd.io versioning=loose registryUrl=https://download.docker.com/linux/debian
 containerd_version: "1.7.23-1"
