@@ -29,14 +29,14 @@
         INSTALL_K3S_VERSION: "{{ k3s_version }}"
       when: not k3s_bin.stat.exists
 
-    - name: Ensure yq is installed
+    - name: Ensure base packages
       tags:
       - k8
       - mgd
       ansible.builtin.apt:
-        update_cache: true
-        name: yq
-        state: present
+        cache_valid_time: 3600
+        pkg: 
+        - yq
 
     - name: Read certificate-authority-data
       tags:

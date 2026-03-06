@@ -135,6 +135,20 @@
             filename: pve-no-subscription
             state: present
 
+        - name: Backup proxmoxlib.js
+          ansible.builtin.copy:
+            src: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+            dest: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak
+            remote_src: true
+            force: false
+
+        - name: Remove subscription popup from Proxmox web UI
+          ansible.builtin.replace:
+            path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+            regexp: "res === null \\|\\| res === undefined \\|\\| \\!res \\|\\| res"
+            replace: "false"
+          notify: Restart pveproxy
+
     - name: Tailscale setup on Proxmox host
       tags:
       - networking
@@ -219,4 +233,9 @@
     - name: Restart Tailscale metrics
       ansible.builtin.systemd:
         name: tailscale-metrics.service
+        state: restarted
+
+    - name: Restart pveproxy
+      ansible.builtin.systemd:
+        name: pveproxy
         state: restarted

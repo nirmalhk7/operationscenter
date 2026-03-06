@@ -70,7 +70,7 @@ ansible-run: ansible-install
 	fi; \
 	for nb in *.ansible.yaml; do \
 		echo "Running $$nb #########################################"; \
-		ansible-playbook -v -i inventory.ini "$$nb" --skip-tags disabled,upgrade; \
+		ansible-playbook -i inventory.ini "$$nb" --skip-tags disabled,upgrade; \
 	done
 
 ansible-run-one: ansible-install
@@ -82,7 +82,7 @@ ansible-run-one: ansible-install
 		if [ -f .env ]; then \
 			set -a; . .env; set +a; \
 		fi; \
-		ansible-playbook -vv -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade; \
+		ansible-playbook  -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade; \
 	fi
 
 # --- Kubernetes ---
