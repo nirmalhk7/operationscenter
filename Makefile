@@ -45,7 +45,16 @@ nginx-logs:
 
 # --- Terraform ---
 terraform-clear:
-	cd infrastructure/terra && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup
+	cd infrastructure/terra && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup && \
+	terraform init -upgrade && \
+	terraform import proxmox_virtual_environment_network_linux_bridge.wmnet milano:wmnet && \
+	terraform import proxmox_virtual_environment_group.ug-mgd ug-mgd && \
+	terraform import proxmox_virtual_environment_group.ug-dev ug-dev && \
+	terraform import proxmox_virtual_environment_group.ug-bots ug-bots && \
+	terraform import proxmox_virtual_environment_cluster_firewall_security_group.sg-dev sg-dev && \
+	terraform import proxmox_virtual_environment_cluster_firewall_security_group.sg-managed sg-managed && \
+	terraform import proxmox_virtual_environment_pool.pool-dev pool-dev && \
+	terraform import proxmox_virtual_environment_pool.pool-mgd pool-mgd
 
 terraform-reset:
 	cd infrastructure/terra && terraform state rm proxmox_lxc.testlxc || true

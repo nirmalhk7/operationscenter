@@ -11,8 +11,8 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
     "scsi1"
   ]
   agent {
-    # read 'Qemu guest agent' section, change to true only when ready
-    enabled = true
+    # enable after qemu-guest-agent is installed via Ansible
+    enabled = false
   }
   
   # if agent is not enabled, the VM may not be able to shutdown properly, and may need to be forced off
@@ -63,8 +63,8 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
 
     user_account {
       password = "${var.vm_password}108"
-      keys = [local.sshKeys.mgd]
-      username = "root"
+      keys     = [local.sshKeys.mgd]
+      username = "debian"
     }
   }
 
