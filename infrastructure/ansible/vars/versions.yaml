@@ -4,7 +4,7 @@
 nginx_package_version: "1.28.2-1~bookworm"
 
 # renovate: datasource=github-releases depName=nginxinc/nginx-prometheus-exporter versioning=semver
-nginx_exporter_version: "1.5.0"
+nginx_exporter_version: "1.5.1"
 
 # renovate: datasource=github-releases depName=k3s-io/k3s versioning=loose
 k3s_version: "v1.32.11+k3s3"
