@@ -10,7 +10,7 @@ nginx_exporter_version: "1.5.0"
 k3s_version: "v1.32.11+k3s3"
 
 # renovate: datasource=deb depName=tailscale versioning=loose registryUrl=https://pkgs.tailscale.com/stable/debian?suite=bookworm&components=main&binaryArch=amd64
-tailscale_version: "1.94.1"
+tailscale_version: "1.94.2"
 
 # renovate: datasource=deb depName=nfs-kernel-server versioning=loose registryUrl=http://deb.debian.org/debian?suite=bookworm&components=main&binaryArch=amd64
 nfs_kernel_server_version: "1:2.6.2-4+deb12u2"
