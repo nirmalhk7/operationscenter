@@ -7,11 +7,13 @@
     {
       "fileMatch": ["^infrastructure/ansible/vars/versions\\.yaml$"],
       "matchStrings": [
-        "(?m)^# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?\\s*$\\n(?<packageName>[A-Za-z0-9_]+):\\s*\"?(?<currentValue>[^\\\"]+)\"?"
+        "(?m)^# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?(?: registryUrl=(?<registryUrl>[^\\n]+))?\\s*$\\n[A-Za-z0-9_]+:\\s*\"?(?<currentValue>[^\\\"\\n]+)\"?"
       ],
       "datasourceTemplate": "{{datasource}}",
       "depNameTemplate": "{{depName}}",
-      "versioningTemplate": "{{versioning}}"
+      "packageNameTemplate": "{{depName}}",
+      "versioningTemplate": "{{versioning}}",
+      "registryUrlTemplate": "{{registryUrl}}"
     }
   ],
   "kubernetes": {
