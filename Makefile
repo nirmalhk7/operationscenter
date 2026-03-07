@@ -77,10 +77,9 @@ ansible-run: ansible-install
 	if [ -f .env ]; then \
 		set -a; . .env; set +a; \
 	fi; \
-	for nb in *.ansible.yaml; do \
-		echo "Running $$nb #########################################"; \
-		ansible-playbook -i inventory.ini "$$nb" --skip-tags disabled,upgrade; \
-	done
+	echo "Running Mainbook #########################################"; \
+	ansible-playbook -i inventory.ini main.ansible.yaml --skip-tags disabled,upgrade; \
+
 
 ansible-run-one: ansible-install
 	@if [ -z "$(NOTEBOOK)" ]; then \
