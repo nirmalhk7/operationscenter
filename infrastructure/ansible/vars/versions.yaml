@@ -1,6 +1,6 @@
 ---
 
-# renovate: datasource=deb depName=nginx versioning=loose registryUrl=http://nginx.org/packages/debian
+# renovate: datasource=deb depName=nginx versioning=loose registryUrl=http://nginx.org/packages/debian?suite=bookworm&components=nginx&binaryArch=amd64
 nginx_package_version: "1.28.2-1~bookworm"
 
 # renovate: datasource=github-releases depName=nginxinc/nginx-prometheus-exporter versioning=semver
@@ -9,21 +9,21 @@ nginx_exporter_version: "1.5.0"
 # renovate: datasource=github-releases depName=k3s-io/k3s versioning=loose
 k3s_version: "v1.32.11+k3s3"
 
-# renovate: datasource=deb depName=tailscale versioning=semver registryUrl=https://pkgs.tailscale.com/stable/debian bookworm
+# renovate: datasource=deb depName=tailscale versioning=loose registryUrl=https://pkgs.tailscale.com/stable/debian?suite=bookworm&components=main&binaryArch=amd64
 tailscale_version: "1.94.1"
 
-# renovate: datasource=deb depName=nfs-kernel-server versioning=loose registryUrl=http://deb.debian.org/debian bookworm
+# renovate: datasource=deb depName=nfs-kernel-server versioning=loose registryUrl=http://deb.debian.org/debian?suite=bookworm&components=main&binaryArch=amd64
 nfs_kernel_server_version: "1:2.6.2-4+deb12u2"
 
 # Docker Engine stack (Docker apt repo)
-# renovate: datasource=deb depName=docker-ce versioning=loose registryUrl=https://download.docker.com/linux/debian
+# renovate: datasource=deb depName=docker-ce versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
 docker_ce_version: "5:27.3.1-1~debian.12~bookworm"
 
-# renovate: datasource=deb depName=docker-buildx-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian
+# renovate: datasource=deb depName=docker-buildx-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
 docker_buildx_plugin_version: "0.17.1-1~debian.12~bookworm"
 
-# renovate: datasource=deb depName=docker-compose-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian
+# renovate: datasource=deb depName=docker-compose-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
 docker_compose_plugin_version: "2.29.7-1~debian.12~bookworm"
 
-# renovate: datasource=deb depName=containerd.io versioning=loose registryUrl=https://download.docker.com/linux/debian
+# renovate: datasource=deb depName=containerd.io versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
 containerd_version: "1.7.23-1"
