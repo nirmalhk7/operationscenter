@@ -3,15 +3,32 @@
   hosts: lxc_nginx
   become: true
   gather_facts: false
+  vars_files:
+    - vars/versions.yaml
   vars:
     certbot_certs: true
     certbot_cron: false
     certbot_email: "{{ lookup('env', 'CERTBOT_EMAIL') }}"
     cloudflare_api_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
-    nginx_exporter_version: 1.5.0
     cert_path: /etc/letsencrypt/live/trusted.nirmalhk7.com/fullchain.pem
 
   pre_tasks:
+    - name: Ensure gpg is installed (for apt_key)
+      ansible.builtin.apt:
+        name: gnupg
+        state: present
+
+    - name: Add Nginx signing key
+      ansible.builtin.apt_key:
+        url: https://nginx.org/keys/nginx_signing.key
+        state: present
+
+    - name: Add official nginx.org apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb http://nginx.org/packages/debian bookworm nginx"
+        filename: nginx
+        state: present
+
     - name: Guard Cloudflare token when certs enabled
       ansible.builtin.fail:
         msg: "Set cloudflare_api_token when certbot_certs=true"
@@ -23,16 +40,21 @@
       when: certbot_certs and (certbot_email | length == 0)
 
   tasks:
+  
     - name: Ensure base packages
       ansible.builtin.apt:
-        update_cache: true
-        name: [curl, wget, tar, ca-certificates]
-        state: present
+        cache_valid_time: 3600
+        pkg: 
+        - curl
+        - wget
+        - tar
+        - ca-certificates
 
-    - name: Detect nginx install
-      ansible.builtin.stat:
-        path: /usr/sbin/nginx
-      register: nginx_stat
+    - name: Ensure Nginx is installed at requested version
+      ansible.builtin.apt:
+        allow_unauthenticated: true
+        update_cache: true
+        name: "nginx={{ nginx_package_version }}"
 
     - name: cloudflare_setup
       block:
@@ -105,12 +127,6 @@
 
     - name: nginx_setup
       block:
-        - name: Install nginx when missing
-          ansible.builtin.apt:
-            name: nginx
-            state: present
-          when: not nginx_stat.stat.exists
-
         - name: Fetch nginx repo archive
           ansible.builtin.get_url:
             url: "https://github.com/nirmalhk7/operationscenter/archive/refs/heads/main.tar.gz"

@@ -45,7 +45,16 @@ nginx-logs:
 
 # --- Terraform ---
 terraform-clear:
-	cd infrastructure/terra && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup
+	cd infrastructure/terra && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup && \
+	terraform init -upgrade && \
+	terraform import proxmox_virtual_environment_network_linux_bridge.wmnet milano:wmnet && \
+	terraform import proxmox_virtual_environment_group.ug-mgd ug-mgd && \
+	terraform import proxmox_virtual_environment_group.ug-dev ug-dev && \
+	terraform import proxmox_virtual_environment_group.ug-bots ug-bots && \
+	terraform import proxmox_virtual_environment_cluster_firewall_security_group.sg-dev sg-dev && \
+	terraform import proxmox_virtual_environment_cluster_firewall_security_group.sg-managed sg-managed && \
+	terraform import proxmox_virtual_environment_pool.pool-dev pool-dev && \
+	terraform import proxmox_virtual_environment_pool.pool-mgd pool-mgd
 
 terraform-reset:
 	cd infrastructure/terra && terraform state rm proxmox_lxc.testlxc || true
@@ -63,31 +72,26 @@ ansible-install:
 	fi
 
 ansible-run: ansible-install
-	cd infrastructure/ansible && ( \
-	  if [ -f .env ]; then \
-		set -a; \
-		. .env; \
-		set +a; \
-	  fi; \
-	  for nb in *.ansible.yaml; do \
+	@eval "$$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_homelab && \
+	cd infrastructure/ansible && \
+	if [ -f .env ]; then \
+		set -a; . .env; set +a; \
+	fi; \
+	for nb in *.ansible.yaml; do \
 		echo "Running $$nb #########################################"; \
 		ansible-playbook -i inventory.ini "$$nb" --skip-tags disabled,upgrade; \
-	  done; \
-	)
+	done
 
 ansible-run-one: ansible-install
 	@if [ -z "$(NOTEBOOK)" ]; then \
-	  echo "Usage: make ansible-run-one NOTEBOOK=path/to/playbook.ansible.yaml"; \
+		echo "Usage: make ansible-run-one NOTEBOOK=path/to/playbook.ansible.yaml"; \
 	else \
-	  cd infrastructure/ansible && ( \
+		eval "$$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_homelab && \
+		cd infrastructure/ansible && \
 		if [ -f .env ]; then \
-		  set -a; \
-		  . .env; \
-		  set +a; \
+			set -a; . .env; set +a; \
 		fi; \
-		echo "Running $(NOTEBOOK) #########################################"; \
-		ansible-playbook -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled; \
-	  ); \
+		ansible-playbook  -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade; \
 	fi
 
 # --- Kubernetes ---
