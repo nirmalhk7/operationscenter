@@ -35,6 +35,7 @@ data:
         const img = document.createElement('img');
         img.alt = 'Static Badge';
         img.src = src;
+        img.className = "m-1"
         div.appendChild(img);
       });
       widgetsWrap.insertBefore(div, widgetsWrap.lastElementChild);
@@ -48,7 +49,7 @@ data:
             }
         });
         if(e.children.length===0){
-          # console.log(e?.parentElement?.parentElement)
+          // console.log(e?.parentElement?.parentElement)
           return e?.parentElement?.parentElement?.remove()
         }
       })
