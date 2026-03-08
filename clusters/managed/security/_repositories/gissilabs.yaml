@@ -2,6 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: gissilabs
+  namespace: mgd-security
 spec:
   interval: 1h
   url: https://gissilabs.github.io/charts/

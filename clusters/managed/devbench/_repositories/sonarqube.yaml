@@ -2,6 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: sonarqube
+  namespace: mgd-devbench
 spec:
   url: https://SonarSource.github.io/helm-chart-sonarqube
   interval: 1h

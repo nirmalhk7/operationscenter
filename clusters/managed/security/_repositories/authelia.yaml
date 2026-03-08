@@ -2,6 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: authelia
+  namespace: mgd-security
 spec:
   interval: 1h
   url: https://charts.authelia.com

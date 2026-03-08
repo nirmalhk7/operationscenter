@@ -2,6 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: k8-sigs-charts
+  namespace: mgd-default
 spec:
   url: https://k8s-edu.github.io/Bkv2_main/helm-charts/
   interval: 1h

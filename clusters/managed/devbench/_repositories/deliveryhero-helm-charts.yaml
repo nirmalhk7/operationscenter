@@ -1,8 +1,9 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: sanjaykkr-helm-charts
+  name: deliveryhero-helm-charts
+  namespace: mgd-devbench
 spec:
-  url: https://sanjaykkr.github.io/helm-charts/
+  url: https://deliveryhero.github.io/helm-charts
   interval: 1h
   type: oci 

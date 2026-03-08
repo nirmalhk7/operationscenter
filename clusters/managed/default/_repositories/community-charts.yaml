@@ -2,6 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: community-charts
+  namespace: mgd-default
 spec:
   url: https://community-charts.github.io/helm-charts
   interval: 1h

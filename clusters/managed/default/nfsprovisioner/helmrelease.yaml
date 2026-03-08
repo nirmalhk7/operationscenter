@@ -7,9 +7,11 @@ spec:
   chart:
     spec:
       chart: nfs-subdir-external-provisioner
+      version: 4.0.17
       sourceRef:
         kind: HelmRepository
         name: k8-sigs-charts
+        namespace: mgd-default
   interval: 10m
   values:
     nfs:

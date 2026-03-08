@@ -6,11 +6,12 @@ metadata:
 spec:
   chart:
     spec:
-      chart: *app
+      chart: authelia
       version: 0.10.49
       sourceRef:
         kind: HelmRepository
-        name: *app
+        name: authelia
+        namespace: mgd-security
   interval: 1h
   values:
     pod:

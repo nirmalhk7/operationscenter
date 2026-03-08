@@ -6,10 +6,12 @@ metadata:
 spec:
   chart:
     spec:
-      chart: *app
+      chart: outline
+      version: 0.7.2
       sourceRef:
         kind: HelmRepository
         name: community-charts
+        namespace: mgd-default
   interval: 10m
   releaseName: *app
   values:

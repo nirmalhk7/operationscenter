@@ -12,6 +12,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: nextcloud-helm
+        namespace: mgd-multimedia
   values:
     deploymentLabels:
       milano.app: nextcloud

@@ -6,10 +6,12 @@ metadata:
 spec:
   chart:
     spec:
-      chart: *app
+      chart: gitea
+      version: 12.4.0
       sourceRef:
         kind: HelmRepository
-        name: *app
+        name: gitea
+        namespace: mgd-devbench
   interval: 10m
   releaseName: *app
   values:

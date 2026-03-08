@@ -2,6 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: grafana-charts
+  namespace: mgd-monitoring
 spec:
   interval: 1h
   url: https://grafana.github.io/helm-charts

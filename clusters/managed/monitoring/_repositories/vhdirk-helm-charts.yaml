@@ -3,6 +3,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: vhdirk-helm-charts
+  namespace: mgd-monitoring
 spec:
   interval: 1h
   url: https://vhdirk.github.io/helm-charts
