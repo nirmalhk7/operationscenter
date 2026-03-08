@@ -1,7 +1,7 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: kasa-scrapeconfig
+  name: &app kasa-scrapeconfig
   labels:
     prometheus: prometheus_scraper
 spec:

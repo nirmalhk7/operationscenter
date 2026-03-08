@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: gissilabs
+  name: &app gissilabs
   namespace: mgd-security
 spec:
   interval: 1h

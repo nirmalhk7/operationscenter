@@ -6,8 +6,8 @@ metadata:
     gethomepage.dev/href: "https://outline.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Applications
-    gethomepage.dev/icon: outline
-    gethomepage.dev/app: outline # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/icon: *app
+    gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Outline
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=outline"
 spec:

@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: authelia
+  name: &app authelia
   namespace: mgd-security
 spec:
   interval: 1h

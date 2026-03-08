@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: gitea
+  name: &app gitea
   namespace: mgd-devbench
 spec:
   url: https://dl.gitea.io/charts

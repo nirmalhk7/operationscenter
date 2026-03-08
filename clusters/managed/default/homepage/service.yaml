@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: homepage
+  name: &app homepage
   labels:
     app.kubernetes.io/name: homepage
 spec:

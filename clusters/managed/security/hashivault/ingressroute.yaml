@@ -1,7 +1,7 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: hashivault
+  name: &app hashivault
   annotations:
     gethomepage.dev/href: "https://vault.trusted.nirmalhk7.com"
     gethomepage.dev/description: "Hashicorp Vault"
@@ -19,5 +19,5 @@ spec:
     - match: Host(`vault.trusted.nirmalhk7.com`)
       kind: Rule
       services:
-        - name: hashivault
+        - name: *app
           port: 8200

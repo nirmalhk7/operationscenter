@@ -1,7 +1,7 @@
 apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Provider
 metadata:
-  name: telegram-bot
+  name: &app telegram-bot
 spec:
   type: telegram
   address: https://api.telegram.org

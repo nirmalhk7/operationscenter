@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: immich-redis
+  name: &app immich-redis
   labels:
     app: immich-redis
 spec:

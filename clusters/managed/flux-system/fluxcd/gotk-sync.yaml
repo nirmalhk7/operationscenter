@@ -3,7 +3,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: operationscenter-git
+  name: &app operationscenter-git
   namespace: flux-system
 spec:
   interval: 10s
@@ -16,7 +16,7 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: flux-system
+  name: &app flux-system
   namespace: flux-system
 spec:
   interval: 10s

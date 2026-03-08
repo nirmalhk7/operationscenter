@@ -1,7 +1,7 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: scrutiny-api
+  name: &app scrutiny-api
   annotations:
     gethomepage.dev/href: "https://scrutiny.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"

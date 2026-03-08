@@ -1,7 +1,7 @@
 apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Alert
 metadata:
-  name: telegram-alert
+  name: &app telegram-alert
 spec:
   providerRef:
     name: telegram-bot

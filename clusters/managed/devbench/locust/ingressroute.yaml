@@ -1,13 +1,13 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: locust
+  name: &app locust
   annotations:
     gethomepage.dev/href: "https://locust.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Devbench
     gethomepage.dev/icon: https://locust.io/static/img/locust-cloud-logo.png
-    gethomepage.dev/app: locust # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Locust
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=locust"
 spec:
@@ -18,5 +18,5 @@ spec:
     - match: Host(`locust.trusted.nirmalhk7.com`)
       kind: Rule
       services:
-        - name: locust
+        - name: *app
           port: 8089

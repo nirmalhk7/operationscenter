@@ -1,14 +1,14 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: gitea
+  name: &app gitea
   annotations:
     gethomepage.dev/href: "https://git.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Devbench
     gethomepage.dev/description: "Gitea"
-    gethomepage.dev/icon: gitea
-    gethomepage.dev/app: gitea # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/icon: *app
+    gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Git
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=gitea"
 spec:

@@ -1,7 +1,7 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: nginx-metrics
+  name: &app nginx-metrics
   labels:
     prometheus: prometheus_scraper
 spec:

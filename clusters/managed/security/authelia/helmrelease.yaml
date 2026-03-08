@@ -16,11 +16,11 @@ spec:
   values:
     pod:
       extraVolumes:
-          - name: authelia-credentials
+          - name: &appCredentials authelia-credentials
             secret:
-              secretName: authelia-credentials
+              secretName: *appCredentials
       extraVolumeMounts:
-        - name: authelia-credentials
+        - name: *appCredentials
           mountPath: /config/users_database.yaml
           subPath: users_database.yaml
           readOnly: true
@@ -28,7 +28,7 @@ spec:
       enabled: true
       storageClass: milano-v2
     secret:
-      existingSecret: authelia-credentials
+      existingSecret: *appCredentials
       additionalSecrets:
         authelia-credentials:
           items:
@@ -54,7 +54,7 @@ spec:
       identity_validation:
         reset_password:
           secret:
-            secret_name: authelia-credentials
+            secret_name: *appCredentials
             path: jwt-secret
       access_control:
         default_policy: 'one_factor'
@@ -71,7 +71,7 @@ spec:
         oidc:
           enabled: true
           hmac_secret:
-            secret_name: authelia-credentials
+            secret_name: *appCredentials
             path: oidc-hmac-secret
           jwks:
             - key_id: authelia-oidc-rs256
@@ -121,7 +121,7 @@ spec:
           filename: /config/notification.txt
       storage:
         encryption_key:
-          secret_name: authelia-credentials
+          secret_name: *appCredentials
         local:
           enabled: false
         postgres:
@@ -129,8 +129,8 @@ spec:
         mysql:
           enabled: true
           address: 'tcp://172.16.0.106:3306'
-          database: 'authelia'
+          database: *app
           username: 'authelia_rw'
           password:
-            secret_name: authelia-credentials
+            secret_name: *appCredentials
         

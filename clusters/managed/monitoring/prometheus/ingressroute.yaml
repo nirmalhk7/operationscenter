@@ -1,7 +1,7 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: prometheus
+  name: &app prometheus
   annotations:
     gethomepage.dev/href: "https://prometheus.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"

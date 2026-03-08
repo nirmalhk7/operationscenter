@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: community-charts
+  name: &app community-charts
   namespace: mgd-default
 spec:
   url: https://community-charts.github.io/helm-charts

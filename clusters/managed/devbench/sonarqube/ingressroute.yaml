@@ -1,13 +1,13 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: sonarqube
+  name: &app sonarqube
   annotations:
     gethomepage.dev/href: "https://sonarqube.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Devbench
-    gethomepage.dev/icon: sonarqube
-    gethomepage.dev/app: sonarqube # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/icon: *app
+    gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Sonarqube
     gethomepage.dev/pod-selector: "app=sonarqube"
 spec:

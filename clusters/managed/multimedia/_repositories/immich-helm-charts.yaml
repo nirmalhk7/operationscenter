@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: immich-helm-charts
+  name: &app immich-helm-charts
   namespace: mgd-multimedia
 spec:
   url: https://immich-app.github.io/immich-charts

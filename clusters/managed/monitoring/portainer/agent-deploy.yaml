@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: portainer-agent
+  name: &app portainer-agent
 spec:
   selector:
     matchLabels:
-      app: portainer-agent
+      app: *app
   template:
     metadata:
       labels:
-        app: portainer-agent
+        app: *app
     spec:
       serviceAccountName: portainer-sa-clusteradmin
       containers:
-      - name: portainer-agent
+      - name: *app
         image: portainer/agent:2.33.2
         imagePullPolicy: Always
         env:

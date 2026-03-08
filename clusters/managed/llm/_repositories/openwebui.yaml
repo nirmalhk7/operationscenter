@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: open-webui
+  name: &app open-webui
   namespace: mgd-llm
 spec:
   url: https://helm.openwebui.com

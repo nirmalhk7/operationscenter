@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: deliveryhero-helm-charts
+  name: &app deliveryhero-helm-charts
   namespace: mgd-devbench
 spec:
   url: https://deliveryhero.github.io/helm-charts

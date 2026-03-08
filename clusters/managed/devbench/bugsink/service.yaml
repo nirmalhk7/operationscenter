@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: bugsink
+  name: &app bugsink
 spec:
   selector:
-    app: bugsink
+    app: *app
   ports:
     - protocol: TCP
       port: 8000

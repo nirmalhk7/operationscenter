@@ -1,7 +1,7 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: authentik
+  name: &app authentik
   annotations:
     gethomepage.dev/href: "https://auth.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"

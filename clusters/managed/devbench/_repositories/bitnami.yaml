@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: bitnami
+  name: &app bitnami
   namespace: mgd-devbench
 spec:
   interval: 1h
