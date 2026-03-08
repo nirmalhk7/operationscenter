@@ -27,7 +27,8 @@ data:
     if (widgetsWrap) {
       const badges = [
         'https://img.shields.io/badge/renovate-enabled-brightgreen?link=https://developer.mend.io/github/nirmalhk7/operationscenter',
-        'https://img.shields.io/badge/renovate-enabled-brightgreen?link=https://developer.mend.io/github/nirmalhk7/operationscenter'
+        'https://img.shields.io/github/issues-pr/nirmalhk7/operationscenter?link=https%3A%2F%2Fgithub.com%2Fnirmalhk7%2Foperationscenter%2Fpulls"
+
       ];
       const div = document.createElement('div');
       div.className = 'flex flex-col max-w:full sm:basis-auto self-center grow-0 flex-wrap';
