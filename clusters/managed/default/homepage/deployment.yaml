@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: homepage
+  name: &app homepage
 spec:
   revisionHistoryLimit: 3
   replicas: 1
@@ -9,20 +9,20 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app.kubernetes.io/name: homepage
+      app.kubernetes.io/name: *app
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: homepage
-        milano.app: homepage
+        app.kubernetes.io/name: *app
+        milano.app: *app
         milano.level: managed
     spec:
-      serviceAccountName: homepage
+      serviceAccountName: *app
       automountServiceAccountToken: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
       containers:
-        - name: homepage
+        - name: *app
           image: "ghcr.io/gethomepage/homepage:v1.10.1"
           imagePullPolicy: Always
           env:
@@ -68,7 +68,7 @@ spec:
       volumes:
         - name: homepage-config
           configMap:
-            name: homepage
+            name: *app
         - name: logs
           emptyDir: {}
         - name: homepage-secret

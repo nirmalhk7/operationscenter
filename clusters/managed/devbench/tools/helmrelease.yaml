@@ -2,11 +2,11 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: tools
+  name: &app tools
   namespace: mgd-devbench
 spec:
   interval: 10m
-  releaseName: tools
+  releaseName: *app
   chart:
     spec:
       chart: it-tools

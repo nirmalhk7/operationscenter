@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: open-webui
+  name: &app open-webui
   namespace: mgd-llm
 spec:
   interval: 10m
@@ -20,7 +20,7 @@ spec:
     redis-cluster:
       enabled: true
     podLabels:
-      milano.app: open-webui
+      milano.app: *app
       milano.level: managed
     persistence:
       storageClass: milano-v2

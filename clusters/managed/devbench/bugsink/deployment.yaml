@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bugsink
+  name: &app bugsink
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: bugsink
+      app: *app
   template:
     metadata:
       labels:
-        app: bugsink
+        app: *app
     spec:
       containers:
-      - name: bugsink
+      - name: *app
         image: bugsink/bugsink:2.0
         ports:
         - containerPort: 8000

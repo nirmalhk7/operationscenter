@@ -2,10 +2,10 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: immich
+  name: &app immich
   namespace: mgd-multimedia
 spec:
-  releaseName: immich
+  releaseName: *app
   chart:
     spec:
       chart: immich
@@ -20,7 +20,7 @@ spec:
       tag: v1.142.0
     env:
       DB_HOSTNAME: 172.16.0.106
-      DB_DATABASE_NAME: immich
+      DB_DATABASE_NAME: *app
       DB_USERNAME: immich_rw
       DB_PASSWORD:
         valueFrom:

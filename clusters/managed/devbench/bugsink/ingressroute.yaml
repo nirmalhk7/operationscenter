@@ -2,12 +2,11 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: bugsink-ingress
+  name: &app bugsink
   annotations:
     gethomepage.dev/href: "https://bugs.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Devbench
-    gethomepage.dev/description: "Bugsink"
     gethomepage.dev/icon: "https://www.bugsink.com/static/images/bugsink-logo.7a9597e724ff.webp"
     gethomepage.dev/app: bugsink # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Bugs

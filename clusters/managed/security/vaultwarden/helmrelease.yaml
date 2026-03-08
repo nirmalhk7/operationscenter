@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: credentials
+  name: &app credentials
   namespace: mgd-security
 spec:
   chart:
@@ -13,7 +13,7 @@ spec:
         name: gissilabs
         namespace: mgd-security
   interval: 1h
-  releaseName: credentials
+  releaseName: *app
   values:
     database:
       type: postgresql
@@ -36,4 +36,4 @@ spec:
       annotations: {}
 
     podLabels:
-      milano.app: vaultwarden
+      milano.app: *app

@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: velero
+  name: &app velero
   namespace: mgd-security
 spec:
   chart:
@@ -13,4 +13,4 @@ spec:
         name: vmware-tanzu
         namespace: mgd-security
   interval: 1h
-  releaseName: velero
+  releaseName: *app

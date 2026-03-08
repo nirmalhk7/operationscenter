@@ -1,7 +1,7 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: outline
+  name: &app outline
   annotations:
     gethomepage.dev/href: "https://outline.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
@@ -18,5 +18,5 @@ spec:
     - match: Host(`outline.trusted.nirmalhk7.com`)
       kind: Rule
       services:
-        - name: outline
+        - name: *app
           port: 3000
