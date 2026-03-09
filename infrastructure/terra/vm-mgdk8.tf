@@ -19,7 +19,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   pool_id = proxmox_virtual_environment_pool.pool-mgd.id
 
   cpu {
-    cores        = 3
+    cores        = 4
     type         = "x86-64-v2-AES"  # recommended for modern CPUs
   }
 

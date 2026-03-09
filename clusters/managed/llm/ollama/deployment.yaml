@@ -4,6 +4,8 @@ metadata:
   name: &app ollama
   namespace: mgd-llm
 spec:
+  strategy:
+    type: Recreate # Leaving to recreate because of the size of deployment
   replicas: 1
   selector:
     matchLabels:
@@ -25,7 +27,7 @@ spec:
               ollama serve &
               sleep 5
               ollama pull qwen2.5-coder:3b
-              kill %1
+              pkill ollama
           envFrom:
             - configMapRef:
                 name: ollama-env
@@ -44,11 +46,11 @@ spec:
                 name: ollama-env
           resources:
             requests:
-              memory: 2Gi
-              cpu: 500m
+              memory: "3Gi"   # Enough for the model + base overhead
+              cpu: "2"        # "Guarantees" 2 cores so the AI doesn't stutter
             limits:
-              memory: 6Gi
-              cpu: "4"
+              memory: "5Gi"   # Room for 32k context window and spikes
+              cpu: "4"        # Let it burst to 4 cores for faster initial "thinking"
           volumeMounts:
             - name: models
               mountPath: /models
@@ -64,6 +66,34 @@ spec:
               path: /api/tags
               port: 11434
             initialDelaySeconds: 10
+            periodSeconds: 10
+        - name: ollama-metrics
+          image: ghcr.io/norskhelsenett/ollama-metrics:latest
+          args:
+            - --ollama-base-url=http://localhost:11434
+            - --listen-address=0.0.0.0:8080
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 5
             periodSeconds: 10
       volumes:
         - name: models
