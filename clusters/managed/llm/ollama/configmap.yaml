@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollama-env
+  namespace: mgd-llm
+data:
+  OLLAMA_MODELS: /models
+  OLLAMA_NUM_PARALLEL: "3"
+  OLLAMA_KEEP_ALIVE: "10m"
+  OLLAMA_NUM_THREAD: "4"
+  OLLAMA_MAX_LOADED_MODELS: "2"

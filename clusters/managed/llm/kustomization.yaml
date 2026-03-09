@@ -6,5 +6,6 @@ resources:
   - _repositories
   - namespace.yaml
   - open-webui
+  - ollama
 
 namespace: mgd-llm
