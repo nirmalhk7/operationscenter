@@ -24,3 +24,76 @@ spec:
       milano.level: managed
     persistence:
       storageClass: milano-v2
+    extraEnvVars:
+      - name: OLLAMA_BASE_URL
+        value: "http://ollama.mgd-llm.svc.cluster.local:11434"
+      - name: GEMINI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: open-webui-secrets
+            key: GEMINI_API_KEY
+      - name: ENABLE_RAG_WEB_SEARCH
+        value: "true"
+      - name: RAG_WEB_SEARCH_ENGINE
+        value: "brave"
+      - name: BRAVE_SEARCH_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: open-webui-secrets
+            key: BRAVE_SEARCH_API_KEY
+      # RAG embedding - use dedicated model instead of the chat model
+      - name: RAG_EMBEDDING_ENGINE
+        value: "ollama"
+      - name: RAG_EMBEDDING_MODEL
+        value: "nomic-embed-text"
+      - name: OLLAMA_API_BASE_URL
+        value: "http://ollama.mgd-llm.svc.cluster.local:11434"
+      # Chunking - smaller chunks work better for a 3B context window
+      - name: CHUNK_SIZE
+        value: "500"
+      - name: CHUNK_OVERLAP
+        value: "100"
+      # Increase retrieved chunks to compensate for smaller model
+      - name: RAG_TOP_K
+        value: "5"
+      # Web search result count
+      - name: RAG_WEB_SEARCH_RESULT_COUNT
+        value: "5"
+      - name: RAG_WEB_SEARCH_CONCURRENT_REQUESTS
+        value: "10"
+      # Bypass auth for local network access
+      - name: WEBUI_AUTH
+        value: "true"
+      - name: DEFAULT_USER_ROLE
+        value: "user"
+      # Show latency/token stats in UI
+      - name: ENABLE_EVALUATION_ARENA_MODELS
+        value: "false"
+      # Longer timeout for CPU-bound inference
+      - name: AIOHTTP_CLIENT_TIMEOUT
+        value: "300"
+      - name: AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST
+        value: "10"
+      # Disable telemetry
+      - name: SCARF_NO_ANALYTICS
+        value: "true"
+      - name: DO_NOT_TRACK
+        value: "true"
+      - name: ANONYMIZED_TELEMETRY
+        value: "false"
+      # Limit concurrent requests so the CPU isn't thrashed by multiple users
+      - name: CONCURRENT_UPLOADS_LIMIT
+        value: "2"
+
+      # Stream responses as they're generated rather than waiting for full completion
+      - name: ENABLE_STREAMING
+        value: "true"
+      # RAG full-text search using BM25 hybrid (better recall alongside vector search)
+      - name: ENABLE_RAG_HYBRID_SEARCH
+        value: "true"
+      # Cache embeddings to avoid recomputing on repeated queries
+      - name: RAG_EMBEDDING_BATCH_SIZE
+        value: "8"
+      # Reranker - cross-encoder reranking improves chunk selection post-retrieval
+      - name: RAG_RELEVANCE_THRESHOLD
+        value: "0.2"

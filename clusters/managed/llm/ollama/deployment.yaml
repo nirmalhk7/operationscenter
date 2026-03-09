@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app ollama
+  namespace: mgd-llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: *app
+  template:
+    metadata:
+      labels:
+        app: *app
+        milano.app: *app
+        milano.level: managed
+    spec:
+      initContainers:
+        - name: pull-models
+          image: ollama/ollama:0.17.7
+          command:
+            - /bin/sh
+            - -c
+            - |
+              ollama serve &
+              sleep 5
+              ollama pull qwen2.5-coder:3b
+              ollama pull nomic-embed-text
+              kill %1
+          env:
+            - name: OLLAMA_MODELS
+              value: /models
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      containers:
+        - name: *app
+          image: ollama/ollama:latest
+          ports:
+            - containerPort: 11434
+              protocol: TCP
+          env:
+            - name: OLLAMA_MODELS
+              value: /models
+            - name: OLLAMA_KEEP_ALIVE
+              value: "0"
+            - name: OLLAMA_MAX_LOADED_MODELS
+              value: "1"
+          resources:
+            requests:
+              memory: 2Gi
+              cpu: 500m
+            limits:
+              memory: 6Gi
+              cpu: "4"
+          volumeMounts:
+            - name: models
+              mountPath: /models
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: ollama-models
