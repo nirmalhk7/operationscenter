@@ -35,6 +35,8 @@ spec:
           secretKeyRef:
             name: open-webui-secrets
             key: BRAVE_SEARCH_API_KEY
+      - name: TAVILY_API_KEY
+        value: "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"
     extraEnvFrom:
       - configMapRef:
           name: open-webui-env

@@ -4,6 +4,7 @@ metadata:
   name: open-webui-env
   namespace: mgd-llm
 data:
+  TAVILY_API_KEY: "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"
   OLLAMA_BASE_URL: "http://ollama.mgd-llm.svc.cluster.local:11434"
   ENABLE_RAG_WEB_SEARCH: "true"
   RAG_WEB_SEARCH_ENGINE: "brave"
