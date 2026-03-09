@@ -69,11 +69,32 @@ spec:
               port: 11434
             initialDelaySeconds: 10
             periodSeconds: 10
+        - name: busybox
+          image: curlimages/curl:latest
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "5m"
+            limits:
+              memory: "64Mi"
+              cpu: "50m"
         - name: ollama-metrics
           image: ghcr.io/norskhelsenett/ollama-metrics:latest
+          env:
+            - name: OLLAMA_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: ollama-env
+                  key: OLLAMA_BASE_URL
+            - name: OLLAMA_METRICS_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: ollama-env
+                  key: OLLAMA_METRICS_ADDRESS
           args:
-            - --ollama-base-url=http://localhost:11434
-            - --listen-address=0.0.0.0:8080
+            - --ollama-base-url=http://ollama.mgd-llm.svc.cluster.local:11434
+            - --listen-address=$(OLLAMA_METRICS_ADDRESS)
           ports:
             - containerPort: 8080
               protocol: TCP

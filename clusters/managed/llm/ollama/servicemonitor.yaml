@@ -5,6 +5,7 @@ metadata:
   namespace: mgd-llm
   labels:
     release: prometheus
+    prometheus: prometheus_servicemonitor
 spec:
   selector:
     matchLabels:

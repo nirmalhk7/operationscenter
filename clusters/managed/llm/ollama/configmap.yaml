@@ -9,3 +9,5 @@ data:
   OLLAMA_KEEP_ALIVE: "10m"
   OLLAMA_NUM_THREAD: "4"
   OLLAMA_MAX_LOADED_MODELS: "2"
+  OLLAMA_METRICS_ADDRESS: http://0.0.0.0:8080
+  OLLAMA_BASE_URL: "http://ollama.mgd-llm.svc.cluster.local:11434"
