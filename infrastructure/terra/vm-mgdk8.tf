@@ -7,7 +7,6 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   vm_id     = 105
   
   agent {
-    # read 'Qemu guest agent' section, change to true only when ready
     enabled = true
   }
   
@@ -19,19 +18,20 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   pool_id = proxmox_virtual_environment_pool.pool-mgd.id
 
   cpu {
-    cores        = 3
+    cores        = 4
     type         = "x86-64-v2-AES"  # recommended for modern CPUs
   }
 
   memory {
-    dedicated = 1024*12
+    dedicated = 1024*15
+    floating  = 1024*6
   }
 
   disk {
     datastore_id = "local"
     import_from  = proxmox_virtual_environment_download_file.debian-13-generic-amd64-qcow2.id
     interface    = "scsi0"
-    size = 100
+    size         = 100
   }
 
   
@@ -49,6 +49,8 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
       keys = [local.sshKeys.mgd]
       username = "root"
     }
+
+    user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
   }
 
   network_device {
@@ -84,6 +86,6 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Dev Test"
     iface          = "net0"
-    enabled        = true
+    enabled        = false
   }
 }

@@ -71,7 +71,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-proxbridge-sg" {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Dev Test"
     iface          = "net0"
-    enabled        = true
+    enabled        = false
   }
 }
 
@@ -80,5 +80,5 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-proxbridge-config" 
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
 
-  enabled       = true
+  enabled       = false
 }

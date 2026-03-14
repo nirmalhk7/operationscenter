@@ -2,7 +2,7 @@
 # Main entrypoint. Playbooks run in order; failure in any halts the rest.
 - import_playbook: host.ansible.yaml
 - import_playbook: lxc-nginx.ansible.yaml
-- import_playbook: lxc-proxbridge.yaml
+- import_playbook: lxc-openclaw.ansible.yaml
 - import_playbook: vm-k8docker.ansible.yaml
 - import_playbook: vm-k8mgd.ansible.yaml
 - import_playbook: vm-mgdnfs1.ansible.yaml

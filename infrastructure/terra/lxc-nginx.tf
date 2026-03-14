@@ -27,7 +27,6 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
     name = "net0"
     enabled = true
     firewall = false
-    
   }
 
   memory {
@@ -36,7 +35,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
   
   cpu {
     architecture = "amd64"
-    cores        = 2
+    cores        = 1
   }
 
   disk {
@@ -71,7 +70,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Dev Test"
     iface          = "net0"
-    enabled        = true
+    enabled        = false
   }
 }
 
@@ -80,5 +79,5 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
-  enabled       = true
+  enabled       = false
 }
