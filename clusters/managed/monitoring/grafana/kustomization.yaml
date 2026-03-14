@@ -34,3 +34,15 @@ configMapGenerator:
     options:
       labels:
         milano_grafana_dashboard: "true"
+  - name: grafana-dash-ollama
+    files:
+      - dashboards/ollama.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
+  - name: grafana-dash-nginx
+    files:
+      - dashboards/nginx.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
