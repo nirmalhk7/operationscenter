@@ -31,7 +31,8 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
   }
 
   memory {
-    dedicated = 1024
+    dedicated = 1024*2
+    swap = 1024*2
   }
   
   cpu {
