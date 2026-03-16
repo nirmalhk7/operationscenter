@@ -30,47 +30,47 @@ spec:
               value: "home.trusted.nirmalhk7.com,10.0.0.10"
           envFrom:
             - secretRef: 
-                name: homepage-secret
+                name: &appSecret homepage-secret
           ports:
             - name: http
               containerPort: 3000
               protocol: TCP
           volumeMounts:
             - mountPath: /app/config/custom.js
-              name: homepage-config
+              name: &appConfig homepage-config
               subPath: custom.js
             - mountPath: /app/config/custom.css
-              name: homepage-config
+              name: *appConfig
               subPath: custom.css
             - mountPath: /app/config/bookmarks.yaml
-              name: homepage-config
+              name: *appConfig
               subPath: bookmarks.yaml
             - mountPath: /app/config/docker.yaml
-              name: homepage-config
+              name: *appConfig
               subPath: docker.yaml
             - mountPath: /app/config/kubernetes.yaml
-              name: homepage-config
+              name: *appConfig
               subPath: kubernetes.yaml
             - mountPath: /app/config/services.yaml
-              name: homepage-config
+              name: *appConfig
               subPath: services.yaml
             - mountPath: /app/config/settings.yaml
-              name: homepage-config
+              name: *appConfig
               subPath: settings.yaml
             - mountPath: /app/config/widgets.yaml
-              name: homepage-config
+              name: *appConfig
               subPath: widgets.yaml
             - mountPath: /app/config/logs
               name: logs
             - mountPath: /app/secret
-              name: homepage-secret
+              name: *appSecret
               readOnly: true
       volumes:
-        - name: homepage-config
+        - name: *appConfig
           configMap:
             name: *app
         - name: logs
           emptyDir: {}
-        - name: homepage-secret
+        - name: *appSecret
           secret:
-            secretName: homepage-secret
+            secretName: *appSecret

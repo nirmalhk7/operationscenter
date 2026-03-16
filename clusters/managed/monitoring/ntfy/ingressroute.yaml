@@ -1,0 +1,24 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: &app notifications
+  annotations:
+    gethomepage.dev/href: "https://notifications.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "false"
+    gethomepage.dev/group: Observability
+    gethomepage.dev/icon: *app
+    gethomepage.dev/app: *app
+    gethomepage.dev/name: *app
+    gethomepage.dev/widget.type: *app
+    gethomepage.dev/widget.url: "https://notifications.trusted.nirmalhk7.com"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/name=notifications"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`notifications.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: ntfy-svc
+          port: 80
