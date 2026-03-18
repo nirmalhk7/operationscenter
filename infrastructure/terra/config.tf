@@ -5,7 +5,7 @@ resource "proxmox_virtual_environment_cluster_options" "options" {
 }
 
 resource "proxmox_virtual_environment_cluster_firewall" "options" {
-  enabled = true  
+  enabled = false  
   
 }
 
@@ -22,22 +22,4 @@ resource "proxmox_virtual_environment_time" "milano" {
 
 resource "proxmox_virtual_environment_firewall_rules" "inbound" {
   node_name = local.nodeName
-
-  rule {
-    type    = "in"
-    action  = "ACCEPT"
-    comment = "Allow internal traffic"
-    dest    = local.machineIp
-    log     = "debug"
-    enabled = true
-  }
-
-  rule {
-    type    = "out"
-    action  = "ACCEPT"
-    comment = "All external traffic"
-    dest    = local.machineIp
-    log     = "debug"
-    enabled = true
-  }
 }

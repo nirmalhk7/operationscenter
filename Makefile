@@ -12,7 +12,7 @@ encrypt:
 		kubeseal --format=yaml --cert=pub-sealed-secrets.pem < $(FILE) > $$DIR/$$BASE.yaml; \
 	fi
 
-reencrypt:
+encrypt_all:
 	@echo "Reencrypting all .px.yaml files in clusters directory..."
 	kubeseal --fetch-cert > pub-sealed-secrets.pem
 	@find clusters -type f -name "*.px.yaml" -exec echo "Processing {}" \; -exec $(MAKE) encrypt FILE={} \;

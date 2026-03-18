@@ -2,7 +2,7 @@
 - name: Install Docker stack on k8docker VM
   hosts: vm_k8docker
   become: true
-  gather_facts: false
+  gather_facts: true
 
   vars_files:
     - vars/versions.yaml
@@ -46,12 +46,17 @@
             dest: "{{ docker_gpg }}"
             mode: '0644'
 
+        - name: Get dpkg architecture
+          ansible.builtin.command: dpkg --print-architecture
+          register: dpkg_arch
+          changed_when: false
+
         - name: Add Docker apt repository
           ansible.builtin.copy:
             dest: "{{ repo_list }}"
             mode: '0644'
             content: |
-              deb [arch={{ ansible_architecture }} signed-by={{ docker_gpg }}] {{ docker_repo }} {{ ansible_lsb.codename | default('bookworm') }} stable
+              deb [arch={{ dpkg_arch.stdout }} signed-by={{ docker_gpg }}] {{ docker_repo }} {{ ansible_lsb.codename | default('bookworm') }} stable
 
         - name: Install Docker packages at requested versions
           ansible.builtin.apt:
