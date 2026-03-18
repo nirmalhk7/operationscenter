@@ -8,7 +8,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
   
 
   agent {
-    enabled = false
+    enabled = true
   }
   
   # if agent is not enabled, the VM may not be able to shutdown properly, and may need to be forced off
@@ -25,6 +25,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
 
   memory {
     dedicated = 1024*4
+    floating  = 1024*2
   }
 
   disk {
@@ -49,6 +50,8 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
       keys = [local.sshKeys.mgd]
       username = "root"
     }
+
+    user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
   }
 
   network_device {
@@ -84,6 +87,6 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Dev Test"
     iface          = "net0"
-    enabled        = true
+    enabled        = false
   }
 }

@@ -209,7 +209,7 @@
 
               [Service]
               Type=simple
-              ExecStart=/usr/bin/tailscale web --listen 127.0.0.1:5252 --quiet
+              ExecStart=/usr/bin/tailscale web --listen 127.0.0.1:5252
               Restart=on-failure
               User=root
               Group=root
@@ -224,6 +224,16 @@
             state: started
           notify: Restart Tailscale metrics
 
+
+
+    # Stage: Update PermitRootLogin in LXC 104 from Proxmox host
+    - name: Set PermitRootLogin prohibit-password in LXC 104
+      become: true
+      block:
+        - name: Set PermitRootLogin prohibit-password and restart ssh in LXC 104
+          ansible.builtin.shell: >
+            pct exec 104 -- sed -i 's/^#PermitRootLogin.*/PermitRootLogin prohibit-password/g' /etc/ssh/sshd_config && pct exec 104 -- systemctl restart ssh
+            
   handlers:
     - name: Restart SSH
       ansible.builtin.systemd:
@@ -239,3 +249,4 @@
       ansible.builtin.systemd:
         name: pveproxy
         state: restarted
+

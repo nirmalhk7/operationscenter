@@ -1,24 +1,24 @@
-resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
+resource "proxmox_virtual_environment_container" "lxc-openclaw" {
 
-  description = "Proxmox bridge for host level activities"
+  description = "openclaw"
   node_name = local.nodeName
-  vm_id     = 102
+  vm_id     = 104
   tags = ["mgd"]
   pool_id = "${proxmox_virtual_environment_pool.pool-mgd.pool_id}"
 
   initialization {
-    hostname = "proxbridge"
+    hostname = "openclaw"
 
     ip_config {
       ipv4 {
-        address = "${local.machineSubnet}102/24"
+        address = "${local.machineSubnet}104/24"
         gateway = "${local.machineSubnet}1"
       }
     }
 
     user_account {
         keys = [local.sshKeys.mgd]
-        password = "${var.vm_password}102"
+        password = "${var.vm_password}104"
     }
   }
 
@@ -31,12 +31,13 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
   }
 
   memory {
-    dedicated = 1024
+    dedicated = 1024*2
+    swap = 1024*2
   }
   
   cpu {
     architecture = "amd64"
-    cores        = 2
+    cores        = 1
   }
 
   disk {
@@ -58,27 +59,27 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
   }
 }
 
-resource "proxmox_virtual_environment_firewall_rules" "lxc-proxbridge-sg" {
+resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   depends_on = [ 
-    proxmox_virtual_environment_container.lxc-proxbridge,
+    proxmox_virtual_environment_container.lxc-openclaw,
     proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
   ]
 
   node_name = local.nodeName
-  vm_id     = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
+  vm_id     = proxmox_virtual_environment_container.lxc-openclaw.vm_id
   
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Dev Test"
     iface          = "net0"
-    enabled        = false
+    enabled        = true
   }
 }
 
-resource "proxmox_virtual_environment_firewall_options" "lxc-proxbridge-config" {
-  depends_on = [ proxmox_virtual_environment_container.lxc-proxbridge ]
+resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
+  depends_on = [ proxmox_virtual_environment_container.lxc-openclaw ]
   node_name = local.nodeName
-  vm_id     = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
+  vm_id     = proxmox_virtual_environment_container.lxc-openclaw.vm_id
 
   enabled       = false
 }
