@@ -26,6 +26,6 @@ docker_buildx_plugin_version: "0.17.1-1~debian.12~bookworm"
 docker_compose_plugin_version: "2.29.1-1~debian.12~bookworm"
 
 # renovate: datasource=deb depName=containerd.io versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
-containerd_version: "1.7.22-1"
+containerd_version: "1.7.29-1~debian.12~bookworm"
 
 openclaw_version: "latest"
