@@ -84,15 +84,12 @@
     "telegram": {
       "enabled": true,
       "allowFrom": [
-        8163098638
+        "nirmalhk7_1"
       ],
       "dmPolicy": "pairing",
       "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN}",
       "groupPolicy": "allowlist",
-      "groupAllowFrom": [
-        8163098638,
-        -5168321382
-      ],
+      "groups": { "-5168321382": { "requireMention": false } },
       "streaming": "partial"
     }
   },
