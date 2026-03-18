@@ -1,8 +1,35 @@
 ---
 # Main entrypoint. Playbooks run in order; failure in any halts the rest.
 - import_playbook: host.ansible.yaml
-- import_playbook: lxc-nginx.ansible.yaml
-- import_playbook: lxc-openclaw.ansible.yaml
-- import_playbook: vm-k8docker.ansible.yaml
-- import_playbook: vm-k8mgd.ansible.yaml
-- import_playbook: vm-mgdnfs1.ansible.yaml
+
+# Subsequent playbooks run sequentially; if any fails, the others still run.
+- name: Orchestrate subsequent playbooks
+  hosts: localhost
+  gather_facts: false
+  vars:
+    playbooks:
+      - lxc-nginx.ansible.yaml
+      - lxc-openclaw.ansible.yaml
+      - vm-k8docker.ansible.yaml
+      - vm-k8mgd.ansible.yaml
+      - vm-mgdnfs1.ansible.yaml
+  tasks:
+    - name: Run infrastructure playbooks
+      ansible.builtin.command:
+        cmd: "ansible-playbook {{ item }} -i inventory.ini"
+      loop: "{{ playbooks }}"
+      register: playbook_results
+      ignore_errors: true
+
+    - name: Summary of failures
+      ansible.builtin.debug:
+        msg: "FAILED: {{ item.item }}"
+      loop: "{{ playbook_results.results }}"
+      when: item.failed
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Signal failure at end if any playbook failed
+      ansible.builtin.fail:
+        msg: "One or more playbooks failed. See summary above."
+      when: playbook_results.results | selectattr('failed') | list | length > 0

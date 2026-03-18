@@ -89,7 +89,7 @@
     "gateway": {
     "port": 18789,
     "mode": "remote",
-    "bind": "auto",
+    "bind": "lan",
     "controlUi": {
       "allowedOrigins": [
         "http://localhost:18789",
