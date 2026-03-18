@@ -1,12 +1,12 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.3.8",
-    "lastTouchedAt": "2026-03-14T06:03:56.096Z"
+    "lastTouchedVersion": "2026.3.13",
+    "lastTouchedAt": "2026-03-18T20:08:46.343Z"
   },
   "wizard": {
-    "lastRunAt": "2026-03-14T06:03:56.064Z",
-    "lastRunVersion": "2026.3.8",
-    "lastRunCommand": "onboard",
+    "lastRunAt": "2026-03-18T20:08:46.294Z",
+    "lastRunVersion": "2026.3.13",
+    "lastRunCommand": "configure",
     "lastRunMode": "local"
   },
   "auth": {
@@ -65,6 +65,9 @@
       }
     }
   },
+  "tools": {
+    "profile": "coding"
+  },
   "messages": {
     "ackReactionScope": "group-mentions"
   },
@@ -80,16 +83,24 @@
   "channels": {
     "telegram": {
       "enabled": true,
+      "allowFrom": [
+        8163098638
+      ],
       "dmPolicy": "pairing",
       "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN}",
       "groupPolicy": "allowlist",
+      "groupAllowFrom": [
+        8163098638,
+        -5168321382
+      ],
       "streaming": "partial"
     }
   },
-    "gateway": {
+  "gateway": {
     "port": 18789,
-    "mode": "remote",
-    "bind": "lan",
+    "mode": "local",
+    "bind": "custom",
+    "customBindHost": "172.16.0.104",
     "controlUi": {
       "allowedOrigins": [
         "http://localhost:18789",
@@ -100,9 +111,15 @@
       ]
     },
     "auth": {
-      "mode": "token",
-      "token": "${OPENCLAW_GATEWAY_AUTH_TOKEN}"
+      "mode": "password",
+      "password": "nirmal"
     },
+    "trustedProxies": [
+      "127.0.0.1",
+      "::1",
+      "172.16.0.101",
+      "172.16.0.1"
+    ],
     "tailscale": {
       "mode": "off",
       "resetOnExit": false

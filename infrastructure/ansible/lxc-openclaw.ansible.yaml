@@ -81,6 +81,14 @@
         group: "{{ openclaw_user }}"
         mode: '0755'
 
+    - name: Ensure OpenClaw compile cache directory exists
+      ansible.builtin.file:
+        path: /var/tmp/openclaw-compile-cache
+        state: directory
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0755'
+
     - name: Deploy pre-configured OpenClaw configuration file
       ansible.builtin.copy:
         src: /Users/nirmalhk7/Documents/DevWorld/operationscenter/infrastructure/assets/openclaw.json
@@ -95,6 +103,9 @@
         content: |
           OPENCLAW_TELEGRAM_BOT_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_TELEGRAM_TOKEN') | default(lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN')) }}"
           OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
+          GEMINI_API_KEY="{{ lookup('env', 'GEMINI_API_KEY') }}"
+          NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
+          OPENCLAW_NO_RESPAWN=1
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
@@ -129,11 +140,11 @@
           WantedBy=multi-user.target
         mode: '0644'
 
-    - name: Enable and start OpenClaw service
+    - name: Enable and restart OpenClaw service
       ansible.builtin.systemd:
         name: openclaw
         enabled: true
-        state: started
+        state: restarted
         daemon_reload: yes
 
 
