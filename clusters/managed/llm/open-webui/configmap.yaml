@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open-webui-env
+  namespace: mgd-llm
+data:
+  TAVILY_API_KEY: "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"
+  OLLAMA_BASE_URL: "http://ollama.mgd-llm.svc.cluster.local:11434"
+  ENABLE_RAG_WEB_SEARCH: "true"
+  RAG_WEB_SEARCH_ENGINE: "brave"
+  RAG_EMBEDDING_ENGINE: "ollama"
+  RAG_EMBEDDING_MODEL: "nomic-embed-text"
+  OLLAMA_API_BASE_URL: "http://ollama.mgd-llm.svc.cluster.local:11434"
+  CHUNK_SIZE: "500"
+  CHUNK_OVERLAP: "100"
+  RAG_TOP_K: "5"
+  RAG_WEB_SEARCH_RESULT_COUNT: "5"
+  RAG_WEB_SEARCH_CONCURRENT_REQUESTS: "10"
+  WEBUI_AUTH: "true"
+  DEFAULT_USER_ROLE: "user"
+  ENABLE_EVALUATION_ARENA_MODELS: "false"
+  AIOHTTP_CLIENT_TIMEOUT: "300"
+  AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST: "10"
+  SCARF_NO_ANALYTICS: "true"
+  DO_NOT_TRACK: "true"
+  ANONYMIZED_TELEMETRY: "false"
+  CONCURRENT_UPLOADS_LIMIT: "2"
+  ENABLE_STREAMING: "true"
+  ENABLE_RAG_HYBRID_SEARCH: "true"
+  RAG_EMBEDDING_BATCH_SIZE: "8"
+  RAG_RELEVANCE_THRESHOLD: "0.2"

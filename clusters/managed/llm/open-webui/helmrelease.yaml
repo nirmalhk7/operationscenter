@@ -24,3 +24,9 @@ spec:
       milano.level: managed
     persistence:
       storageClass: milano-v2
+    extraEnvVars:
+      - secretRef:
+          name: open-webui-secrets
+    extraEnvFrom:
+      - configMapRef:
+          name: open-webui-env

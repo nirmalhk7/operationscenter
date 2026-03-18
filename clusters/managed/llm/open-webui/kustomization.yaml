@@ -4,6 +4,8 @@ kind: Kustomization
 resources:
   - helmrelease.yaml
   - ingressroute.yaml
+  - configmap.yaml
+  - secret.yaml
 
 labels:
   - pairs:

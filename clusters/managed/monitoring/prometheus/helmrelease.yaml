@@ -53,6 +53,8 @@ spec:
         scrapeConfigSelector:
           matchLabels:
             prometheus: prometheus_scraper
-
+        serviceMonitorSelector:
+          matchLabels:
+            prometheus: prometheus_servicemonitor
     commonLabels:
       milano.level: managed

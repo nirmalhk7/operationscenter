@@ -1,0 +1,20 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ollama-ingressroute
+  namespace: mgd-llm
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`ollama.trusted.nirmalhk7.com`)
+      kind: Rule
+      middlewares:
+        - name: mgd-ratelimit
+          namespace: default
+        - name: mgd-headervalidation
+          namespace: default
+      services:
+        - name: ollama
+          port: 11434

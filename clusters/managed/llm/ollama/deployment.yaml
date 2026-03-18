@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app ollama
+  namespace: mgd-llm
+spec:
+  strategy:
+    type: Recreate # Leaving to recreate because of the size of deployment
+  replicas: 1
+  selector:
+    matchLabels:
+      app: *app
+  template:
+    metadata:
+      labels:
+        app: *app
+        milano.app: *app
+        milano.level: managed
+    spec:
+      initContainers:
+        - name: pull-models
+          image: ollama/ollama:0.17.7
+          command:
+            - /bin/sh
+            - -c
+            - |
+              ollama serve &
+              sleep 5
+              ollama pull qwen2.5-coder:3b
+              ollama pull nomic-embed-text
+              kill %1
+              pkill ollama
+          envFrom:
+            - configMapRef:
+                name: ollama-env
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      containers:
+        - name: *app
+          image: ollama/ollama:0.17.7
+          command: ["ollama", "serve"]
+          ports:
+            - containerPort: 11434
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: ollama-env
+          resources:
+            requests:
+              memory: "3Gi"   # Enough for the model + base overhead
+              cpu: "2"        # "Guarantees" 2 cores so the AI doesn't stutter
+            limits:
+              memory: "5Gi"   # Room for 32k context window and spikes
+              cpu: "4"        # Let it burst to 4 cores for faster initial "thinking"
+          volumeMounts:
+            - name: models
+              mountPath: /models
+          livenessProbe:
+            httpGet:
+              path: /api/tags
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/tags
+              port: 11434
+            initialDelaySeconds: 10
+            periodSeconds: 10
+        - name: busybox
+          image: curlimages/curl:latest
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "5m"
+            limits:
+              memory: "64Mi"
+              cpu: "50m"
+        - name: ollama-metrics
+          image: ghcr.io/norskhelsenett/ollama-metrics:latest
+          env:
+            - name: OLLAMA_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: ollama-env
+                  key: OLLAMA_BASE_URL
+            - name: OLLAMA_METRICS_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: ollama-env
+                  key: OLLAMA_METRICS_ADDRESS
+          args:
+            - --ollama-base-url=http://ollama.mgd-llm.svc.cluster.local:11434
+            - --listen-address=$(OLLAMA_METRICS_ADDRESS)
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: ollama-models
