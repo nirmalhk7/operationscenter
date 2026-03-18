@@ -209,7 +209,7 @@
 
               [Service]
               Type=simple
-              ExecStart=/usr/bin/tailscale web --listen 127.0.0.1:5252 --quiet
+              ExecStart=/usr/bin/tailscale web --listen 127.0.0.1:5252
               Restart=on-failure
               User=root
               Group=root

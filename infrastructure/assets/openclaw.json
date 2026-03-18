@@ -81,26 +81,27 @@
     "telegram": {
       "enabled": true,
       "dmPolicy": "pairing",
-      "botToken": "8675186417:AAFzr22ZaZZPhjae0CORUHWh00apbPPOrlE",
+      "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN}",
       "groupPolicy": "allowlist",
       "streaming": "partial"
     }
   },
-  "gateway": {
+    "gateway": {
     "port": 18789,
     "mode": "remote",
-    "bind": "lan",
+    "bind": "auto",
     "controlUi": {
       "allowedOrigins": [
         "http://localhost:18789",
         "https://robot.trusted.nirmalhk7.com",
         "http://robot.trusted.nirmalhk7.com",
+        "http://172.16.0.104:18789",
         "http://127.0.0.1:18789"
       ]
     },
     "auth": {
       "mode": "token",
-      "token": "c721c2c99d6fd8970c57eb549fa79b8400eb74912a30c936"
+      "token": "${OPENCLAW_GATEWAY_AUTH_TOKEN}"
     },
     "tailscale": {
       "mode": "off",

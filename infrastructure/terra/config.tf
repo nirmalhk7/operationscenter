@@ -5,7 +5,7 @@ resource "proxmox_virtual_environment_cluster_options" "options" {
 }
 
 resource "proxmox_virtual_environment_cluster_firewall" "options" {
-  enabled = true  
+  enabled = false  
   
 }
 

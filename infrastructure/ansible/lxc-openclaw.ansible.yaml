@@ -89,6 +89,16 @@
         group: "{{ openclaw_user }}"
         mode: '0600'
 
+    - name: Deploy OpenClaw environment file
+      ansible.builtin.copy:
+        dest: "{{ openclaw_home }}/.openclaw/.env"
+        content: |
+          OPENCLAW_TELEGRAM_BOT_TOKEN="{{ lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN') }}"
+          OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0600'
+
     - name: Run OpenClaw onboarding non-interactively
       ansible.builtin.shell: |
         export PATH=$PATH:/usr/local/bin:{{ openclaw_home }}/.local/bin
@@ -107,6 +117,7 @@
           [Service]
           Type=simple
           User={{ openclaw_user }}
+          EnvironmentFile={{ openclaw_home }}/.openclaw/.env
           Environment="PATH={{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
           Environment="PNPM_HOME={{ openclaw_home }}/.local/share/pnpm"
           Environment="HOME={{ openclaw_home }}"
