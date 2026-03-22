@@ -61,7 +61,7 @@ jobs:
               - 'infrastructure/ansible/**'
       - name: Set up Python
         if: steps.filter.outputs.ansible == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
       - name: Install Ansible
