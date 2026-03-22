@@ -34,6 +34,15 @@ spec:
             name: immich-credentials
             key: REDIS_PASSWORD
       IMMICH_LOG_LEVEL: verbose
+      OAUTH_CLIENT_ID: immich
+      OAUTH_CLIENT_SECRET:
+        valueFrom:
+          secretKeyRef:
+            name: authelia-app-secrets
+            key: client-secret-immich
+      OAUTH_ISSUER_URL: https://secure.trusted.nirmalhk7.com
+      OAUTH_MOBILE_REDIRECT_URI: app.immich:/
+      OAUTH_SCOPE: openid profile email groups
     immich:
       metrics:
         enabled: true
