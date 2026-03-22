@@ -7,5 +7,4 @@ resources:
   - service.yaml
   - ingress.yaml
   - redis.yaml
-  - mysql.yaml
   - secret.yaml

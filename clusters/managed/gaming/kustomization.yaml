@@ -3,9 +3,7 @@ kind: Kustomization
 
 resources:
   - ../_middlewares
-  - _repositories
   - namespace.yaml
-  - immich
-  - nextcloud
+  - pterodactyl
 
-namespace: mgd-multimedia
+namespace: mgd-gaming

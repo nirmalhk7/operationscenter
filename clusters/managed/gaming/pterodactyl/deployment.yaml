@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: &app pterodactyl
-  namespace: mgd-multimedia
+  namespace: mgd-gaming
   labels:
     milano.app: *app
 spec:
@@ -38,7 +38,7 @@ spec:
             - name: REDIS_HOST
               value: "pterodactyl-redis"
             - name: DB_HOST
-              value: "pterodactyl-db"
+              value: "172.16.0.106"
             - name: DB_PORT
               value: "3306"
             - name: DB_DATABASE

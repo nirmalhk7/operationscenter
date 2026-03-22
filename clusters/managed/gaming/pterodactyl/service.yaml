@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: &app pterodactyl
-  namespace: mgd-multimedia
+  namespace: mgd-gaming
   labels:
     milano.app: *app
 spec:
@@ -18,7 +18,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: &app pterodactyl-lb
-  namespace: mgd-multimedia
+  namespace: mgd-gaming
   labels:
     milano.app: pterodactyl
 spec:
