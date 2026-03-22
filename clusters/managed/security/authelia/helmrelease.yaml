@@ -50,8 +50,8 @@ spec:
           items:
             - key: grafana-client-secret
               path: grafana-client-secret
-            - key: client-secret-immich
-              path: immich-client-secret
+            - key: client-secret-nextcloud
+              path: nextcloud-client-secret
     configMap:
       identity_validation:
         reset_password:
@@ -84,7 +84,7 @@ spec:
           clients:
             - client_id: grafana
               client_name: Grafana
-              secret:
+              client_secret_jwt:
                 path: /secrets/authelia-app-secrets/grafana-client-secret
               redirect_uris:
                 - https://grafana.trusted.nirmalhk7.com/login/generic_oauth
@@ -101,15 +101,14 @@ spec:
                 - authorization_code
               authorization_policy: one_factor
               token_endpoint_auth_method: client_secret_basic
-            - client_id: immich
-              client_name: Immich
+            - client_id: nextcloud
+              client_name: Nextcloud
               secret:
-                path: /secrets/authelia-app-secrets/immich-client-secret
+                path: /secrets/authelia-app-secrets/nextcloud-client-secret
               redirect_uris:
-                - https://immich.trusted.nirmalhk7.com/auth/login
-                - app.immich:/
+                - https://drive.trusted.nirmalhk7.com/apps/oidc_login/oidc
               post_logout_redirect_uris:
-                - https://immich.trusted.nirmalhk7.com/
+                - https://drive.trusted.nirmalhk7.com/
               scopes:
                 - openid
                 - profile
