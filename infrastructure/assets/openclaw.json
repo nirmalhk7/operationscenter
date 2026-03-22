@@ -160,7 +160,7 @@
     },
     "auth": {
       "mode": "token",
-      "token": "8156ecdc6d750aa7d55e3b73e40b68ceb33386adfed8da76",
+      "token": "${OPENCLAW_GATEWAY_AUTH_TOKEN}",
       "password": "nirmal"
     },
     "trustedProxies": [
