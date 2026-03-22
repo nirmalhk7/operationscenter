@@ -101,9 +101,6 @@ kubernetes-init:
 	kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
 	@echo "Applying managed cluster manifests..."
 	kubectl apply -k ./clusters/managed
-# 	kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.22/manifests/cnpg.io_clusters.yaml
-# 	kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.22/manifests/cnpg.io_databases.yaml
-# 	kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1alpha1.yaml
 
 
 kubernetes-clean:
