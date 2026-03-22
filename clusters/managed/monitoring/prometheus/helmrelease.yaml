@@ -19,6 +19,11 @@ spec:
       defaultDashboardsEnabled: false
       env:
         GF_SERVER_SERVE_FROM_SUB_PATH: true
+      envValueFrom:
+        GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+          secretKeyRef:
+            name: authelia-app-secrets
+            key: grafana-client-secret
         
       grafana.ini:
         server:
@@ -39,6 +44,7 @@ spec:
           name_attribute_path: name
           role_attribute_path: contains(groups, 'grafana_admin') && 'Admin' || 'Viewer'
           use_pkce: true
+          client_id: grafana
       sidecar:
         dashboards:
           enabled: true
