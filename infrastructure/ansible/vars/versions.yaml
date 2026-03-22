@@ -29,3 +29,9 @@ docker_compose_plugin_version: "2.29.1-1~debian.12~bookworm"
 containerd_version: "1.7.22-1"
 
 openclaw_version: "latest"
+
+# renovate: datasource=github-releases depName=cli/cli versioning=semver
+gh_cli_version: "2.47.0"
+
+# renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
+kubectl_version: "1.35.2"

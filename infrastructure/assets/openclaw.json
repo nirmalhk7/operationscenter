@@ -1,12 +1,12 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-18T20:08:46.343Z"
+    "lastTouchedAt": "2026-03-22T05:19:48.456Z"
   },
   "wizard": {
-    "lastRunAt": "2026-03-18T20:08:46.294Z",
+    "lastRunAt": "2026-03-21T05:51:14.376Z",
     "lastRunVersion": "2026.3.13",
-    "lastRunCommand": "configure",
+    "lastRunCommand": "onboard",
     "lastRunMode": "local"
   },
   "auth": {
@@ -14,13 +14,17 @@
       "google:default": {
         "provider": "google",
         "mode": "api_key"
+      },
+      "openrouter:default": {
+        "provider": "openrouter",
+        "mode": "api_key"
       }
     }
   },
   "models": {
     "mode": "merge",
     "providers": {
-      "custom-172-16-0-105-32363": {
+      "local-ollama": {
         "baseUrl": "http://172.16.0.105:32363",
         "api": "anthropic-messages",
         "models": [
@@ -47,23 +51,63 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "google/gemini-3.1-flash-lite-preview"
+        "primary": "openrouter/free",
+        "fallbacks": [
+          "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+          "openrouter/qwen/qwen3-coder:free",
+          "openrouter/stepfun/step-3.5-flash:free",
+          "openrouter/openai/gpt-oss-120b:free",
+          "openrouter/google/gemma-3-27b-it:free",
+          "google/gemini-3.1-flash-lite-preview",
+          "openrouter/auto",
+          "google/gemma-3-27b-it",
+          "nvidia-nim/gpt-oss-120b",
+          "local-ollama/qwen2.5-coder:3b"
+        ]
       },
       "models": {
-        "custom-172-16-0-105-32363/qwen2.5-coder:3b": {
+        "local-ollama/qwen2.5-coder:3b": {
           "alias": "qwen2.5-coder:3b"
         },
-        "google/gemini-3.1-flash-lite-preview": {}
+        "google/gemini-3.1-flash-lite-preview": {},
+        "openrouter/auto": {},
+        "openrouter/free": {},
+        "openrouter/nvidia/nemotron-3-super-120b-a12b:free": {},
+        "openrouter/qwen/qwen3-coder:free": {},
+        "openrouter/stepfun/step-3.5-flash:free": {},
+        "openrouter/openai/gpt-oss-120b:free": {},
+        "openrouter/google/gemma-3-27b-it:free": {},
+        "google/gemma-3-27b-it": {},
+        "nvidia-nim/gpt-oss-120b": {}
       },
       "workspace": "/root/.openclaw/workspace",
       "compaction": {
         "mode": "safeguard"
       },
-      "maxConcurrent": 4,
+      "maxConcurrent": 16,
       "subagents": {
-        "maxConcurrent": 8
+        "maxConcurrent": 32
       }
-    }
+    },
+    "list": [
+      {
+        "id": "main"
+      },
+      {
+        "id": "dayplanner",
+        "name": "dayplanner",
+        "model": "local-ollama/qwen2.5-coder:3b",
+        "workspace": "/root/openclaw_support/obsidian",
+        "agentDir": "/root/.openclaw/agents/dayplanner/agent"
+      },
+      {
+        "id": "labmaintaner",
+        "name": "labmaintaner",
+        "model": "openrouter/qwen/qwen3-coder:free",
+        "workspace": "/root/openclaw_support/operationscenter",
+        "agentDir": "/root/.openclaw/agents/labmaintaner/agent"
+      }
+    ]
   },
   "tools": {
     "profile": "coding"
@@ -83,21 +127,28 @@
   "channels": {
     "telegram": {
       "enabled": true,
-      "allowFrom": [
-        "nirmalhk7_1"
-      ],
-      "dmPolicy": "pairing",
+      "dmPolicy": "open",
       "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN}",
+      "groups": {
+        "-5168321382": {
+          "requireMention": false,
+          "allowFrom": [
+            "*"
+          ]
+        }
+      },
+      "allowFrom": [
+        "8163098638"
+      ],
       "groupPolicy": "allowlist",
-      "groups": { "-5168321382": { "requireMention": false } },
       "streaming": "partial"
     }
   },
   "gateway": {
     "port": 18789,
     "mode": "local",
-    "bind": "custom",
-    "customBindHost": "172.16.0.104",
+    "bind": "lan",
+    "customBindHost": "0.0.0.0",
     "controlUi": {
       "allowedOrigins": [
         "http://localhost:18789",
@@ -108,7 +159,8 @@
       ]
     },
     "auth": {
-      "mode": "password",
+      "mode": "token",
+      "token": "8156ecdc6d750aa7d55e3b73e40b68ceb33386adfed8da76",
       "password": "nirmal"
     },
     "trustedProxies": [
@@ -134,9 +186,12 @@
     }
   },
   "skills": {
-    "install": {
-      "nodeManager": "npm"
-    }
+    "install": [
+      "clawdbot",
+      "self-improving-agent",
+      "arc-memory-pruner",
+      "token-optimizer"
+    ]
   },
   "plugins": {
     "entries": {

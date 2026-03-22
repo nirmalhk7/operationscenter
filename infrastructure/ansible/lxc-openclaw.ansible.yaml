@@ -8,6 +8,7 @@
   vars:
     openclaw_user: root
     openclaw_home: /root
+    openclaw_support_home: /root/openclaw_support
     nodejs_version: "22.x"
 
   tasks:
@@ -21,34 +22,88 @@
           - ca-certificates
           - curl
           - gnupg
+          - python3-pip
+          - git
         state: present
         update_cache: true
 
-    - name: Create directory for NodeSource GPG key
+    # - name: Install Todoist CLI
+    #   ansible.builtin.pip:
+    #     name: todoist-cli
+    #     state: present
+    #     executable: pip3
+    #     extra_args: --break-system-packages
+
+    - name: Create support directories
       ansible.builtin.file:
-        path: /etc/apt/keyrings
+        path: "{{ item }}"
         state: directory
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
         mode: '0755'
+      loop:
+        - "{{ openclaw_support_home }}"
+        - "{{ openclaw_support_home }}/obsidian"
 
-    - name: Add NodeSource GPG key
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
-          curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
-            gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-          chmod a+r /etc/apt/keyrings/nodesource.gpg
-        creates: /etc/apt/keyrings/nodesource.gpg
-        executable: /bin/bash
+    - name: Setup NodeSource repository
+      block:
+        - name: Add NodeSource GPG key
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
+                gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+              chmod a+r /etc/apt/keyrings/nodesource.gpg
+            creates: /etc/apt/keyrings/nodesource.gpg
+            executable: /bin/bash
 
-    - name: Add NodeSource repository
-      ansible.builtin.copy:
-        dest: /etc/apt/sources.list.d/nodesource.list
-        content: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_version }} nodistro main\n"
-        mode: '0644'
+        - name: Add NodeSource repository file
+          ansible.builtin.copy:
+            dest: /etc/apt/sources.list.d/nodesource.list
+            content: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_version }} nodistro main\n"
+            mode: '0644'
 
-    - name: Install Node.js
+    - name: Setup GitHub CLI repository
+      block:
+        - name: Add GitHub CLI GPG key
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+              chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+            creates: /usr/share/keyrings/githubcli-archive-keyring.gpg
+            executable: /bin/bash
+
+        - name: Add GitHub CLI repository file
+          ansible.builtin.copy:
+            dest: /etc/apt/sources.list.d/github-cli.list
+            content: "deb [arch=amd64 signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n"
+            mode: '0644'
+
+    - name: Setup Kubernetes repository
+      block:
+        - name: Add Kubernetes GPG key
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | \
+                gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+              chmod a+r /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+            creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+            executable: /bin/bash
+
+        - name: Add Kubernetes repository file
+          ansible.builtin.copy:
+            dest: /etc/apt/sources.list.d/kubernetes.list
+            content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /\n"
+            mode: '0644'
+
+    - name: Install main software packages
       ansible.builtin.apt:
-        name: nodejs
+        name:
+          - nodejs
+          - gh
+          - kubectl
         state: present
         update_cache: true
 
@@ -73,6 +128,54 @@
       register: openclaw_install
       changed_when: "'Already up to date' not in openclaw_install.stdout"
 
+    - name: Set permanent env vars
+      lineinfile:
+        path: /etc/environment
+        regexp: "^KUBECONFIG="
+        line: "KUBECONFIG={{ openclaw_support_home }}/.kube/config"
+        create: yes
+        state: present
+
+    - name: Configure Kubernetes credentials
+      block:
+        - name: Ensure .kube directory exists
+          ansible.builtin.file:
+            path: "{{ openclaw_support_home }}/.kube"
+            state: directory
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0700'
+
+        - name: Create kubeconfig for OpenClaw
+          ansible.builtin.copy:
+            dest: "{{ openclaw_support_home }}/.kube/config"
+            content: |
+              apiVersion: v1
+              kind: Config
+              clusters:
+              - cluster:
+                  certificate-authority-data: {{ openclaw_k8s_ca }}
+                  server: https://172.16.0.105:6443
+                name: homelab
+              contexts:
+              - context:
+                  cluster: homelab
+                  user: openclaw-bot
+                name: openclaw-bot@homelab
+              current-context: openclaw-bot@homelab
+              users:
+              - name: openclaw-bot
+                user:
+                  token: {{ openclaw_k8s_token }}
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0600'
+          vars:
+            openclaw_k8s_ca: "{{ lookup('env', 'CLUSTER_CA') }}"
+            openclaw_k8s_token: "{{ lookup('env', 'CLUSTER_TOKEN') }}"
+            openclaw_client_cert: "{{ lookup('env', 'CLIENT_CERT') }}"
+            openclaw_client_key: "{{ lookup('env', 'CLIENT_KEY') }}"
+
     - name: Ensure OpenClaw configuration directory exists
       ansible.builtin.file:
         path: "{{ openclaw_home }}/.openclaw"
@@ -89,13 +192,14 @@
         group: "{{ openclaw_user }}"
         mode: '0755'
 
-    - name: Deploy pre-configured OpenClaw configuration file
+    - name: Deploy main OpenClaw configuration file
       ansible.builtin.copy:
         src: /Users/nirmalhk7/Documents/DevWorld/operationscenter/infrastructure/assets/openclaw.json
-        dest: "{{ openclaw_home }}/.openclaw/openclaw.json"
+        dest: /root/.openclaw/openclaw.json
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
+        force: yes
 
     - name: Deploy OpenClaw environment file
       ansible.builtin.copy:
@@ -104,8 +208,11 @@
           OPENCLAW_TELEGRAM_BOT_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_TELEGRAM_TOKEN') | default(lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN')) }}"
           OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
           GEMINI_API_KEY="{{ lookup('env', 'GEMINI_API_KEY') }}"
+          OPENROUTER_API_KEY="{{ lookup('env', 'OPENROUTER_API_KEY') }}"
+          TODOIST_TOKEN="{{ lookup('env', 'TODOIST_TOKEN') }}"
           NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
           OPENCLAW_NO_RESPAWN=1
+          KUBECONFIG="{{ openclaw_support_home }}/.kube/config"
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
@@ -146,5 +253,37 @@
         enabled: true
         state: restarted
         daemon_reload: yes
+
+    - name: Post-install tasks
+      block:
+        - name: Authenticate GitHub CLI
+          ansible.builtin.shell:
+            cmd: |
+              if ! gh auth status >/dev/null 2>&1; then
+                echo "{{ github_token }}" | gh auth login --with-token
+              fi
+          vars:
+            github_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+          when: github_token != ""
+          register: gh_auth
+          changed_when: false
+
+        - name: Clone operationscenter repository
+          ansible.builtin.shell:
+            cmd: "gh repo clone nirmalhk7/operationscenter {{ openclaw_support_home }}/operationscenter"
+            creates: "{{ openclaw_support_home }}/operationscenter"
+          when: 
+            - lookup('env', 'GITHUB_TOKEN') != ""
+            - gh_auth is succeeded
+
+        - name: Clone Obsidian repository
+          ansible.builtin.shell:
+            cmd: "gh repo clone {{ obsidian_repo }} {{ openclaw_support_home }}/obsidian"
+            creates: "{{ openclaw_support_home }}/obsidian"
+          vars:
+            obsidian_repo: "{{ lookup('env', 'OBSIDIAN_REPO') }}"
+          when: 
+            - obsidian_repo != ""
+            - gh_auth is succeeded
 
 

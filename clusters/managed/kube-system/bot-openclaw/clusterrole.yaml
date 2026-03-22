@@ -1,0 +1,43 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openclaw-bot-role
+rules:
+  # App Deployments - Full Read/Update
+  - apiGroups: [""]
+    resources:
+      - pods
+      - services
+      - configmaps
+      - endpoints
+      - replicationcontrollers
+      - persistentvolumeclaims
+    verbs: ["get", "list", "watch", "update", "patch"]
+
+  - apiGroups:
+      - apps
+      - networking.k8s.io
+      - batch
+      - autoscaling
+    resources: ["*"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+
+  # Cluster Management - Read Only
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - namespaces
+      - events
+      - serviceaccounts
+      - resourcequotas
+      - persistentvolumes
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups:
+      - rbac.authorization.k8s.io
+      - storage.k8s.io
+      - apiextensions.k8s.io
+      - admissionregistration.k8s.io
+      - scheduling.k8s.io
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
