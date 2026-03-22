@@ -18,6 +18,18 @@ spec:
         milano.level: managed
     spec:
       initContainers:
+        - name: install-llmfit
+          image: ollama/ollama:0.18.2
+          command:
+            - /bin/sh
+            - -c
+            - |
+              curl -sL https://github.com/AlexsJones/llmfit/releases/download/v0.8.4/llmfit-v0.8.4-x86_64-unknown-linux-musl.tar.gz | tar -xz -C /tmp
+              cp /tmp/llmfit-v0.8.4-x86_64-unknown-linux-musl/llmfit /shared-bin/llmfit
+              chmod +x /shared-bin/llmfit
+          volumeMounts:
+            - name: shared-bin
+              mountPath: /shared-bin
         - name: pull-models
           image: ollama/ollama:0.18.2
           command:
@@ -56,6 +68,9 @@ spec:
           volumeMounts:
             - name: models
               mountPath: /models
+            - name: shared-bin
+              mountPath: /usr/local/bin/llmfit
+              subPath: llmfit
           livenessProbe:
             httpGet:
               path: /api/tags
@@ -122,3 +137,5 @@ spec:
         - name: models
           persistentVolumeClaim:
             claimName: ollama-models
+        - name: shared-bin
+          emptyDir: {}
