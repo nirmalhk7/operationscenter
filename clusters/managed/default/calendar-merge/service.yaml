@@ -5,11 +5,12 @@ metadata:
   labels:
     app.kubernetes.io/name: calendar-merge
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     - port: 8080
       targetPort: http
       protocol: TCP
       name: http
+      nodePort: 31217
   selector:
     app.kubernetes.io/name: calendar-merge
