@@ -19,11 +19,10 @@ spec:
       defaultDashboardsEnabled: false
       env:
         GF_SERVER_SERVE_FROM_SUB_PATH: true
-        
       grafana.ini:
         server:
-          domain: "grafana.trusted.nirmalhk7.com"
-          root_url: "https://grafana.trusted.nirmalhk7.com"
+          domain: grafana.trusted.nirmalhk7.com
+          root_url: https://grafana.trusted.nirmalhk7.com
         auth.generic_oauth:
           enabled: true
           name: Authelia
@@ -45,10 +44,9 @@ spec:
           label: milano_grafana_dashboard
           labelValue: true
           searchNamespace: ALL
-
     prometheus:
       prometheusSpec:
-        externalUrl: "https://prometheus.trusted.nirmalhk7.com"
+        externalUrl: https://prometheus.trusted.nirmalhk7.com
         routePrefix: /
         scrapeConfigSelector:
           matchLabels:
@@ -58,3 +56,33 @@ spec:
             prometheus: prometheus_servicemonitor
     commonLabels:
       milano.level: managed
+    alertmanager:
+      config:
+        global:
+          resolve_timeout: 5m
+        route:
+          group_by:
+          - namespace
+          - alertname
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          receiver: telegram
+          routes:
+          - receiver: 'null'
+            matchers:
+            - alertname = Watchdog
+        receivers:
+        - name: 'null'
+        - name: telegram
+          telegram_configs:
+          - bot_token_file: /etc/alertmanager/secrets/telegram-secret/token
+            chat_id: -4581516591
+            send_resolved: true
+            parse_mode: HTML
+            message: '{{ template "telegram.default.message" . }}'
+        templates:
+        - /etc/alertmanager/config/*.tmpl
+      alertmanagerSpec:
+        secrets:
+        - telegram-secret
