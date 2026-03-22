@@ -34,4 +34,4 @@ openclaw_version: "latest"
 gh_cli_version: "2.47.0"
 
 # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
-kubectl_version: "1.35.2"
+kubectl_version: "1.35.3"
