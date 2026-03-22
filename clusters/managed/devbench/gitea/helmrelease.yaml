@@ -29,6 +29,17 @@ spec:
       enabled: false
     gitea:
       additionalConfigFromEnvs:
+      - name: GITEA__oauth2_client_Authelia__PROVIDER
+        value: openidConnect
+      - name: GITEA__oauth2_client_Authelia__CLIENT_ID
+        value: gitea
+      - name: GITEA__oauth2_client_Authelia__CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: authelia-app-secrets
+            key: client-secret-gitea
+      - name: GITEA__oauth2_client_Authelia__AUTO_DISCOVER_URL
+        value: https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration
       - name: GITEA__database__DB_TYPE
         value: mysql
       - name: GITEA__database__NAME
