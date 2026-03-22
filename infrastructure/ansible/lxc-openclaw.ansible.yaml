@@ -207,6 +207,7 @@
         content: |
           OPENCLAW_TELEGRAM_BOT_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_TELEGRAM_TOKEN') | default(lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN')) }}"
           OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
+          OPENCLAW_GATEWAY_PASSWORD="{{ lookup('env', 'OPENCLAW_GATEWAY_PASSWORD') }}"
           GEMINI_API_KEY="{{ lookup('env', 'GEMINI_API_KEY') }}"
           OPENROUTER_API_KEY="{{ lookup('env', 'OPENROUTER_API_KEY') }}"
           TODOIST_TOKEN="{{ lookup('env', 'TODOIST_TOKEN') }}"
