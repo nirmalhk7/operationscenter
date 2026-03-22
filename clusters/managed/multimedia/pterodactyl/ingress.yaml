@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: &app pterodactyl
+  namespace: mgd-multimedia
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - gaming.trusted.nirmalhk7.com
+      secretName: pterodactyl-tls
+  rules:
+    - host: gaming.trusted.nirmalhk7.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: *app
+                port:
+                  number: 80
