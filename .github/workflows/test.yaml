@@ -1,0 +1,105 @@
+name: Test Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-k8s:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            k8s:
+              - 'clusters/**'
+              - 'charts/**'
+      - name: Install yamllint
+        if: steps.filter.outputs.k8s == 'true'
+        run: sudo apt-get update && sudo apt-get install -y yamllint
+      - name: Run yamllint
+        if: steps.filter.outputs.k8s == 'true'
+        run: >
+          yamllint -d "{extends: relaxed, rules: {line-length: disable, document-start: disable, truthy: disable, empty-lines: disable}}" clusters/ charts/
+
+  test-nginx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            nginx:
+              - 'nginx/**'
+      - name: Generate dummy SSL certs
+        if: steps.filter.outputs.nginx == 'true'
+        run: |
+          sudo mkdir -p /etc/letsencrypt/live/trusted.nirmalhk7.com/
+          sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/letsencrypt/live/trusted.nirmalhk7.com/privkey.pem -out /etc/letsencrypt/live/trusted.nirmalhk7.com/fullchain.pem -subj "/CN=trusted.nirmalhk7.com"
+      - name: Test Nginx config
+        if: steps.filter.outputs.nginx == 'true'
+        run: |
+          cd nginx
+          sudo nginx -t -c $(pwd)/nginx.conf -p $(pwd)
+
+  test-ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ansible:
+              - 'infrastructure/ansible/**'
+      - name: Set up Python
+        if: steps.filter.outputs.ansible == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install Ansible
+        if: steps.filter.outputs.ansible == 'true'
+        run: pip install ansible
+      - name: Run Ansible syntax check
+        if: steps.filter.outputs.ansible == 'true'
+        run: |
+          cd infrastructure/ansible
+          ansible-playbook --syntax-check main.ansible.yaml -i inventory.ini || true
+          for playbook in *.ansible.yaml; do
+            ansible-playbook --syntax-check $playbook -i inventory.ini
+          done
+
+  test-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            terraform:
+              - 'infrastructure/terra/**'
+      - name: Setup Terraform
+        if: steps.filter.outputs.terraform == 'true'
+        uses: hashicorp/setup-terraform@v3
+      - name: Create dummy SSH keys
+        if: steps.filter.outputs.terraform == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          touch ~/.ssh/id_ed25519_homelab.pub
+          touch ~/.ssh/id_ed25519_mgmt.pub
+      - name: Terraform Init
+        if: steps.filter.outputs.terraform == 'true'
+        run: |
+          cd infrastructure/terra
+          terraform init -backend=false
+      - name: Terraform Validate
+        if: steps.filter.outputs.terraform == 'true'
+        run: |
+          cd infrastructure/terra
+          terraform validate
