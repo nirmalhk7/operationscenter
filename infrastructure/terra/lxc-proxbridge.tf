@@ -1,10 +1,10 @@
 resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
 
   description = "Proxmox bridge for host level activities"
-  node_name = local.nodeName
-  vm_id     = 102
-  tags = ["mgd"]
-  pool_id = "${proxmox_virtual_environment_pool.pool-mgd.pool_id}"
+  node_name   = local.nodeName
+  vm_id       = 102
+  tags        = ["mgd"]
+  pool_id     = proxmox_virtual_environment_pool.pool-mgd.pool_id
 
   initialization {
     hostname = "proxbridge"
@@ -17,23 +17,23 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
     }
 
     user_account {
-        keys = [local.sshKeys.mgd]
-        password = "${var.vm_password}102"
+      keys     = [local.sshKeys.mgd]
+      password = "${var.vm_password}102"
     }
   }
 
   network_interface {
-    bridge = "wmnet"
-    name = "net0"
-    enabled = true
+    bridge   = "wmnet"
+    name     = "net0"
+    enabled  = true
     firewall = false
-    
+
   }
 
   memory {
     dedicated = 1024
   }
-  
+
   cpu {
     architecture = "amd64"
     cores        = 2
@@ -50,7 +50,7 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
     type      = "tty"
   }
 
-  
+
 
   operating_system {
     template_file_id = local.osTemplates.debian12
@@ -59,14 +59,14 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "lxc-proxbridge-sg" {
-  depends_on = [ 
+  depends_on = [
     proxmox_virtual_environment_container.lxc-proxbridge,
     proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
   ]
 
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
-  
+
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Dev Test"
@@ -76,9 +76,9 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-proxbridge-sg" {
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-proxbridge-config" {
-  depends_on = [ proxmox_virtual_environment_container.lxc-proxbridge ]
-  node_name = local.nodeName
-  vm_id     = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
+  depends_on = [proxmox_virtual_environment_container.lxc-proxbridge]
+  node_name  = local.nodeName
+  vm_id      = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
 
-  enabled       = false
+  enabled = false
 }
