@@ -20,7 +20,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10s
-  path: ./clusters
+  path: ./clusters/managed/flux-system
   prune: true
   sourceRef:
     kind: GitRepository

@@ -3,3 +3,6 @@ kind: Kustomization
 
 resources:
   - milano-v2.yaml
+labels:
+  - pairs:
+      milano.level: managed

@@ -13,3 +13,6 @@ resources:
   - sonarqube
 
 namespace: mgd-devbench
+labels:
+  - pairs:
+      milano.level: managed

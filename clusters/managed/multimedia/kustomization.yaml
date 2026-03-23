@@ -9,3 +9,6 @@ resources:
   - nextcloud
 
 namespace: mgd-multimedia
+labels:
+  - pairs:
+      milano.level: managed

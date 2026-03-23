@@ -96,11 +96,11 @@ ansible-run-one: ansible-install
 # --- Kubernetes ---
 flux-suspend:
 	@echo "Suspending FluxCD reconciliations to allow manual cluster changes..."
-	flux suspend kustomization flux-system -n flux-system
+	flux suspend kustomization --all
 
 flux-resume:
 	@echo "Resuming FluxCD reconciliations..."
-	flux resume kustomization flux-system -n flux-system
+	flux resume kustomization --all
 
 kubernetes-init:
 	@echo "Applying MariaDB Operator CRDs..."

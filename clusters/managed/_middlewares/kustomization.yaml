@@ -5,3 +5,6 @@ resources:
   - headervalidation.yaml
   - https.yaml
   - ratelimit.yaml
+labels:
+  - pairs:
+      milano.level: managed

@@ -8,3 +8,6 @@ resources:
   - bot-openclaw
 
 namespace: kube-system
+labels:
+  - pairs:
+      milano.level: managed
