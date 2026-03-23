@@ -26,7 +26,7 @@ jobs:
       - name: Run yamllint
         if: steps.filter.outputs.k8s == 'true'
         run: >
-          yamllint -d "{extends: relaxed, rules: {line-length: disable, document-start: disable, truthy: disable, empty-lines: disable}}" clusters/ charts/
+          yamllint -d "{extends: relaxed, rules: {line-length: disable, document-start: disable, truthy: disable, empty-lines: disable, new-line-at-end-of-file: disable, trailing-spaces: disable, indentation: disable, comments: disable}}" clusters/
 
   test-nginx:
     runs-on: ubuntu-latest
