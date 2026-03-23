@@ -18,7 +18,7 @@ jobs:
   test-nginx:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Generate dummy SSL certs
         run: |
           sudo mkdir -p /etc/letsencrypt/live/trusted.nirmalhk7.com/
