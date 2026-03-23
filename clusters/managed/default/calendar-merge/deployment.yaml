@@ -23,20 +23,12 @@ spec:
       enableServiceLinks: true
       containers:
         - name: *app
-          image: "node:18-alpine"
+          image: "blakdav/ical-merger:latest"
           imagePullPolicy: IfNotPresent
-          command: ["node", "/app/server.js"]
           envFrom:
             - secretRef:
                 name: calendar-merge-secret
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 5000
               protocol: TCP
-          volumeMounts:
-            - name: script-volume
-              mountPath: /app
-      volumes:
-        - name: script-volume
-          configMap:
-            name: calendar-merge-script
