@@ -6,5 +6,6 @@ resources:
   - pvc.yaml
   - service.yaml
   - ingressroute.yaml
-  - redis.yaml
+  - redis-deployment.yaml
+  - redis-service.yaml
   - secret.yaml
