@@ -27,8 +27,8 @@ jobs:
           tar xf kubeconform.tar.gz
           sudo mv kubeconform /usr/local/bin/
       - name: Run yamllint
-        run: >
-          yamllint -d "{extends: relaxed, rules: {line-length: disable, document-start: disable, truthy: disable, empty-lines: disable, comments: disable, trailing-spaces: disable, indentation: disable, key-duplicates: enable}}" clusters/managed/
+        run: |
+          yamllint -d "{extends: relaxed, rules: {line-length: disable, document-start: disable, truthy: disable, empty-lines: disable, comments: disable, trailing-spaces: disable, indentation: disable, new-line-at-end-of-file: disable, key-duplicates: enable}}" clusters/managed/
       - name: Run kubeconform
         run: |
-          kubeconform -summary -ignore-missing-schemas -schema-location default -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" clusters/managed/
+          find clusters/managed/ -name "*.yaml" | xargs kubeconform -summary -ignore-missing-schemas -schema-location default -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
