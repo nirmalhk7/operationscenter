@@ -194,12 +194,39 @@
 
     - name: Deploy main OpenClaw configuration file
       ansible.builtin.copy:
-        src: /Users/nirmalhk7/Documents/DevWorld/operationscenter/infrastructure/assets/openclaw.json
+        src: "{{ playbook_dir }}/../assets/openclaw.json"
         dest: /root/.openclaw/openclaw.json
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
         force: yes
+
+    - name: Ensure specific agent directories exist
+      ansible.builtin.file:
+        path: "/root/.openclaw/agents/{{ item.id }}/agent"
+        state: directory
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0755'
+      loop:
+        - { id: 'main', name: 'Nestor' }
+        - { id: 'rahul', name: 'Rahul' }
+        - { id: 'borat', name: 'Borat' }
+        - { id: 'sam', name: 'Sam' }
+
+    - name: Deploy Agent Instruction markdown files
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../assets/agents/{{ item.name }}.md"
+        dest: "/root/.openclaw/agents/{{ item.id }}/agent/{{ item.name }}.md"
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0644'
+        force: no
+      loop:
+        - { id: 'main', name: 'Nestor' }
+        - { id: 'rahul', name: 'Rahul' }
+        - { id: 'borat', name: 'Borat' }
+        - { id: 'sam', name: 'Sam' }
 
     - name: Deploy OpenClaw environment file
       ansible.builtin.copy:

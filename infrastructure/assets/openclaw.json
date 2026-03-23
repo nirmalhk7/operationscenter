@@ -91,21 +91,26 @@
     },
     "list": [
       {
-        "id": "main"
-      },
-      {
-        "id": "dayplanner",
-        "name": "dayplanner",
-        "model": "local-ollama/qwen2.5-coder:3b",
-        "workspace": "/root/openclaw_support/obsidian",
-        "agentDir": "/root/.openclaw/agents/dayplanner/agent"
-      },
-      {
-        "id": "labmaintaner",
-        "name": "labmaintaner",
+        "id": "rahul",
+        "name": "Rahul",
         "model": "openrouter/qwen/qwen3-coder:free",
         "workspace": "/root/openclaw_support/operationscenter",
-        "agentDir": "/root/.openclaw/agents/labmaintaner/agent"
+        "agentDir": "/root/.openclaw/agents/rahul/agent",
+        "role": "Lead Software Engineer"
+      },
+      {
+        "id": "borat",
+        "name": "Borat",
+        "model": "openrouter/google/gemma-3-27b-it:free",
+        "agentDir": "/root/.openclaw/agents/borat/agent",
+        "role": "Kazakh News Correspondent"
+      },
+      {
+        "id": "sam",
+        "name": "Sam",
+        "model": "openrouter/openai/gpt-oss-120b:free",
+        "agentDir": "/root/.openclaw/agents/sam/agent",
+        "role": "Bleeding Edge AI Oracle"
       }
     ]
   },
