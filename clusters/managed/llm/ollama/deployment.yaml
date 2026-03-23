@@ -18,8 +18,8 @@ spec:
         milano.level: managed
     spec:
       initContainers:
-        - name: install-and-run-llmfit
-          image: ollama/ollama:0.18.2
+        - name: llmfit
+          image: alpine:latest
           command:
             - /bin/sh
             - -c
@@ -27,7 +27,7 @@ spec:
               curl -sL https://github.com/AlexsJones/llmfit/releases/download/v0.8.4/llmfit-v0.8.4-x86_64-unknown-linux-musl.tar.gz | tar -xz -C /tmp
               cp /tmp/llmfit-v0.8.4-x86_64-unknown-linux-musl/llmfit /shared-bin/llmfit
               chmod +x /shared-bin/llmfit
-              /shared-bin/llmfit fit -n 5
+              /shared-bin/llmfit fit -n 5 --json > ~/llmfit.json
           volumeMounts:
             - name: shared-bin
               mountPath: /shared-bin
@@ -85,16 +85,6 @@ spec:
               port: 11434
             initialDelaySeconds: 10
             periodSeconds: 10
-        - name: busybox
-          image: curlimages/curl:latest
-          command: ["sleep", "infinity"]
-          resources:
-            requests:
-              memory: "16Mi"
-              cpu: "5m"
-            limits:
-              memory: "64Mi"
-              cpu: "50m"
         - name: ollama-metrics
           image: ghcr.io/norskhelsenett/ollama-metrics:latest
           env:
