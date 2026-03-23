@@ -94,6 +94,14 @@ ansible-run-one: ansible-install
 	fi
 
 # --- Kubernetes ---
+flux-suspend:
+	@echo "Suspending FluxCD reconciliations to allow manual cluster changes..."
+	flux suspend kustomization flux-system -n flux-system
+
+flux-resume:
+	@echo "Resuming FluxCD reconciliations..."
+	flux resume kustomization flux-system -n flux-system
+
 kubernetes-init:
 	@echo "Applying MariaDB Operator CRDs..."
 	kubectl apply -f https://github.com/mariadb-operator/mariadb-operator/releases/download/mariadb-operator-crds-25.8.3/crds.yaml
