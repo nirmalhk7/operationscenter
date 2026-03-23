@@ -94,26 +94,37 @@
         "id": "main",
         "name": "Nestor",
         "model": "google/gemini-3.1-flash-lite-preview",
-        "agentDir": "/root/.openclaw/agents/main/agent"
+        "agentDir": "/root/.openclaw/agents/main/agent",
+        "role": "Chief of Staff, orchestrates work and acts as the default responder",
+        "subagents": {
+          "allowAgents": [
+            "rahul",
+            "borat",
+            "sam"
+          ]
+        }
       },
       {
         "id": "rahul",
         "name": "Rahul",
         "model": "openrouter/qwen/qwen3-coder:free",
-    "workspace": "/root/openclaw_support/operationscenter",
-        "agentDir": "/root/.openclaw/agents/rahul/agent"
+        "workspace": "/root/openclaw_support/operationscenter",
+        "agentDir": "/root/.openclaw/agents/rahul/agent",
+        "role": "Developer, handles cluster errors, coding, and GitHub issues"
       },
       {
         "id": "borat",
         "name": "Borat",
         "model": "openrouter/google/gemma-3-27b-it:free",
-        "agentDir": "/root/.openclaw/agents/borat/agent"
+        "agentDir": "/root/.openclaw/agents/borat/agent",
+        "role": "News man, brings the latest and greatest general updates"
       },
       {
         "id": "sam",
         "name": "Sam",
         "model": "openrouter/openai/gpt-oss-120b:free",
-        "agentDir": "/root/.openclaw/agents/sam/agent"
+        "agentDir": "/root/.openclaw/agents/sam/agent",
+        "role": "Tech News man, specializes in bleeding edge tech news"
       }
     ]
   },
