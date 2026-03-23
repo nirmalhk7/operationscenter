@@ -27,7 +27,7 @@ spec:
               curl -sL https://github.com/AlexsJones/llmfit/releases/download/v0.8.4/llmfit-v0.8.4-x86_64-unknown-linux-musl.tar.gz | tar -xz -C /tmp
               cp /tmp/llmfit-v0.8.4-x86_64-unknown-linux-musl/llmfit /shared-bin/llmfit
               chmod +x /shared-bin/llmfit
-              /shared-bin/llmfit fit -n 5 --json > ~/llmfit.json
+              /shared-bin/llmfit fit -n 5 --json > /shared-bin/llmfit.json
           volumeMounts:
             - name: shared-bin
               mountPath: /shared-bin
@@ -70,8 +70,7 @@ spec:
             - name: models
               mountPath: /models
             - name: shared-bin
-              mountPath: /usr/local/bin/llmfit
-              subPath: llmfit
+              mountPath: /shared-bin
           livenessProbe:
             httpGet:
               path: /api/tags
