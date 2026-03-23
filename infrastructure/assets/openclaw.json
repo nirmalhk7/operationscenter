@@ -91,21 +91,29 @@
     },
     "list": [
       {
-        "id": "main"
+        "id": "main",
+        "name": "Nestor",
+        "model": "google/gemini-3.1-flash-lite-preview",
+        "agentDir": "/root/.openclaw/agents/main/agent"
       },
       {
-        "id": "dayplanner",
-        "name": "dayplanner",
-        "model": "local-ollama/qwen2.5-coder:3b",
-        "workspace": "/root/openclaw_support/obsidian",
-        "agentDir": "/root/.openclaw/agents/dayplanner/agent"
-      },
-      {
-        "id": "labmaintaner",
-        "name": "labmaintaner",
+        "id": "rahul",
+        "name": "Rahul",
         "model": "openrouter/qwen/qwen3-coder:free",
-        "workspace": "/root/openclaw_support/operationscenter",
-        "agentDir": "/root/.openclaw/agents/labmaintaner/agent"
+    "workspace": "/root/openclaw_support/operationscenter",
+        "agentDir": "/root/.openclaw/agents/rahul/agent"
+      },
+      {
+        "id": "borat",
+        "name": "Borat",
+        "model": "openrouter/google/gemma-3-27b-it:free",
+        "agentDir": "/root/.openclaw/agents/borat/agent"
+      },
+      {
+        "id": "sam",
+        "name": "Sam",
+        "model": "openrouter/openai/gpt-oss-120b:free",
+        "agentDir": "/root/.openclaw/agents/sam/agent"
       }
     ]
   },
