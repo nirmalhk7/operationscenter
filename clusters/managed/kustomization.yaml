@@ -10,6 +10,7 @@ resources:
   - llm
   - monitoring
   - multimedia
+  - gaming
   - security
 
 labels:
