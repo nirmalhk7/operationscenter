@@ -1,10 +1,10 @@
 resource "proxmox_virtual_environment_container" "lxc-nginx" {
 
   description = "NginX"
-  node_name = local.nodeName
-  vm_id     = 101
-  tags = ["mgd"]
-  pool_id = "${proxmox_virtual_environment_pool.pool-mgd.pool_id}"
+  node_name   = local.nodeName
+  vm_id       = 101
+  tags        = ["mgd"]
+  pool_id     = proxmox_virtual_environment_pool.pool-mgd.pool_id
 
   initialization {
     hostname = "nginx"
@@ -17,22 +17,22 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
     }
 
     user_account {
-        keys = [local.sshKeys.mgd]
-        password = "${var.vm_password}101"
+      keys     = [local.sshKeys.mgd]
+      password = "${var.vm_password}101"
     }
   }
 
   network_interface {
-    bridge = "wmnet"
-    name = "net0"
-    enabled = true
+    bridge   = "wmnet"
+    name     = "net0"
+    enabled  = true
     firewall = false
   }
 
   memory {
     dedicated = 1024
   }
-  
+
   cpu {
     architecture = "amd64"
     cores        = 1
@@ -49,7 +49,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
     type      = "tty"
   }
 
-  
+
 
   operating_system {
     template_file_id = local.osTemplates.debian12
@@ -58,14 +58,14 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
-  depends_on = [ 
+  depends_on = [
     proxmox_virtual_environment_container.lxc-nginx,
     proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
   ]
 
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-nginx.vm_id
-  
+
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Dev Test"
@@ -75,9 +75,9 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
-  depends_on = [ proxmox_virtual_environment_container.lxc-nginx ]
-  node_name = local.nodeName
-  vm_id     = proxmox_virtual_environment_container.lxc-nginx.vm_id
+  depends_on = [proxmox_virtual_environment_container.lxc-nginx]
+  node_name  = local.nodeName
+  vm_id      = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
-  enabled       = false
+  enabled = false
 }
