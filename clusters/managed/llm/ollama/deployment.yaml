@@ -18,7 +18,7 @@ spec:
         milano.level: managed
     spec:
       initContainers:
-        - name: install-llmfit
+        - name: install-and-run-llmfit
           image: ollama/ollama:0.18.2
           command:
             - /bin/sh
@@ -27,6 +27,7 @@ spec:
               curl -sL https://github.com/AlexsJones/llmfit/releases/download/v0.8.4/llmfit-v0.8.4-x86_64-unknown-linux-musl.tar.gz | tar -xz -C /tmp
               cp /tmp/llmfit-v0.8.4-x86_64-unknown-linux-musl/llmfit /shared-bin/llmfit
               chmod +x /shared-bin/llmfit
+              /shared-bin/llmfit fit -n 5
           volumeMounts:
             - name: shared-bin
               mountPath: /shared-bin
