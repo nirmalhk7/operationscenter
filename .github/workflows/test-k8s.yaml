@@ -1,0 +1,34 @@
+name: Test K8s
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'clusters/managed/**'
+      - '.github/workflows/test-k8s.yaml'
+  pull_request:
+    branches:
+      - '**'
+    paths:
+      - 'clusters/managed/**'
+      - '.github/workflows/test-k8s.yaml'
+
+jobs:
+  test-k8s:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yamllint and kubeconform
+        run: |
+          sudo apt-get update && sudo apt-get install -y yamllint
+          KUBECONFORM_VERSION=v0.6.7
+          curl -L -o kubeconform.tar.gz https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+      - name: Run yamllint
+        run: >
+          yamllint -d "{extends: relaxed, rules: {line-length: disable, document-start: disable, truthy: disable, empty-lines: disable, comments: disable, trailing-spaces: disable, indentation: disable, key-duplicates: enable}}" clusters/managed/
+      - name: Run kubeconform
+        run: |
+          kubeconform -summary -ignore-missing-schemas -schema-location default -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" clusters/managed/
