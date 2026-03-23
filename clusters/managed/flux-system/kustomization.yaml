@@ -4,5 +4,6 @@ kind: Kustomization
 resources:
   - fluxcd
   - notify-telegram
+  - sync.yaml
 
 namespace: flux-system

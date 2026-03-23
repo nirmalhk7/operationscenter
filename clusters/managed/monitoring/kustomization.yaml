@@ -12,3 +12,6 @@ resources:
   - portainer
 
 namespace: mgd-monitoring
+labels:
+  - pairs:
+      milano.level: managed

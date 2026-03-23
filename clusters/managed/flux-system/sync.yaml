@@ -1,0 +1,117 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-storageclasses
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/_storageclasses
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-middlewares
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/_middlewares
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-default
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/default
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-devbench
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/devbench
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-kube-system
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/kube-system
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-llm
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/llm
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-monitoring
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/monitoring
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-multimedia
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/multimedia
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app flux-security
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/managed/security
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git

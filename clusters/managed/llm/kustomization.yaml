@@ -9,3 +9,6 @@ resources:
   - ollama
 
 namespace: mgd-llm
+labels:
+  - pairs:
+      milano.level: managed

@@ -10,3 +10,6 @@ resources:
   - nfsprovisioner
   
 namespace: mgd-default
+labels:
+  - pairs:
+      milano.level: managed

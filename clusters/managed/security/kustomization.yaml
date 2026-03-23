@@ -10,3 +10,6 @@ resources:
   - vaultwarden
 
 namespace: mgd-security
+labels:
+  - pairs:
+      milano.level: managed
