@@ -51,11 +51,11 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/free",
+        "primary": "openrouter/stepfun/step-3.5-flash:free",
         "fallbacks": [
+          "openrouter/free",
           "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
           "openrouter/qwen/qwen3-coder:free",
-          "openrouter/stepfun/step-3.5-flash:free",
           "openrouter/openai/gpt-oss-120b:free",
           "openrouter/google/gemma-3-27b-it:free",
           "google/gemini-3.1-flash-lite-preview",
@@ -89,30 +89,7 @@
         "maxConcurrent": 32
       }
     },
-    "list": [
-      {
-        "id": "rahul",
-        "name": "Rahul",
-        "model": "openrouter/qwen/qwen3-coder:free",
-        "workspace": "/root/openclaw_support/operationscenter",
-        "agentDir": "/root/.openclaw/agents/rahul/agent",
-        "role": "Lead Software Engineer"
-      },
-      {
-        "id": "borat",
-        "name": "Borat",
-        "model": "openrouter/google/gemma-3-27b-it:free",
-        "agentDir": "/root/.openclaw/agents/borat/agent",
-        "role": "Kazakh News Correspondent"
-      },
-      {
-        "id": "sam",
-        "name": "Sam",
-        "model": "openrouter/openai/gpt-oss-120b:free",
-        "agentDir": "/root/.openclaw/agents/sam/agent",
-        "role": "Bleeding Edge AI Oracle"
-      }
-    ]
+    "list": []
   },
   "tools": {
     "profile": "coding"
@@ -132,7 +109,7 @@
   "channels": {
     "telegram": {
       "enabled": true,
-      "dmPolicy": "open",
+      "dmPolicy": "allowlist",
       "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN}",
       "groups": {
         "-5168321382": {
@@ -191,12 +168,7 @@
     }
   },
   "skills": {
-    "install": [
-      "clawdbot",
-      "self-improving-agent",
-      "arc-memory-pruner",
-      "token-optimizer"
-    ]
+    "install": {}
   },
   "plugins": {
     "entries": {

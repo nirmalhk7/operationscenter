@@ -10,6 +10,16 @@
     openclaw_home: /root
     openclaw_support_home: /root/openclaw_support
     nodejs_version: "22.x"
+    openclaw_agents:
+      - id: rahul
+        model: "openrouter/qwen/qwen3-coder:free"
+        workspace: "/root/openclaw_support/operationscenter"
+      - id: borat
+        model: "openrouter/google/gemma-3-27b-it:free"
+        workspace: "/root"
+      - id: sam
+        model: "openrouter/openai/gpt-oss-120b:free"
+        workspace: "/root"
 
   tasks:
     - name: Clean up old NodeSource list files to prevent conflicts
@@ -201,32 +211,21 @@
         mode: '0600'
         force: yes
 
-    - name: Ensure specific agent directories exist
-      ansible.builtin.file:
-        path: "/root/.openclaw/agents/{{ item.id }}/agent"
-        state: directory
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0755'
-      loop:
-        - { id: 'main', name: 'Nestor' }
-        - { id: 'rahul', name: 'Rahul' }
-        - { id: 'borat', name: 'Borat' }
-        - { id: 'sam', name: 'Sam' }
+    - name: Create OpenClaw agents via CLI
+      ansible.builtin.shell: |
+        export PATH=$PATH:/usr/local/bin:{{ openclaw_home }}/.local/bin
+        openclaw agents add {{ item.id }} --model "{{ item.model }}" --workspace "{{ item.workspace }}"
+      loop: "{{ openclaw_agents }}"
 
     - name: Deploy Agent Instruction markdown files
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/agents/{{ item.name }}.md"
-        dest: "/root/.openclaw/agents/{{ item.id }}/agent/{{ item.name }}.md"
+        src: "{{ playbook_dir }}/../assets/agents/{{ item.id }}.md"
+        dest: "/root/.openclaw/agents/{{ item.id }}/SOUL.md"
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0644'
         force: no
-      loop:
-        - { id: 'main', name: 'Nestor' }
-        - { id: 'rahul', name: 'Rahul' }
-        - { id: 'borat', name: 'Borat' }
-        - { id: 'sam', name: 'Sam' }
+      loop: "{{ openclaw_agents }}"
 
     - name: Deploy OpenClaw environment file
       ansible.builtin.copy:
