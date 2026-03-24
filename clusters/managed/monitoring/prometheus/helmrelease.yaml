@@ -16,20 +16,20 @@ spec:
   releaseName: *app
   values:
     grafana:
-      defaultDashboardsEnabled: false
+      defaultDashboardsEnabled: "false"
       env:
-        GF_SERVER_SERVE_FROM_SUB_PATH: true
+        GF_SERVER_SERVE_FROM_SUB_PATH: "true"
       grafana.ini:
         server:
           domain: grafana.trusted.nirmalhk7.com
           root_url: https://grafana.trusted.nirmalhk7.com
         auth.generic_oauth:
-          enabled: true
+          enabled: "true"
           name: Authelia
           icon: signin
-          allow_sign_up: true
+          allow_sign_up: "true"
           scopes: openid profile email groups
-          empty_scopes: false
+          empty_scopes: "false"
           auth_url: https://secure.trusted.nirmalhk7.com/api/oidc/authorization
           token_url: https://secure.trusted.nirmalhk7.com/api/oidc/token
           api_url: https://secure.trusted.nirmalhk7.com/api/oidc/userinfo
@@ -37,12 +37,12 @@ spec:
           groups_attribute_path: groups
           name_attribute_path: name
           role_attribute_path: contains(groups, 'grafana_admin') && 'Admin' || 'Viewer'
-          use_pkce: true
+          use_pkce: "true"
       sidecar:
         dashboards:
-          enabled: true
+          enabled: "true"
           label: milano_grafana_dashboard
-          labelValue: true
+          labelValue: "true"
           searchNamespace: ALL
     prometheus:
       prometheusSpec:
@@ -76,13 +76,13 @@ spec:
         - name: 'null'
         - name: telegram
           telegram_configs:
-          - bot_token_file: /etc/alertmanager/secrets/telegram-secret/token
+          - bot_token_file: /etc/alertmanager/secrets/grafana-credentials/token
             chat_id: -4581516591
-            send_resolved: true
+            send_resolved: "true"
             parse_mode: HTML
             message: '{{ template "telegram.default.message" . }}'
         templates:
         - /etc/alertmanager/config/*.tmpl
       alertmanagerSpec:
         secrets:
-        - telegram-secret
+        - grafana-credentials
