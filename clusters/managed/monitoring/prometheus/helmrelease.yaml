@@ -18,7 +18,7 @@ spec:
     grafana:
       defaultDashboardsEnabled: false
       env:
-        GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+        GF_SERVER_SERVE_FROM_SUB_PATH: true
       grafana.ini:
         server:
           domain: grafana.trusted.nirmalhk7.com
@@ -42,74 +42,8 @@ spec:
         dashboards:
           enabled: true
           label: milano_grafana_dashboard
-          labelValue: "true"
+          labelValue: true
           searchNamespace: ALL
-      envValueFrom:
-        TELEGRAM_TOKEN:
-          secretKeyRef:
-            name: grafana-credentials
-            key: token
-      assertNoLeakedSecrets: false
-      alerting:
-        contactpoints.yaml:
-          apiVersion: 1
-          contactPoints:
-            - orgId: 1
-              name: telegram
-              receivers:
-                - uid: telegram_1
-                  type: telegram
-                  disableResolveMessage: false
-                  settings:
-                    bottoken: $TELEGRAM_TOKEN
-                    chatid: "-1003812665515"
-        policies.yaml:
-          apiVersion: 1
-          policies:
-            - orgId: 1
-              receiver: telegram
-              group_by:
-                - namespace
-                - alertname
-        rules.yaml:
-          apiVersion: 1
-          groups:
-            - orgId: 1
-              name: Sample External Alerts
-              folder: Infrastructure
-              interval: 1m
-              rules:
-                - uid: example_up_alert
-                  title: Endpoint Down (up == 0)
-                  condition: C
-                  data:
-                    - refId: A
-                      datasourceUid: prometheus
-                      model:
-                        expr: up == 0
-                      relativeTimeRange:
-                        from: 300
-                        to: 0
-                    - refId: B
-                      datasourceUid: __expr__
-                      model:
-                        type: reduce
-                        reducer: last
-                        expression: A
-                    - refId: C
-                      datasourceUid: __expr__
-                      model:
-                        type: math
-                        expression: $B > 0
-                  noDataState: OK
-                  execErrState: Alerting
-                  for: 1m
-                  annotations:
-                    summary: "A monitored endpoint is down or unreachable."
-                  labels:
-                    severity: warning
-                    namespace: sample
-                    alertname: EndpointDown
     prometheus:
       prometheusSpec:
         externalUrl: https://prometheus.trusted.nirmalhk7.com
@@ -122,3 +56,33 @@ spec:
             prometheus: prometheus_servicemonitor
     commonLabels:
       milano.level: managed
+    alertmanager:
+      config:
+        global:
+          resolve_timeout: 5m
+        route:
+          group_by:
+          - namespace
+          - alertname
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          receiver: telegram
+          routes:
+          - receiver: 'null'
+            matchers:
+            - alertname = Watchdog
+        receivers:
+        - name: 'null'
+        - name: telegram
+          telegram_configs:
+          - bot_token_file: /etc/alertmanager/secrets/telegram-secret/token
+            chat_id: -4581516591
+            send_resolved: true
+            parse_mode: HTML
+            message: '{{ template "telegram.default.message" . }}'
+        templates:
+        - /etc/alertmanager/config/*.tmpl
+      alertmanagerSpec:
+        secrets:
+        - telegram-secret
