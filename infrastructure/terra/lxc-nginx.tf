@@ -26,7 +26,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
     bridge   = "wmnet"
     name     = "net0"
     enabled  = true
-    firewall = false
+    firewall = true
   }
 
   memory {
@@ -68,9 +68,9 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
 
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
-    comment        = "Dev Test"
+    comment        = "Managed Group Rules"
     iface          = "net0"
-    enabled        = false
+    enabled        = true
   }
 }
 
@@ -79,5 +79,5 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
-  enabled = false
+  enabled = true
 }

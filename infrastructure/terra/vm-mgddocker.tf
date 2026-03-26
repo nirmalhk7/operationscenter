@@ -56,7 +56,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
 
   network_device {
     bridge   = "wmnet"
-    firewall = false
+    firewall = true
   }
 
   operating_system {
@@ -85,8 +85,8 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
 
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
-    comment        = "Dev Test"
+    comment        = "Managed Group Rules"
     iface          = "net0"
-    enabled        = false
+    enabled        = true
   }
 }
