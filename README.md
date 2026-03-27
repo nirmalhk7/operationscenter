@@ -6,6 +6,7 @@ This repository contains the configurations for my home server, "Operations Cent
 ## 🏗️ Architecture Overview
 The system is built on **Proxmox Virtual Environment (PVE)** and follows an **Infrastructure-as-Code (IaC)** and **GitOps** model.
 
+
 ### 🌐 Layers
 1. **Virtualization**: **Proxmox VE (milano)** hosts all nodes.
 2. **Provisioning**: **Terraform** (`infrastructure/terra/`) manages LXCs and VM resources via the Proxmox provider.
@@ -13,6 +14,34 @@ The system is built on **Proxmox Virtual Environment (PVE)** and follows an **In
 4. **Container Orchestration**: **Kubernetes (K3s/K8s)** managed via **FluxCD** (GitOps) in `clusters/managed/`.
 5. **Ingress & Networking**: A dedicated **Nginx LXC** (`nginx/`) acts as the primary reverse proxy and entry point for all internal and external services.
 6. **Secrets Management**: **Sealed Secrets** (`kubeseal`) allows encrypted secrets to be safely stored in Git.
+
+
+## 📊 Architecture Visualization
+```mermaid
+graph TD
+    subgraph Proxmox["Proxmox"]
+        subgraph ManagedTier["Managed Tier"]
+            NginxLXC["Nginx LXC"]
+            DockerVM["Docker VM"]
+            K8VM["K8 VM"]
+            OpenclawLXC["Openclaw LXC"]
+        end
+        Tailscale["**Tailscale**"]:::process
+        DeveloperTier["Developer Tier"]
+    end
+    
+    LocalTraffic["Local Traffic"] -->|"80/443"| NginxLXC
+    VPNTraffic["VPN Traffic"] -->|"80/443/6443"| Tailscale
+    Tailscale -->|"80/443"| NginxLXC
+    NginxLXC -->|"docker.trusted"| DockerVM
+    NginxLXC -->|"*.trusted"| K8VM
+    NginxLXC -->|"robot.trusted"| OpenclawLXC
+    NginxLXC -.->|"dev.trusted"| DeveloperTier
+    Tailscale -.->|"6443"| K8VM
+    LocalTraffic -.->|"6443"| K8VM
+    
+    classDef process fill:#ffeb3b,stroke:#333,stroke-width:3px,color:#000
+```
 
 ### 📂 Repository Structure
 - `/clusters/`: Kubernetes manifests organized by tier (`managed`, `dev`, `live`).
