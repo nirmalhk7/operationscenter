@@ -40,7 +40,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
 
   disk {
     datastore_id = "local"
-    size         = 8
+    size         = 9
   }
 
   console {

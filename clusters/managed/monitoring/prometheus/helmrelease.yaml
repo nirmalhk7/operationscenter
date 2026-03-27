@@ -63,6 +63,7 @@ spec:
                   settings:
                     bottoken: $TELEGRAM_TOKEN
                     chatid: "-1003812665515"
+                    message_thread_id: "204"
         policies.yaml:
           apiVersion: 1
           policies:

@@ -37,7 +37,7 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
 
   cpu {
     architecture = "amd64"
-    cores        = 1
+    cores        = 2
   }
 
   disk {
