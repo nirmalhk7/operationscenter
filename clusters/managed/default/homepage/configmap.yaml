@@ -63,6 +63,11 @@ data:
             - icon: linkace
               href: https://dashboardicons.com/icons
   services.yaml: |
+      - Applications:
+        - Robot:
+            name: Robot
+            description: Openclaw Dashboard
+            href: "https://robot.trusted.nirmalhk7.com"
     - Infrastructure:
         - lxc_nginx:
             name: NginX

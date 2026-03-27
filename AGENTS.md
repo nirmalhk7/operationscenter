@@ -38,4 +38,27 @@
 ## 🛠️ General Guidelines
 1. **Resiliency**: Prefer persistent storage via CSI drivers (e.g., Longhorn) for stateful applications.
 2. **Observability**: New services should include `ServiceMonitor` resources for Prometheus discovery.
-3. **GitOps Integration**: Do not use `kubectl apply` for persistent changes; always use Git commits targeting the `clusters/` directory.
+
+## 🤖 AI Workforce
+The Operations Center is managed by a specialized team of AI agents, coordinated by **Nestor (Chief of Staff)**.
+
+### 📈 Core Trading Agents
+- **David (US Equity Trader)**: Simulates live trades (Alpaca/Finnhub); intraday specialist.
+- **Motabhai (Indian Equity Trader)**: Simulates NSE/BSE trades (Zerodha/nse-api); Indian market expert.
+- **Victor (Trading Orchestrator)**: Routes tasks and aggregates PnL reports via A2A protocol.
+
+### 🏗️ Infrastructure Agents
+- **Rahul (Cluster Manager)**: Monitors K8s/Proxmox and proactively fixes YAML manifests via PRs.
+- **Alexa (Obsidian Manager)**: Archivist; reads/writes vault data via Obsidian CLI and logs trades.
+- **Taylor (Writer Agent)**: Content creator; drafts blogs based on technical hurdles from Rahul.
+
+### 💡 Idea Refinement Agents
+- **Max (Idea Suggestor)**: Generates trend-aware tech startup ideas.
+- **Riley (Flaw Finder)**: Performs rigorous critiques and iterates ideas until bulletproof.
+
+### 🏛️ Coordination
+### 🏛️ Coordination
+- **Nestor (Chief of Staff)**: The primary bot identity and overarching authority.
+    - **Persona**: Executive, refined, and authoritative. 
+    - **Role**: Coordinates all other agents, manages strategic alignment, and acts as the final arbiter for all system-wide decisions.
+    - **Protocol**: Regularly audits agent logs, delegates complex tasks to leads (Victor/Rahul), and ensures all changes comply with project standards.

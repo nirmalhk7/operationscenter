@@ -68,17 +68,14 @@
             state: directory
             mode: '0755'
 
-        - name: Download iptables-up.sh script
-          ansible.builtin.get_url:
-            url: "https://raw.githubusercontent.com/nirmalhk7/operationscenter/refs/heads/main/infrastructure/assets/iptables-up.sh"
-            dest: "{{ homelab_path }}/networking/iptables-up.sh"
+        - name: Deploy iptables scripts to networking directory
+          ansible.builtin.copy:
+            src: "../assets/{{ item }}"
+            dest: "{{ homelab_path }}/networking/{{ item }}"
             mode: '0755'
-
-        - name: Download iptables-down.sh script
-          ansible.builtin.get_url:
-            url: "https://raw.githubusercontent.com/nirmalhk7/operationscenter/refs/heads/main/infrastructure/assets/iptables-down.sh"
-            dest: "{{ homelab_path }}/networking/iptables-down.sh"
-            mode: '0755'
+          loop:
+            - iptables-up.sh
+            - iptables-down.sh
 
         - name: Enable IPv4 forwarding for Tailscale
           ansible.posix.sysctl:
@@ -86,6 +83,7 @@
             value: '1'
             state: present
             reload: true
+            sysctl_file: /etc/sysctl.d/99-tailscale.conf
 
         - name: Configure wmnet bridge interface
           ansible.builtin.blockinfile:
@@ -95,7 +93,7 @@
 
               auto wlp4s0
               iface wlp4s0 inet static
-                      address 10.0.0.10/24
+                      address {{ host_ip }}/24
                       gateway 10.0.0.1
               #Machine to Wifi interface. CRITICAL DO NOT REMOVE
               
@@ -105,8 +103,8 @@
                   bridge-ports none
                   bridge-stp off
                   bridge-fd 0
-                  post-up {{ homelab_path }}/networking/iptables-up.sh
-                  post-down {{ homelab_path }}/networking/iptables-down.sh
+                  post-up HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-up.sh
+                  post-down HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-down.sh
 
         - name: Reload network configuration
           ansible.builtin.command: ifreload -a
