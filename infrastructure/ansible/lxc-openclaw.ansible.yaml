@@ -10,32 +10,6 @@
     openclaw_home: /root
     openclaw_support_home: /root/openclaw_support
     nodejs_version: "22.x"
-    openclaw_agents:
-      - id: Victor
-        model: "openrouter/anthropic/claude-3-haiku"
-        workspace: "/root/openclaw_support/operationscenter"
-      - id: David
-        model: "openrouter/anthropic/claude-3.5-sonnet"
-        workspace: "/root/openclaw_support/operationscenter"
-      - id: Motabhai
-        model: "openrouter/anthropic/claude-3.5-sonnet"
-        workspace: "/root/openclaw_support/operationscenter"
-      - id: Rahul
-        model: "openrouter/qwen/qwen2.5-coder-32b-instruct"
-        workspace: "/root/openclaw_support/operationscenter"
-      - id: Alexa
-        model: "openrouter/google/gemini-flash-1.5"
-        workspace: "/root/openclaw_support/obsidian"
-      - id: Taylor
-        model: "openrouter/google/gemini-flash-1.5"
-        workspace: "/root/openclaw_support/operationscenter"
-      - id: Max
-        model: "openrouter/google/gemini-flash-1.5"
-        workspace: "/root"
-      - id: Riley
-        model: "openrouter/anthropic/claude-3-haiku"
-        workspace: "/root"
-
   tasks:
     - name: Clean up old NodeSource list files to prevent conflicts
       ansible.builtin.shell: rm -f /etc/apt/sources.list.d/nodesource*

@@ -82,17 +82,223 @@
       },
       "workspace": "/root/.openclaw/workspace",
       "compaction": {
-        "mode": "safeguard"
+        "mode": "safeguard",
+        "model": "openrouter/free",
+        "targetTokens": 8000
       },
       "maxConcurrent": 16,
       "subagents": {
-        "maxConcurrent": 32
+        "maxConcurrent": 10,
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/qwen/qwen3-coder:free",
+            "openrouter/google/gemma-3-27b-it:free"
+          ]
+        }
       }
     },
-    "list": []
+    "list": [
+      {
+        "id": "main",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+            "openrouter/google/gemma-3-27b-it:free"
+          ]
+        },
+        "workspace": "/root/openclaw_support/operationscenter",
+        "allowFrom": [
+          "*"
+        ],
+        "tools": {
+          "profile": "coding"
+        }
+      },
+      {
+        "id": "Victor",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/google/gemma-3-27b-it:free"
+          ]
+        },
+        "workspace": "/root/openclaw_support/operationscenter",
+        "allowFrom": [
+          "main",
+          "David",
+          "Motabhai"
+        ],
+        "tools": {
+          "profile": "minimal"
+        }
+      },
+      {
+        "id": "David",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
+          ]
+        },
+        "workspace": "/root/openclaw_support/operationscenter",
+        "allowFrom": [
+          "main",
+          "Victor"
+        ],
+        "tools": {
+          "profile": "minimal"
+        }
+      },
+      {
+        "id": "Motabhai",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
+          ]
+        },
+        "workspace": "/root/openclaw_support/operationscenter",
+        "allowFrom": [
+          "main",
+          "Victor"
+        ],
+        "tools": {
+          "profile": "minimal"
+        }
+      },
+      {
+        "id": "Rahul",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/qwen/qwen3-coder:free",
+            "openrouter/free"
+          ]
+        },
+        "workspace": "/root/openclaw_support/operationscenter",
+        "allowFrom": [
+          "main"
+        ],
+        "tools": {
+          "profile": "coding"
+        }
+      },
+      {
+        "id": "Alexa",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/google/gemma-3-27b-it:free"
+          ]
+        },
+        "workspace": "/root/openclaw_support/obsidian",
+        "allowFrom": [
+          "main",
+          "Victor",
+          "Max",
+          "Taylor"
+        ],
+        "tools": {
+          "profile": "minimal"
+        }
+      },
+      {
+        "id": "Taylor",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/google/gemma-3-27b-it:free"
+          ]
+        },
+        "workspace": "/root/openclaw_support/operationscenter",
+        "allowFrom": [
+          "main",
+          "Rahul"
+        ],
+        "tools": {
+          "profile": "minimal"
+        }
+      },
+      {
+        "id": "Max",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/google/gemma-3-27b-it:free"
+          ]
+        },
+        "workspace": "/root",
+        "allowFrom": [
+          "main",
+          "Riley"
+        ],
+        "tools": {
+          "profile": "minimal"
+        }
+      },
+      {
+        "id": "Riley",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/google/gemma-3-27b-it:free"
+          ]
+        },
+        "workspace": "/root",
+        "allowFrom": [
+          "main",
+          "Max"
+        ],
+        "tools": {
+          "profile": "minimal"
+        }
+      },
+      {
+        "id": "Sue",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free",
+            "openrouter/google/gemma-3-27b-it:free"
+          ]
+        },
+        "workspace": "/root",
+        "allowFrom": [
+          "main"
+        ],
+        "tools": {
+          "profile": "minimal"
+        },
+        "channels": {
+          "telegram": {
+            "enabled": true,
+            "dmPolicy": "allowlist",
+            "botToken": "${SUE_TELEGRAM_BOT_TOKEN}",
+            "allowFrom": [
+              "8163098638"
+            ],
+            "streaming": "partial"
+          }
+        },
+        "env": {
+          "SUE_ICS_URL": "${SUE_ICS_URL}"
+        }
+      }
+    ]
   },
   "tools": {
-    "profile": "coding"
+    "profile": "minimal"
   },
   "messages": {
     "ackReactionScope": "group-mentions"
@@ -142,8 +348,8 @@
     },
     "auth": {
       "mode": "token",
-      "token": "8156ecdc6d750aa7d55e3b73e40b68ceb33386adfed8da76",
-      "password": "nirmal"
+      "token": "${OPENCLAW_GATEWAY_AUTH_TOKEN}",
+      "password": "${OPENCLAW_GATEWAY_PASSWORD}"
     },
     "trustedProxies": [
       "127.0.0.1",
