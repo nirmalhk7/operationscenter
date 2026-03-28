@@ -89,7 +89,104 @@
         "maxConcurrent": 32
       }
     },
-    "list": []
+    "list": [
+      {
+        "id": "nestor",
+        "name": "Nestor",
+        "role": "Chief of Staff. Routes queries to the appropriate specialized agents.",
+        "subagents": {
+          "allowAgents": [
+            "victor",
+            "rahul",
+            "alexa",
+            "gitoperator",
+            "issueworker",
+            "taylor",
+            "newscollector",
+            "sam",
+            "max",
+            "marie",
+            "sue"
+          ]
+        }
+      },
+      {
+        "id": "victor",
+        "name": "Victor",
+        "role": "Trading Orchestrator. Routes between David and Motabhai, aggregates reports, and balances the portfolio.",
+        "subagents": {
+          "allowAgents": [
+            "david",
+            "motabhai"
+          ]
+        }
+      },
+      {
+        "id": "david",
+        "name": "David",
+        "role": "US Equity Trader. Simulates live NYSE trades via Alpaca paper API and Finnhub data."
+      },
+      {
+        "id": "motabhai",
+        "name": "Motabhai",
+        "role": "Indian Equity Trader. Simulates NSE/BSE trades via Zerodha Kite/nse-api."
+      },
+      {
+        "id": "rahul",
+        "name": "Rahul",
+        "role": "Cluster Manager. GitHub App for Proxmox/K8s monitoring and YAML fixes."
+      },
+      {
+        "id": "alexa",
+        "name": "Alexa",
+        "role": "Obsidian Manager. Vault read/write; logs trades, ideas, and cluster notes."
+      },
+      {
+        "id": "gitoperator",
+        "name": "GitOperator",
+        "role": "Subagent for GitHub repo management; commits, PRs, branches. Handles git utility."
+      },
+      {
+        "id": "issueworker",
+        "name": "IssueWorker",
+        "role": "Subagent for GitHub issue triage, labeling, and auto-closing across repos."
+      },
+      {
+        "id": "taylor",
+        "name": "Taylor",
+        "role": "Writer Agent. Drafts blogs from Rahul's cluster challenges and hands them to Alexa.",
+        "subagents": {
+          "allowAgents": [
+            "alexa"
+          ]
+        }
+      },
+      {
+        "id": "newscollector",
+        "name": "NewsCollector",
+        "role": "Real-time market news and sentiment analysis."
+      },
+      {
+        "id": "sam",
+        "name": "Sam",
+        "role": "Research Oracle. arXiv/SSRN papers on trading/K8s; summarizes models and code."
+      },
+      {
+        "id": "max",
+        "name": "Max",
+        "role": "Idea Suggestor. Tech startup idea generation and trend/market scans."
+      },
+      {
+        "id": "marie",
+        "name": "Marie",
+        "role": "Flaw Finder. Tech and business critiques on Max's ideas; iterative refinement."
+      },
+      {
+        "id": "sue",
+        "name": "Sue",
+        "role": "Daily calendar assistant."
+      }
+    ]
   },
   "tools": {
     "profile": "coding"

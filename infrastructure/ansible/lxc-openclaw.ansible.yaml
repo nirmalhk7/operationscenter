@@ -219,7 +219,7 @@
 
     - name: Deploy Agent Instruction markdown files
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/agents/{{ item.id }}.md"
+        src: "{{ playbook_dir }}/../assets/agents/{{ item.id }}/SOUL.md"
         dest: "/root/.openclaw/agents/{{ item.id }}/SOUL.md"
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"

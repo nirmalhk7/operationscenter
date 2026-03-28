@@ -39,3 +39,20 @@
 1. **Resiliency**: Prefer persistent storage via CSI drivers (e.g., Longhorn) for stateful applications.
 2. **Observability**: New services should include `ServiceMonitor` resources for Prometheus discovery.
 3. **GitOps Integration**: Do not use `kubectl apply` for persistent changes; always use Git commits targeting the `clusters/` directory.
+
+## 🤖 Deployed AI Agents
+This repository configures and manages several specialized AI agents via OpenClaw. They operate in isolated workspaces and perform dedicated tasks:
+- **Nestor**: Chief of Staff, orchestrates routing.
+- **Victor**: Trading Orchestrator (Russia), routes David/Motabhai, balances portfolio.
+- **David**: US Equity Trader (US), simulated NYSE trading.
+- **Motabhai**: Indian Equity Trader (India), simulated NSE/BSE trading.
+- **Rahul**: Cluster Manager (India), GitHub App for K8s monitoring.
+- **Alexa**: Obsidian Manager (UK), vault read/write.
+- **GitOperator**: Version control management.
+- **IssueWorker**: GitHub issue triage.
+- **Taylor**: Writer Agent (US), drafts blogs.
+- **NewsCollector**: Real-time market news and sentiment.
+- **Sam**: Research Oracle (US), summarizes AI/K8s papers.
+- **Max**: Idea Suggestor (US), generates tech startup ideas.
+- **Marie**: Flaw Finder (France), critiques ideas.
+- **Sue**: Calendar Assistant (US), manages schedules.
