@@ -8,5 +8,6 @@ resources:
   - homepage
   - outline
   - nfsprovisioner
+  - freshrss
   
 namespace: mgd-default
