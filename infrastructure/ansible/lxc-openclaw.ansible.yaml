@@ -26,23 +26,24 @@
         state: present
         update_cache: true
 
-    # - name: Install Todoist CLI
-    #   ansible.builtin.pip:
-    #     name: todoist-cli
-    #     state: present
-    #     executable: pip3
-    #     extra_args: --break-system-packages
+    - name: Find all agent folders
+      find:
+        paths: "../assets/agents"  # Your source dir relative to playbook location
+        file_type: directory
+        depth: 1
+      register: agent_dirs
 
-    - name: Create support directories
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0755'
-      loop:
-        - "{{ openclaw_support_home }}"
-        - "{{ openclaw_support_home }}/obsidian"
+    - name: Copy each agent folder contents only if files don't exist (rsync update)
+      synchronize:
+        src: "{{ item.path }}/"
+        dest: ".openclaw/customAgents/workspace-{{ (item.path | basename | lower) }}/"
+        recursive: yes
+        delete: no
+        rsync_opts:
+          - "--ignore-existing"
+        rsync_path: rsync
+      loop: "{{ agent_dirs.files }}"
+      delegate_to: "{{ inventory_hostname }}"  # Ensures src is local to control machine if needed
 
     - name: Setup NodeSource repository
       block:
@@ -218,13 +219,6 @@
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
-
-    - name: Run OpenClaw onboarding non-interactively
-      ansible.builtin.shell: |
-        export PATH=$PATH:/usr/local/bin:{{ openclaw_home }}/.local/bin
-        openclaw onboard --non-interactive --accept-risk --skip-health
-      register: onboard_output
-      changed_when: onboard_output.rc == 0
 
     - name: Create OpenClaw systemd service
       ansible.builtin.copy:

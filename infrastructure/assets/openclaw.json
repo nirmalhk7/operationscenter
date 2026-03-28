@@ -109,7 +109,6 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "workspace": "/root/openclaw_support/operationscenter",
         "tools": {
           "profile": "coding"
         }
@@ -123,7 +122,6 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "workspace": "/root/openclaw_support/operationscenter",
         "tools": {
           "profile": "minimal"
         }
@@ -137,7 +135,6 @@
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
         },
-        "workspace": "/root/openclaw_support/operationscenter",
         "tools": {
           "profile": "minimal"
         }
@@ -151,7 +148,6 @@
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
         },
-        "workspace": "/root/openclaw_support/operationscenter",
         "tools": {
           "profile": "minimal"
         }
@@ -165,7 +161,6 @@
             "openrouter/free"
           ]
         },
-        "workspace": "/root/openclaw_support/operationscenter",
         "tools": {
           "profile": "coding"
         }
@@ -179,7 +174,6 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "workspace": "/root/openclaw_support/obsidian",
         "tools": {
           "profile": "minimal"
         }
@@ -193,7 +187,6 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "workspace": "/root/openclaw_support/operationscenter",
         "tools": {
           "profile": "minimal"
         }
@@ -207,7 +200,6 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "workspace": "/root",
         "tools": {
           "profile": "minimal"
         }
@@ -221,7 +213,6 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "workspace": "/root",
         "tools": {
           "profile": "minimal"
         }
@@ -235,7 +226,6 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "workspace": "/root",
         "tools": {
           "profile": "minimal"
         }
@@ -246,7 +236,9 @@
     "profile": "minimal",
     "agentToAgent": {
       "enabled": true,
-      "allow": ["*"]
+      "allow": [
+        "*"
+      ]
     }
   },
   "messages": {
