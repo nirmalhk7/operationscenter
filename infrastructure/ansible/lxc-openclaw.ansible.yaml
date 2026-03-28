@@ -16,10 +16,10 @@
         workspace: "/root/openclaw_support/operationscenter"
       - id: borat
         model: "openrouter/google/gemma-3-27b-it:free"
-        workspace: "/root"
+        workspace: "/root/openclaw_support/borat"
       - id: sam
         model: "openrouter/openai/gpt-oss-120b:free"
-        workspace: "/root"
+        workspace: "/root/openclaw_support/sam"
 
   tasks:
     - name: Clean up old NodeSource list files to prevent conflicts
@@ -210,6 +210,15 @@
         group: "{{ openclaw_user }}"
         mode: '0600'
         force: yes
+
+    - name: Ensure agent workspaces exist
+      ansible.builtin.file:
+        path: "{{ item.workspace }}"
+        state: directory
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0755'
+      loop: "{{ openclaw_agents }}"
 
     - name: Create OpenClaw agents via CLI
       ansible.builtin.shell: |
