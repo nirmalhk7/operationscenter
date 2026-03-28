@@ -26,24 +26,23 @@
         state: present
         update_cache: true
 
-    - name: Find all agent folders
-      find:
-        paths: "../assets/agents"  # Your source dir relative to playbook location
-        file_type: directory
-        depth: 1
-      register: agent_dirs
+    - name: Copy custom agent workspaces
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../assets/customAgents/"
+        dest: /root/.openclaw/
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0755'
+        force: no
 
-    - name: Copy each agent folder contents only if files don't exist (rsync update)
-      synchronize:
-        src: "{{ item.path }}/"
-        dest: ".openclaw/customAgents/workspace-{{ (item.path | basename | lower) }}/"
-        recursive: yes
-        delete: no
-        rsync_opts:
-          - "--ignore-existing"
-        rsync_path: rsync
-      loop: "{{ agent_dirs.files }}"
-      delegate_to: "{{ inventory_hostname }}"  # Ensures src is local to control machine if needed
+    - name: Copy main agent workspaces
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../assets/mainAgent/"
+        dest: /root/.openclaw/workspace/
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0755'
+        force: yes
 
     - name: Setup NodeSource repository
       block:
