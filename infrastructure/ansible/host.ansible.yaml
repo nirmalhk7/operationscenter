@@ -83,7 +83,6 @@
             value: '1'
             state: present
             reload: true
-            sysctl_file: /etc/sysctl.d/99-tailscale.conf
 
         - name: Configure wmnet bridge interface
           ansible.builtin.blockinfile:

@@ -1,0 +1,47 @@
+name: Validate OpenClaw Config
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/assets/openclaw.json'
+      - '.github/workflows/test-openclaw.yaml'
+  pull_request:
+    branches:
+      - '**'
+    paths:
+      - 'infrastructure/assets/openclaw.json'
+      - '.github/workflows/test-openclaw.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install OpenClaw
+        run: |
+          pnpm add -g openclaw@latest
+          # Add pnpm global bin to GITHUB_PATH
+          echo "$(pnpm bin -g)" >> $GITHUB_PATH
+
+      - name: Validate OpenClaw Configuration
+        run: |
+          # Copy the configuration to the default search path (~/.openclaw/openclaw.json)
+          mkdir -p ~/.openclaw
+          cp infrastructure/assets/openclaw.json ~/.openclaw/openclaw.json
+          
+          # Validate the configuration
+          openclaw config validate
