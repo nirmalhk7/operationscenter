@@ -26,7 +26,7 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
     bridge   = "wmnet"
     name     = "net0"
     enabled  = true
-    firewall = false
+    firewall = true
 
   }
 
@@ -74,7 +74,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
 
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
-    comment        = "Dev Test"
+    comment        = "Managed Group Rules"
     iface          = "net0"
     enabled        = true
   }
@@ -85,5 +85,5 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_container.lxc-openclaw.vm_id
 
-  enabled = false
+  enabled = true
 }
