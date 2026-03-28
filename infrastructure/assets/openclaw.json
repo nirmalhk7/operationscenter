@@ -83,8 +83,7 @@
       "workspace": "/root/.openclaw/workspace",
       "compaction": {
         "mode": "safeguard",
-        "model": "openrouter/free",
-        "targetTokens": 8000
+        "model": "openrouter/free"
       },
       "maxConcurrent": 16,
       "subagents": {
@@ -111,9 +110,6 @@
           ]
         },
         "workspace": "/root/openclaw_support/operationscenter",
-        "allowFrom": [
-          "*"
-        ],
         "tools": {
           "profile": "coding"
         }
@@ -128,11 +124,6 @@
           ]
         },
         "workspace": "/root/openclaw_support/operationscenter",
-        "allowFrom": [
-          "main",
-          "David",
-          "Motabhai"
-        ],
         "tools": {
           "profile": "minimal"
         }
@@ -147,10 +138,6 @@
           ]
         },
         "workspace": "/root/openclaw_support/operationscenter",
-        "allowFrom": [
-          "main",
-          "Victor"
-        ],
         "tools": {
           "profile": "minimal"
         }
@@ -165,10 +152,6 @@
           ]
         },
         "workspace": "/root/openclaw_support/operationscenter",
-        "allowFrom": [
-          "main",
-          "Victor"
-        ],
         "tools": {
           "profile": "minimal"
         }
@@ -183,9 +166,6 @@
           ]
         },
         "workspace": "/root/openclaw_support/operationscenter",
-        "allowFrom": [
-          "main"
-        ],
         "tools": {
           "profile": "coding"
         }
@@ -200,12 +180,6 @@
           ]
         },
         "workspace": "/root/openclaw_support/obsidian",
-        "allowFrom": [
-          "main",
-          "Victor",
-          "Max",
-          "Taylor"
-        ],
         "tools": {
           "profile": "minimal"
         }
@@ -220,10 +194,6 @@
           ]
         },
         "workspace": "/root/openclaw_support/operationscenter",
-        "allowFrom": [
-          "main",
-          "Rahul"
-        ],
         "tools": {
           "profile": "minimal"
         }
@@ -238,10 +208,6 @@
           ]
         },
         "workspace": "/root",
-        "allowFrom": [
-          "main",
-          "Riley"
-        ],
         "tools": {
           "profile": "minimal"
         }
@@ -256,10 +222,6 @@
           ]
         },
         "workspace": "/root",
-        "allowFrom": [
-          "main",
-          "Max"
-        ],
         "tools": {
           "profile": "minimal"
         }
@@ -274,31 +236,18 @@
           ]
         },
         "workspace": "/root",
-        "allowFrom": [
-          "main"
-        ],
         "tools": {
           "profile": "minimal"
-        },
-        "channels": {
-          "telegram": {
-            "enabled": true,
-            "dmPolicy": "allowlist",
-            "botToken": "${SUE_TELEGRAM_BOT_TOKEN}",
-            "allowFrom": [
-              "8163098638"
-            ],
-            "streaming": "partial"
-          }
-        },
-        "env": {
-          "SUE_ICS_URL": "${SUE_ICS_URL}"
         }
       }
     ]
   },
   "tools": {
-    "profile": "minimal"
+    "profile": "minimal",
+    "agentToAgent": {
+      "enabled": true,
+      "allow": ["*"]
+    }
   },
   "messages": {
     "ackReactionScope": "group-mentions"
@@ -318,10 +267,10 @@
       "dmPolicy": "allowlist",
       "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN}",
       "groups": {
-        "-5168321382": {
+        "-1003812665515": {
           "requireMention": false,
           "allowFrom": [
-            "*"
+            "8163098638"
           ]
         }
       },
@@ -336,13 +285,12 @@
     "port": 18789,
     "mode": "local",
     "bind": "lan",
-    "customBindHost": "0.0.0.0",
     "controlUi": {
       "allowedOrigins": [
-        "http://localhost:18789",
         "https://robot.trusted.nirmalhk7.com",
-        "http://robot.trusted.nirmalhk7.com",
         "http://172.16.0.104:18789",
+        "http://172.16.0.101:18789",
+        "http://localhost:18789",
         "http://127.0.0.1:18789"
       ]
     },

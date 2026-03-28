@@ -57,6 +57,10 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
     template_file_id = local.osTemplates.debian12
     type             = "debian"
   }
+
+  features {
+    nesting = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {

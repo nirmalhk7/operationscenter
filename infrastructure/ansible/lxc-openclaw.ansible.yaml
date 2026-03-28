@@ -200,21 +200,7 @@
         mode: '0600'
         force: yes
 
-    - name: Create OpenClaw agents via CLI
-      ansible.builtin.shell: |
-        export PATH=$PATH:/usr/local/bin:{{ openclaw_home }}/.local/bin
-        openclaw agents add {{ item.id }} --model "{{ item.model }}" --workspace "{{ item.workspace }}"
-      loop: "{{ openclaw_agents }}"
 
-    - name: Deploy Agent Instruction markdown files
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/agents/{{ item.id }}.md"
-        dest: "/root/.openclaw/agents/{{ item.id }}/SOUL.md"
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0644'
-        force: no
-      loop: "{{ openclaw_agents }}"
 
     - name: Deploy OpenClaw environment file
       ansible.builtin.copy:
@@ -222,6 +208,7 @@
         content: |
           OPENCLAW_TELEGRAM_BOT_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_TELEGRAM_TOKEN') | default(lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN')) }}"
           OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
+          OPENCLAW_GATEWAY_PASSWORD="{{ lookup('env', 'OPENCLAW_GATEWAY_PASSWORD') }}"
           GEMINI_API_KEY="{{ lookup('env', 'GEMINI_API_KEY') }}"
           OPENROUTER_API_KEY="{{ lookup('env', 'OPENROUTER_API_KEY') }}"
           TODOIST_TOKEN="{{ lookup('env', 'TODOIST_TOKEN') }}"
@@ -249,14 +236,22 @@
 
           [Service]
           Type=simple
+
           User={{ openclaw_user }}
           EnvironmentFile={{ openclaw_home }}/.openclaw/.env
           Environment="PATH={{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
           Environment="PNPM_HOME={{ openclaw_home }}/.local/share/pnpm"
           Environment="HOME={{ openclaw_home }}"
-          ExecStart=/bin/bash -c "openclaw gateway run"
+          ExecStart=/usr/bin/openclaw gateway run --bind lan
           Restart=always
           RestartSec=10
+
+          # Prod limits
+          LimitNOFILE=65536
+          LimitNPROC=1024
+          # Logging
+          StandardOutput=journal
+          StandardError=journal
 
           [Install]
           WantedBy=multi-user.target
