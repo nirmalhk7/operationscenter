@@ -95,7 +95,22 @@
             "openrouter/qwen/qwen3-coder:free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        }
+        },
+        "allowAgents": [
+          "Alexa",
+          "David",
+          "GitOperator",
+          "IssueWorker",
+          "Marie",
+          "Max",
+          "Motabhai",
+          "NewsCollector",
+          "Rahul",
+          "ResearchOracle",
+          "Sue",
+          "Taylor",
+          "Victor"
+        ]
       }
     },
     "list": [
@@ -111,7 +126,8 @@
         },
         "tools": {
           "profile": "coding"
-        }
+        },
+        "role": "I orchestrate all agents to get things done. Route and divide the task to appropriate agents, wait for them to finish, combine their response and respond back to the user."
       },
       {
         "id": "Victor",
@@ -124,7 +140,9 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "role": "Route tasks between David and Motabhai. Aggregate trading reports, manage portfolio balancing, and send high-level strategy updates.",
+        "workspace": "/root/openclaw_support/victor"
       },
       {
         "id": "David",
@@ -137,7 +155,9 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "role": "Simulate live NYSE trades via Alpaca paper API and Finnhub data. Run intraday loops for signals and PnL reporting. Report directly to Victor.",
+        "workspace": "/root/openclaw_support/david"
       },
       {
         "id": "Motabhai",
@@ -150,7 +170,9 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "role": "Simulate NSE/BSE trades via Zerodha Kite and nse-api. Perform risk checks and ensure F&O compliance. Report directly to Victor.",
+        "workspace": "/root/openclaw_support/motabhai"
       },
       {
         "id": "Rahul",
@@ -163,7 +185,9 @@
         },
         "tools": {
           "profile": "coding"
-        }
+        },
+        "role": "Manage Proxmox and K8s monitoring via a GitHub App connected to the Flux opscenter repo. Troubleshoot, fix YAML configurations, and submit PRs.",
+        "workspace": "/root/openclaw_support/rahul"
       },
       {
         "id": "Alexa",
@@ -176,7 +200,9 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "role": "Manage the Obsidian vault. Read, write, and organize logs for trades, ideas, and cluster notes. Accept and catalog drafts from Taylor.",
+        "workspace": "/root/openclaw_support/alexa"
       },
       {
         "id": "Taylor",
@@ -189,7 +215,9 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "role": "Pull cluster challenges and system metrics from Rahul, draft engaging blog posts, and hand them over to Alexa for publishing.",
+        "workspace": "/root/openclaw_support/taylor"
       },
       {
         "id": "Max",
@@ -202,20 +230,9 @@
         },
         "tools": {
           "profile": "minimal"
-        }
-      },
-      {
-        "id": "Riley",
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free",
-            "openrouter/google/gemma-3-27b-it:free"
-          ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "role": "Generate innovative tech startup ideas, scan for emerging market trends, and present concepts to Marie for review.",
+        "workspace": "/root/openclaw_support/max"
       },
       {
         "id": "Sue",
@@ -228,7 +245,79 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "role": "Manage the daily calendar, organize agent schedules, and handle time-blocking.",
+        "workspace": "/root/openclaw_support/sue"
+      },
+      {
+        "id": "GitOperator",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "coding"
+        },
+        "role": "Manage GitHub repository operations. Handle commits, pull requests, branch creation, and merging.",
+        "workspace": "/root/openclaw_support/gitoperator"
+      },
+      {
+        "id": "IssueWorker",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "coding"
+        },
+        "role": "Handle GitHub issue triage, labeling, and auto-closing across all configured repositories.",
+        "workspace": "/root/openclaw_support/issueworker"
+      },
+      {
+        "id": "Marie",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "minimal"
+        },
+        "role": "Provide rigorous tech and business critiques on Max's ideas, iterating on the flaws for refinement until you both reach a solid agreement.",
+        "workspace": "/root/openclaw_support/marie"
+      },
+      {
+        "id": "NewsCollector",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "minimal"
+        },
+        "role": "Gather real-time market news from sources like CNBC and Bloomberg, and perform sentiment analysis on the headlines.",
+        "workspace": "/root/openclaw_support/newscollector"
+      },
+      {
+        "id": "ResearchOracle",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "minimal"
+        },
+        "role": "Analyze arXiv and SSRN papers related to quantitative trading and Kubernetes. Summarize complex models and extract code snippets.",
+        "workspace": "/root/openclaw_support/researchoracle"
       }
     ]
   },
