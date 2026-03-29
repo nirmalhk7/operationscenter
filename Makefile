@@ -1,6 +1,41 @@
 # Makefile for operationscenter
 
-.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply
+.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply init
+
+# --- Initialization ---
+init:
+	@echo "=== Verifying Installations ==="
+	@for cmd in terraform ansible kubectl kubeseal jq curl; do \
+		if ! command -v $$cmd >/dev/null 2>&1; then \
+			echo "Error: $$cmd is not installed."; \
+			exit 1; \
+		fi \
+	done
+	@echo "All required tools are installed."
+	@echo "=== Verifying Host Access ==="
+	@if [ ! -f ~/.ssh/id_ed25519_homelab ]; then \
+		echo "Error: SSH key ~/.ssh/id_ed25519_homelab not found."; \
+		exit 1; \
+	fi
+	@echo "SSH key found."
+	@echo "=== User Input ==="
+	@printf "Are you sure you want to initialize the infrastructure? (y/n): "; \
+	read confirm; \
+	echo "You entered: $$confirm"; \
+	if [ "$$confirm" != "y" ]; then \
+		echo "Initialization aborted."; \
+		exit 1; \
+	fi
+	@echo "Starting initialization..."
+	@echo "=== Part 1: Terraform ==="
+	$(MAKE) terraform-apply
+	@echo "=== Part 2: Ansible ==="
+	$(MAKE) ansible-run
+	@echo "=== Part 3: Kubernetes ==="
+	$(MAKE) kubernetes-init
+	@echo "=== Part 4: Docker & Nginx ==="
+	$(MAKE) nginx-build
+	@echo "=== Initialization Complete ==="
 
 # --- Sealed Secrets ---
 encrypt:
