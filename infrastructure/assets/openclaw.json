@@ -111,6 +111,23 @@
         },
         "tools": {
           "profile": "coding"
+        },
+        "subagents": {
+          "allowAgents": [
+            "Alexa",
+            "David",
+            "GitOperator",
+            "IssueWorker",
+            "Marie",
+            "Max",
+            "Motabhai",
+            "NewsCollector",
+            "Rahul",
+            "ResearchOracle",
+            "Sue",
+            "Taylor",
+            "Victor"
+          ]
         }
       },
       {
@@ -124,7 +141,8 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "workspace": "/root/openclaw_support/victor"
       },
       {
         "id": "David",
@@ -137,7 +155,8 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "workspace": "/root/openclaw_support/david"
       },
       {
         "id": "Motabhai",
@@ -150,7 +169,8 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "workspace": "/root/openclaw_support/motabhai"
       },
       {
         "id": "Rahul",
@@ -163,7 +183,8 @@
         },
         "tools": {
           "profile": "coding"
-        }
+        },
+        "workspace": "/root/openclaw_support/rahul"
       },
       {
         "id": "Alexa",
@@ -176,7 +197,8 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "workspace": "/root/openclaw_support/alexa"
       },
       {
         "id": "Taylor",
@@ -189,7 +211,8 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "workspace": "/root/openclaw_support/taylor"
       },
       {
         "id": "Max",
@@ -202,20 +225,8 @@
         },
         "tools": {
           "profile": "minimal"
-        }
-      },
-      {
-        "id": "Riley",
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free",
-            "openrouter/google/gemma-3-27b-it:free"
-          ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "workspace": "/root/openclaw_support/max"
       },
       {
         "id": "Sue",
@@ -228,7 +239,73 @@
         },
         "tools": {
           "profile": "minimal"
-        }
+        },
+        "workspace": "/root/openclaw_support/sue"
+      },
+      {
+        "id": "GitOperator",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "coding"
+        },
+        "workspace": "/root/openclaw_support/gitoperator"
+      },
+      {
+        "id": "IssueWorker",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "coding"
+        },
+        "workspace": "/root/openclaw_support/issueworker"
+      },
+      {
+        "id": "Marie",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "minimal"
+        },
+        "workspace": "/root/openclaw_support/marie"
+      },
+      {
+        "id": "NewsCollector",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "minimal"
+        },
+        "workspace": "/root/openclaw_support/newscollector"
+      },
+      {
+        "id": "ResearchOracle",
+        "model": {
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "tools": {
+          "profile": "minimal"
+        },
+        "workspace": "/root/openclaw_support/researchoracle"
       }
     ]
   },

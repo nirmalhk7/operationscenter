@@ -10,6 +10,21 @@
     openclaw_home: /root
     openclaw_support_home: /root/openclaw_support
     nodejs_version: "22.x"
+
+    openclaw_agents:
+      - { id: "Alexa", workspace: "/root/openclaw_support/alexa" }
+      - { id: "David", workspace: "/root/openclaw_support/david" }
+      - { id: "GitOperator", workspace: "/root/openclaw_support/gitoperator" }
+      - { id: "IssueWorker", workspace: "/root/openclaw_support/issueworker" }
+      - { id: "Marie", workspace: "/root/openclaw_support/marie" }
+      - { id: "Max", workspace: "/root/openclaw_support/max" }
+      - { id: "Motabhai", workspace: "/root/openclaw_support/motabhai" }
+      - { id: "NewsCollector", workspace: "/root/openclaw_support/newscollector" }
+      - { id: "Rahul", workspace: "/root/openclaw_support/rahul" }
+      - { id: "ResearchOracle", workspace: "/root/openclaw_support/researchoracle" }
+      - { id: "Sue", workspace: "/root/openclaw_support/sue" }
+      - { id: "Taylor", workspace: "/root/openclaw_support/taylor" }
+      - { id: "Victor", workspace: "/root/openclaw_support/victor" }
   tasks:
     - name: Clean up old NodeSource list files to prevent conflicts
       ansible.builtin.shell: rm -f /etc/apt/sources.list.d/nodesource*
@@ -126,6 +141,27 @@
         HOME: "{{ openclaw_home }}"
       register: openclaw_install
       changed_when: "'Already up to date' not in openclaw_install.stdout"
+
+    - name: Create isolated workspaces for OpenClaw agents
+      ansible.builtin.file:
+        path: "{{ item.workspace }}"
+        state: directory
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0755'
+      loop: "{{ openclaw_agents }}"
+
+    - name: Add OpenClaw agents
+      ansible.builtin.command:
+        cmd: openclaw agents add {{ item.id }} --workspace {{ item.workspace }}
+      environment:
+        PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+        HOME: "{{ openclaw_home }}"
+      loop: "{{ openclaw_agents }}"
+      register: agent_add_result
+      changed_when: "'added' in agent_add_result.stdout or 'Added' in agent_add_result.stdout"
+      failed_when: false
+
 
     - name: Set permanent env vars
       lineinfile:
