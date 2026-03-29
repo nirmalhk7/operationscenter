@@ -1,4 +1,7 @@
-## Whitelisted Commands & Tools
-- zerodha_kite_simulate
-- nse_api_fetch
-- risk_compliance_check
+## Whitelisted Tools
+- **Files**: read, write, edit, apply_patch
+- **Runtime**: exec, process
+- **Web**: web_search, web_fetch
+- **Memory**: memory_search, memory_get
+- **Messaging**: message
+- **Automation**: cron, gateway

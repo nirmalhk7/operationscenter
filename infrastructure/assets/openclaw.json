@@ -21,6 +21,22 @@
       }
     }
   },
+  "bindings": [
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "accountId": "main"
+      }
+    },
+    {
+      "agentId": "Victor",
+      "match": {
+        "channel": "telegram",
+        "accountId": "victor"
+      }
+    }
+  ],
   "models": {
     "mode": "merge",
     "providers": {
@@ -109,9 +125,7 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "tools": {
-          "profile": "coding"
-        }
+        "tools": ["read", "write", "edit", "apply_patch", "exec", "process", "memory_search", "memory_get", "browser", "web_search", "web_fetch", "sessions_send"]
       },
       {
         "id": "Victor",
@@ -122,9 +136,7 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "tools": ["read", "memory_get", "message", "sessions_send"]
       },
       {
         "id": "David",
@@ -135,9 +147,7 @@
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "tools": ["read", "exec", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
       },
       {
         "id": "Motabhai",
@@ -148,9 +158,7 @@
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "tools": ["read", "exec", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
       },
       {
         "id": "Rahul",
@@ -161,9 +169,7 @@
             "openrouter/free"
           ]
         },
-        "tools": {
-          "profile": "coding"
-        }
+        "tools": ["read", "write", "edit", "apply_patch", "exec", "process", "browser", "web_search", "web_fetch", "memory_search", "memory_get", "sessions_send"]
       },
       {
         "id": "Alexa",
@@ -174,9 +180,7 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "tools": ["read", "write", "memory_get", "sessions_send"]
       },
       {
         "id": "Taylor",
@@ -187,9 +191,7 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "tools": ["read", "write", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
       },
       {
         "id": "Max",
@@ -200,12 +202,10 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "tools": ["read", "write", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
       },
       {
-        "id": "Riley",
+        "id": "Marie",
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
@@ -213,9 +213,7 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "tools": ["read", "write", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
       },
       {
         "id": "Sue",
@@ -226,9 +224,7 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        "tools": {
-          "profile": "minimal"
-        }
+        "tools": ["read", "web_fetch", "message", "sessions_send"]
       }
     ]
   },
@@ -256,21 +252,24 @@
   "channels": {
     "telegram": {
       "enabled": true,
-      "dmPolicy": "allowlist",
-      "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN}",
+      "accounts": {
+        "main": {
+          "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
+          "dmPolicy": "allowlist",
+          "allowFrom": ["8163098638"]
+        },
+        "victor": {
+          "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR}",
+          "dmPolicy": "allowlist",
+          "allowFrom": ["8163098638"]
+        }
+      },
       "groups": {
         "-1003812665515": {
           "requireMention": false,
-          "allowFrom": [
-            "8163098638"
-          ]
+          "allowFrom": ["8163098638"]
         }
-      },
-      "allowFrom": [
-        "8163098638"
-      ],
-      "groupPolicy": "allowlist",
-      "streaming": "partial"
+      }
     }
   },
   "gateway": {

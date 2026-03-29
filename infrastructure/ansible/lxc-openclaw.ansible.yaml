@@ -206,7 +206,8 @@
       ansible.builtin.copy:
         dest: "{{ openclaw_home }}/.openclaw/.env"
         content: |
-          OPENCLAW_TELEGRAM_BOT_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_TELEGRAM_TOKEN') | default(lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN')) }}"
+          OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN="{{ lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN') }}"
+          OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR="{{ lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR') }}"
           OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
           OPENCLAW_GATEWAY_PASSWORD="{{ lookup('env', 'OPENCLAW_GATEWAY_PASSWORD') }}"
           GEMINI_API_KEY="{{ lookup('env', 'GEMINI_API_KEY') }}"
