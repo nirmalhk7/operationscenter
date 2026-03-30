@@ -1,6 +1,19 @@
 # Makefile for operationscenter
 
-.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply
+.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply init
+
+# --- Initialization ---
+init:
+	@./install.sh
+	@echo "=== Part 1: Terraform ==="
+	$(MAKE) terraform-apply
+	@echo "=== Part 2: Ansible ==="
+	$(MAKE) ansible-run
+	@echo "=== Part 3: Kubernetes ==="
+	$(MAKE) kubernetes-init
+	@echo "=== Part 4: Docker & Nginx ==="
+	$(MAKE) nginx-build
+	@echo "=== Initialization Complete ==="
 
 # --- Sealed Secrets ---
 encrypt:
