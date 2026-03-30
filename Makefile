@@ -4,29 +4,7 @@
 
 # --- Initialization ---
 init:
-	@echo "=== Verifying Installations ==="
-	@for cmd in terraform ansible kubectl kubeseal jq curl; do \
-		if ! command -v $$cmd >/dev/null 2>&1; then \
-			echo "Error: $$cmd is not installed."; \
-			exit 1; \
-		fi \
-	done
-	@echo "All required tools are installed."
-	@echo "=== Verifying Host Access ==="
-	@if [ ! -f ~/.ssh/id_ed25519_homelab ]; then \
-		echo "Error: SSH key ~/.ssh/id_ed25519_homelab not found."; \
-		exit 1; \
-	fi
-	@echo "SSH key found."
-	@echo "=== User Input ==="
-	@printf "Are you sure you want to initialize the infrastructure? (y/n): "; \
-	read confirm; \
-	echo "You entered: $$confirm"; \
-	if [ "$$confirm" != "y" ]; then \
-		echo "Initialization aborted."; \
-		exit 1; \
-	fi
-	@echo "Starting initialization..."
+	@./install.sh
 	@echo "=== Part 1: Terraform ==="
 	$(MAKE) terraform-apply
 	@echo "=== Part 2: Ansible ==="
