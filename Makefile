@@ -1,6 +1,6 @@
 # Makefile for operationscenter
 
-.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply
+.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply onboard-agents-discord sync kubernetes-init kubernetes-clean ansible-run ansible-run-one
 
 # --- Sealed Secrets ---
 encrypt:
@@ -109,6 +109,20 @@ kubernetes-clean:
 	  echo "Force deleting namespace: $$ns"; \
 	  kubectl get namespace $$ns -o json | jq 'del(.spec.finalizers)' | kubectl replace --raw "/api/v1/namespaces/$$ns/finalize" -f -; \
 	done
+
+
+# --- Discord ---
+onboard-agents-discord:
+	@if [ -z "$(CLIENT_IDS)" ]; then \
+		echo "Usage: make onboard-agents CLIENT_IDS=\"id1 id2 id3\""; \
+	else \
+		for id in $(CLIENT_IDS); do \
+			echo "Onboarding agent with Client ID: $$id"; \
+			open "https://discord.com/oauth2/authorize?client_id=$$id&permissions=2269711978011648&integration_type=0&scope=applications.commands+bot"; \
+			echo "Waiting 5 seconds before next one..."; \
+			sleep 5; \
+		done; \
+	fi
 
 sync:
 	git add .

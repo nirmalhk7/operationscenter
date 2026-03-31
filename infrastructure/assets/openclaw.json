@@ -30,10 +30,80 @@
       }
     },
     {
-      "agentId": "Victor",
+      "agentId": "main",
+      "match": {
+        "channel": "discord",
+        "accountId": "main"
+      }
+    },
+    {
+      "agentId": "victor",
       "match": {
         "channel": "telegram",
         "accountId": "victor"
+      }
+    },
+    {
+      "agentId": "victor",
+      "match": {
+        "channel": "discord",
+        "accountId": "victor"
+      }
+    },
+    {
+      "agentId": "david",
+      "match": {
+        "channel": "discord",
+        "accountId": "david"
+      }
+    },
+    {
+      "agentId": "motabhai",
+      "match": {
+        "channel": "discord",
+        "accountId": "motabhai"
+      }
+    },
+    {
+      "agentId": "rahul",
+      "match": {
+        "channel": "discord",
+        "accountId": "rahul"
+      }
+    },
+    {
+      "agentId": "alexa",
+      "match": {
+        "channel": "discord",
+        "accountId": "alexa"
+      }
+    },
+    {
+      "agentId": "taylor",
+      "match": {
+        "channel": "discord",
+        "accountId": "taylor"
+      }
+    },
+    {
+      "agentId": "max",
+      "match": {
+        "channel": "discord",
+        "accountId": "max"
+      }
+    },
+    {
+      "agentId": "marie",
+      "match": {
+        "channel": "discord",
+        "accountId": "marie"
+      }
+    },
+    {
+      "agentId": "sue",
+      "match": {
+        "channel": "discord",
+        "accountId": "sue"
       }
     }
   ],
@@ -67,13 +137,14 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/stepfun/step-3.5-flash:free",
+        "primary": "openrouter/minimax/minimax-m2.5:free",
         "fallbacks": [
+          "openrouter/stepfun/step-3.5-flash:free",
           "openrouter/free",
+          "openrouter/google/gemma-3-27b-it:free",
+          "openrouter/openai/gpt-oss-120b:free",
           "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
           "openrouter/qwen/qwen3-coder:free",
-          "openrouter/openai/gpt-oss-120b:free",
-          "openrouter/google/gemma-3-27b-it:free",
           "google/gemini-3.1-flash-lite-preview",
           "openrouter/auto",
           "google/gemma-3-27b-it",
@@ -92,6 +163,7 @@
         "openrouter/qwen/qwen3-coder:free": {},
         "openrouter/stepfun/step-3.5-flash:free": {},
         "openrouter/openai/gpt-oss-120b:free": {},
+        "openrouter/minimax/minimax-m2.5:free": {},
         "openrouter/google/gemma-3-27b-it:free": {},
         "google/gemma-3-27b-it": {},
         "nvidia-nim/gpt-oss-120b": {}
@@ -118,113 +190,197 @@
       {
         "id": "main",
         "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "primary": "openrouter/minimax/minimax-m2.5:free",
           "fallbacks": [
+            "openrouter/stepfun/step-3.5-flash:free",
             "openrouter/free",
-            "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
-            "openrouter/google/gemma-3-27b-it:free"
+            "openrouter/google/gemma-3-27b-it:free",
+            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
         },
-        "tools": ["read", "write", "edit", "apply_patch", "exec", "process", "memory_search", "memory_get", "browser", "web_search", "web_fetch", "sessions_send"]
+        "tools": {
+          "profile": "full"
+        }
       },
       {
-        "id": "Victor",
+        "id": "victor",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        },
-        "tools": ["read", "memory_get", "message", "sessions_send"]
+        }
       },
       {
-        "id": "David",
+        "id": "david",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free",
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
-        },
-        "tools": ["read", "exec", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
+        }
       },
       {
-        "id": "Motabhai",
+        "id": "motabhai",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free",
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
-        },
-        "tools": ["read", "exec", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
+        }
       },
       {
-        "id": "Rahul",
+        "id": "rahul",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/qwen/qwen3-coder:free",
             "openrouter/free"
           ]
-        },
-        "tools": ["read", "write", "edit", "apply_patch", "exec", "process", "browser", "web_search", "web_fetch", "memory_search", "memory_get", "sessions_send"]
+        }
       },
       {
-        "id": "Alexa",
+        "id": "alexa",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        },
-        "tools": ["read", "write", "memory_get", "sessions_send"]
+        }
       },
       {
-        "id": "Taylor",
+        "id": "taylor",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        },
-        "tools": ["read", "write", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
+        }
       },
       {
-        "id": "Max",
+        "id": "max",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        },
-        "tools": ["read", "write", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
+        }
       },
       {
-        "id": "Marie",
+        "id": "marie",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        },
-        "tools": ["read", "write", "browser", "web_search", "web_fetch", "memory_get", "sessions_send"]
+        }
       },
       {
-        "id": "Sue",
+        "id": "sue",
+        "tools": {
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        },
-        "tools": ["read", "web_fetch", "message", "sessions_send"]
+        }
       }
     ]
   },
@@ -250,6 +406,84 @@
     "dmScope": "per-channel-peer"
   },
   "channels": {
+    "discord": {
+      "enabled": true,
+      "accounts": {
+        "main": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAIN}"
+        },
+        "victor": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_VICTOR}"
+        },
+        "david": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_DAVID}"
+        },
+        "motabhai": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MOTABHAI}"
+        },
+        "rahul": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}"
+        },
+        "alexa": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_ALEXA}"
+        },
+        "taylor": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_TAYLOR}"
+        },
+        "max": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAX}"
+        },
+        "marie": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MARIE}"
+        },
+        "sue": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_SUE}"
+        }
+      },
+      "voice": {
+        "enabled": true,
+        "autoJoin": [
+          {
+            "guildId": "1487714737964716084",
+            "channelId": "1487714739319603234"
+          }
+        ],
+        "tts": {
+          "provider": "openai",
+          "openai": {
+            "voice": "alloy"
+          }
+        }
+      },
+      "groupPolicy": "allowlist",
+      "streaming": "off",
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "1220283451169837077"
+      ],
+      "dm": {
+        "enabled": true
+      },
+      "guilds": {
+        "1487714737964716084": {
+          "requireMention": false,
+          "users": [
+            "1220283451169837077"
+          ],
+          "channels": {
+            "1487714739319603233": {
+              "allow": true
+            },
+            "1487714739319603234": {
+              "allow": true
+            },
+            "1487916461623214100": {
+              "allow": true
+            }
+          }
+        }
+      }
+    },
     "telegram": {
       "enabled": true,
       "accounts": {
