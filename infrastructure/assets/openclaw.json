@@ -461,10 +461,7 @@
           }
         ],
         "tts": {
-          "provider": "openai",
-          "openai": {
-            "voice": "alloy"
-          }
+          "provider": "openai"
         }
       },
       "groupPolicy": "allowlist",
