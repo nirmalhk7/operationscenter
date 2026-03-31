@@ -204,6 +204,12 @@
       },
       {
         "id": "victor",
+        "subagents": {
+          "allowAgents": [
+            "david",
+            "motabhai"
+          ]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -304,6 +310,12 @@
       },
       {
         "id": "taylor",
+        "subagents": {
+          "allowAgents": [
+            "rahul",
+            "alexa"
+          ]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -449,10 +461,7 @@
           }
         ],
         "tts": {
-          "provider": "openai",
-          "openai": {
-            "voice": "alloy"
-          }
+          "provider": "openai"
         }
       },
       "groupPolicy": "allowlist",
