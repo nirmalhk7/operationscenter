@@ -59,7 +59,7 @@ The Operations Center is managed by a specialized team of AI agents, coordinated
 
 ### 💡 Idea Refinement Agents
 - **Max (Idea Suggestor)**: Generates trend-aware tech startup ideas.
-- **Riley (Flaw Finder)**: Performs rigorous critiques and iterates ideas until bulletproof.
+- **Marie (Flaw Finder)**: Performs rigorous critiques and iterates ideas until bulletproof.
 
 ### 🧩 Subagent Profiles (Soulless)
 *These are specialized instruction sets used for delegation via the `agent.spawn` tool. They are "Soulless Profiles" that do not have independent identities.*

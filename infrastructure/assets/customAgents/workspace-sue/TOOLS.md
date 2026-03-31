@@ -1,4 +1,5 @@
-## Whitelisted Commands & Tools
-- calendar_view_schedule
-- calendar_add_event
-- calendar_block_time
+## Whitelisted Tools
+- **Files**: read, write, edit, apply_patch
+- **Web**: web_search, web_fetch
+- **Messaging**: message
+- **Automation**: cron, gateway

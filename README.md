@@ -71,3 +71,8 @@ Most operational tasks are managed through the `Makefile`:
 - `make ansible-run`: Configure VMs/LXCs.
 - `make encrypt FILE=<path>`: Encrypt a `.px.yaml` secret.
 - `make nginx-build`: Sync Nginx configurations.
+
+
+---
+
+https://deepai.org/machine-learning-model/text2img
