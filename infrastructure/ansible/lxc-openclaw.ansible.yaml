@@ -170,10 +170,10 @@
             group: "{{ openclaw_user }}"
             mode: '0600'
           vars:
-            openclaw_k8s_ca: "{{ lookup('env', 'CLUSTER_CA') }}"
-            openclaw_k8s_token: "{{ lookup('env', 'CLUSTER_TOKEN') }}"
-            openclaw_client_cert: "{{ lookup('env', 'CLIENT_CERT') }}"
-            openclaw_client_key: "{{ lookup('env', 'CLIENT_KEY') }}"
+            openclaw_k8s_ca: "{{ lookup('env', 'OPENCLAW_CLUSTER_CA') }}"
+            openclaw_k8s_token: "{{ lookup('env', 'OPENCLAW_CLUSTER_TOKEN') }}"
+            openclaw_client_cert: "{{ lookup('env', 'OPENCLAW_CLIENT_CERT') }}"
+            openclaw_client_key: "{{ lookup('env', 'OPENCLAW_CLIENT_KEY') }}"
 
     - name: Ensure OpenClaw configuration directory exists
       ansible.builtin.file:
@@ -206,20 +206,16 @@
       ansible.builtin.copy:
         dest: "{{ openclaw_home }}/.openclaw/.env"
         content: |
-          OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN="{{ lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN') }}"
-          OPENCLAW_DISCORD_BOT_TOKEN_MAIN="{{ lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_MAIN') }}"
-          OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR="{{ lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR') }}"
-          OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
-          OPENCLAW_GATEWAY_PASSWORD="{{ lookup('env', 'OPENCLAW_GATEWAY_PASSWORD') }}"
-          GEMINI_API_KEY="{{ lookup('env', 'GEMINI_API_KEY') }}"
-          OPENROUTER_API_KEY="{{ lookup('env', 'OPENROUTER_API_KEY') }}"
-          TODOIST_TOKEN="{{ lookup('env', 'TODOIST_TOKEN') }}"
+          {% for key in lookup('pipe', 'env | cut -d= -f1 | grep ^OPENCLAW_ || true').splitlines() %}
+          {{ key }}="{{ lookup('env', key) }}"
+          {% endfor %}
           NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
           OPENCLAW_NO_RESPAWN=1
           KUBECONFIG="{{ openclaw_support_home }}/.kube/config"
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
+
 
     - name: Create OpenClaw systemd service
       ansible.builtin.copy:
@@ -268,7 +264,7 @@
                 echo "{{ github_token }}" | gh auth login --with-token
               fi
           vars:
-            github_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+            github_token: "{{ lookup('env', 'OPENCLAW_GITHUB_TOKEN') }}"
           when: github_token != ""
           register: gh_auth
           changed_when: false
@@ -278,7 +274,7 @@
             cmd: "gh repo clone nirmalhk7/operationscenter {{ openclaw_support_home }}/operationscenter"
             creates: "{{ openclaw_support_home }}/operationscenter"
           when: 
-            - lookup('env', 'GITHUB_TOKEN') != ""
+            - lookup('env', 'OPENCLAW_GITHUB_TOKEN') != ""
             - gh_auth is succeeded
 
         - name: Clone Obsidian repository
@@ -286,7 +282,7 @@
             cmd: "gh repo clone {{ obsidian_repo }} {{ openclaw_support_home }}/obsidian"
             creates: "{{ openclaw_support_home }}/obsidian"
           vars:
-            obsidian_repo: "{{ lookup('env', 'OBSIDIAN_REPO') }}"
+            obsidian_repo: "{{ lookup('env', 'OPENCLAW_OBSIDIAN_REPO') }}"
           when: 
             - obsidian_repo != ""
             - gh_auth is succeeded
