@@ -39,13 +39,6 @@
     {
       "agentId": "victor",
       "match": {
-        "channel": "telegram",
-        "accountId": "victor"
-      }
-    },
-    {
-      "agentId": "victor",
-      "match": {
         "channel": "discord",
         "accountId": "victor"
       }
@@ -69,41 +62,6 @@
       "match": {
         "channel": "discord",
         "accountId": "rahul"
-      }
-    },
-    {
-      "agentId": "alexa",
-      "match": {
-        "channel": "discord",
-        "accountId": "alexa"
-      }
-    },
-    {
-      "agentId": "taylor",
-      "match": {
-        "channel": "discord",
-        "accountId": "taylor"
-      }
-    },
-    {
-      "agentId": "max",
-      "match": {
-        "channel": "discord",
-        "accountId": "max"
-      }
-    },
-    {
-      "agentId": "marie",
-      "match": {
-        "channel": "discord",
-        "accountId": "marie"
-      }
-    },
-    {
-      "agentId": "sue",
-      "match": {
-        "channel": "discord",
-        "accountId": "sue"
       }
     }
   ],
@@ -423,21 +381,6 @@
         },
         "rahul": {
           "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}"
-        },
-        "alexa": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_ALEXA}"
-        },
-        "taylor": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_TAYLOR}"
-        },
-        "max": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAX}"
-        },
-        "marie": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MARIE}"
-        },
-        "sue": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_SUE}"
         }
       },
       "voice": {
