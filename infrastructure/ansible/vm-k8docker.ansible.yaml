@@ -20,6 +20,7 @@
       - { name: "authentik", user: "authentik_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
       - { name: "sonarqube", user: "sonarqube_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
       - { name: "outline", user: "outline_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
+      - { name: "n8n", user: "n8n_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
 
   tasks:
     - name: Check if docker is installed
@@ -152,5 +153,6 @@
               AUTHENTIK_PASSWORD: "{{ vectorchord_db_users[1].pass }}"
               SONARQUBE_PASSWORD: "{{ vectorchord_db_users[2].pass }}"
               OUTLINE_PASSWORD: "{{ vectorchord_db_users[3].pass }}"
+              N8N_PASSWORD: "{{ vectorchord_db_users[4].pass }}"
             changed_when: false
       tags: [deployments]
