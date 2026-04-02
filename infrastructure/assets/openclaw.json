@@ -520,6 +520,9 @@
       },
       "alphavantage": {
         "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}"
+      },
+      "polymarket": {
+        "url": "https://mcp.polymarket.net/mcp"
       }
     }
   }
