@@ -518,6 +518,10 @@
         "url": "https://mcp.kite.trade/sse",
         "transport": "streamable-http"
       },
+      "todoist": {
+        "url": "https://mcp.todoist.com/mcp",
+        "transport": "streamable-http"
+      },
       "alphavantage": {
         "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}"
       },
