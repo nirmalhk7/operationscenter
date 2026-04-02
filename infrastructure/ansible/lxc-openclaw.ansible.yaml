@@ -118,7 +118,7 @@
 
     - name: Install OpenClaw globally (using pnpm)
       ansible.builtin.shell:
-        cmd: pnpm install -g openclaw@{{ openclaw_version | default('latest') }}
+        cmd: pnpm install -g openclaw@{{ openclaw_version | default('latest') }} 
         executable: /bin/bash
       environment:
         PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
@@ -209,6 +209,8 @@
           {% for key in lookup('pipe', 'env | cut -d= -f1 | grep ^OPENCLAW_ || true').splitlines() %}
           {{ key }}="{{ lookup('env', key) }}"
           {% endfor %}
+          OPENROUTER_API_KEY={{ lookup('env', 'OPENROUTER_API_KEY') }}
+          GEMINI_API_KEY={{ lookup('env', 'GEMINI_API_KEY') }}
           NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
           OPENCLAW_NO_RESPAWN=1
           KUBECONFIG="{{ openclaw_support_home }}/.kube/config"

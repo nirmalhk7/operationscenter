@@ -148,7 +148,7 @@
       {
         "id": "main",
         "model": {
-          "primary": "openrouter/minimax/minimax-m2.5:free",
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/stepfun/step-3.5-flash:free",
             "openrouter/free",
@@ -358,6 +358,8 @@
     "native": "auto",
     "nativeSkills": "auto",
     "restart": true,
+    "mcp": true,
+    "plugins": true,
     "ownerDisplay": "raw"
   },
   "session": {
@@ -368,33 +370,63 @@
       "enabled": true,
       "accounts": {
         "main": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAIN}"
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAIN}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": false,
+              "users": ["1220283451169837077"],
+            }
+          },
+          "voice": {
+            "enabled": true,
+            "autoJoin": [
+              {
+                "guildId": "1487714737964716084",
+                "channelId": "1487714739319603234"
+              }
+            ],
+            "tts": {
+              "provider": "openai",
+              "openai": {
+                "voice": "alloy"
+              }
+            }
+          }
         },
         "victor": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_VICTOR}"
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_VICTOR}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
+          }
         },
         "david": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_DAVID}"
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_DAVID}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
+          }
         },
         "motabhai": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MOTABHAI}"
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MOTABHAI}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
+          }
         },
         "rahul": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}"
-        }
-      },
-      "voice": {
-        "enabled": true,
-        "autoJoin": [
-          {
-            "guildId": "1487714737964716084",
-            "channelId": "1487714739319603234"
-          }
-        ],
-        "tts": {
-          "provider": "openai",
-          "openai": {
-            "voice": "alloy"
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
           }
         }
       },
@@ -406,25 +438,6 @@
       ],
       "dm": {
         "enabled": true
-      },
-      "guilds": {
-        "1487714737964716084": {
-          "requireMention": false,
-          "users": [
-            "1220283451169837077"
-          ],
-          "channels": {
-            "1487714739319603233": {
-              "allow": true
-            },
-            "1487714739319603234": {
-              "allow": true
-            },
-            "1487916461623214100": {
-              "allow": true
-            }
-          }
-        }
       }
     },
     "telegram": {
@@ -496,6 +509,17 @@
     "entries": {
       "telegram": {
         "enabled": true
+      }
+    }
+  },
+  "mcp": {
+    "servers": {
+      "kite": {
+        "url": "https://mcp.kite.trade/sse",
+        "transport": "streamable-http"
+      },
+      "alphavantage": {
+        "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}"
       }
     }
   }

@@ -131,9 +131,8 @@ onboard-agents-discord:
 	else \
 		for id in $(CLIENT_IDS); do \
 			echo "Onboarding agent with Client ID: $$id"; \
-			open "https://discord.com/oauth2/authorize?client_id=$$id&permissions=2269711978011648&integration_type=0&scope=applications.commands+bot"; \
-			echo "Waiting 5 seconds before next one..."; \
-			sleep 5; \
+			open "https://discord.com/oauth2/authorize?client_id=$$id&permissions=0&integration_type=0&scope=bot"; \
+			sleep 10; \
 		done; \
 	fi
 
