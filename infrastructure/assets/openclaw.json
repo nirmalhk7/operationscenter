@@ -172,6 +172,9 @@
             "sessions_list"
           ]
         },
+        "subagents": {
+          "allowAgents": ["david", "motabhai"]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
@@ -191,6 +194,9 @@
             "sessions_history",
             "sessions_list"
           ]
+        },
+        "subagents": {
+          "allowAgents": ["rahul", "alexa"]
         },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
@@ -212,6 +218,9 @@
             "sessions_list"
           ]
         },
+        "subagents": {
+          "allowAgents": ["marie"]
+        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
@@ -231,6 +240,9 @@
             "sessions_history",
             "sessions_list"
           ]
+        },
+        "subagents": {
+          "allowAgents": ["max"]
         },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
@@ -374,7 +386,7 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": false,
-              "users": ["1220283451169837077"],
+              "users": ["1220283451169837077"]
             }
           },
           "voice": {
