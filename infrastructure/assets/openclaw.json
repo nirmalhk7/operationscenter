@@ -162,6 +162,9 @@
       },
       {
         "id": "victor",
+        "subagents": {
+          "allowAgents": ["david", "motabhai"]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -182,6 +185,9 @@
       },
       {
         "id": "david",
+        "subagents": {
+          "allowAgents": ["victor"]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -202,6 +208,9 @@
       },
       {
         "id": "motabhai",
+        "subagents": {
+          "allowAgents": ["victor"]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -242,6 +251,9 @@
       },
       {
         "id": "alexa",
+        "subagents": {
+          "allowAgents": ["taylor"]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -262,6 +274,9 @@
       },
       {
         "id": "taylor",
+        "subagents": {
+          "allowAgents": ["rahul", "alexa"]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -282,6 +297,9 @@
       },
       {
         "id": "max",
+        "subagents": {
+          "allowAgents": ["marie"]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -302,6 +320,9 @@
       },
       {
         "id": "marie",
+        "subagents": {
+          "allowAgents": ["max"]
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -374,7 +395,7 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": false,
-              "users": ["1220283451169837077"],
+              "users": ["1220283451169837077"]
             }
           },
           "voice": {
