@@ -178,6 +178,12 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "david",
+            "motabhai"
+          ]
         }
       },
       {
@@ -278,6 +284,11 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "alexa"
+          ]
         }
       },
       {
@@ -298,6 +309,11 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "marie"
+          ]
         }
       },
       {
@@ -317,6 +333,11 @@
           "fallbacks": [
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
+          ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "max"
           ]
         }
       },
@@ -374,7 +395,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": false,
-              "users": ["1220283451169837077"],
+              "users": [
+                "1220283451169837077"
+              ]
             }
           },
           "voice": {
@@ -398,7 +421,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -407,7 +432,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -416,7 +443,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -425,7 +454,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         }
@@ -446,18 +477,24 @@
         "main": {
           "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
           "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         },
         "victor": {
           "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR}",
           "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         }
       },
       "groups": {
         "-1003812665515": {
           "requireMention": false,
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         }
       }
     }
