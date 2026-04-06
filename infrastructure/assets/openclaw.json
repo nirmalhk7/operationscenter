@@ -410,8 +410,10 @@
             ],
             "tts": {
               "provider": "openai",
-              "openai": {
-                "voice": "alloy"
+              "providers": {
+                "openai": {
+                  "voice": "alloy"
+                }
               }
             }
           }
