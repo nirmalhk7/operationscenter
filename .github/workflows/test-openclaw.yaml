@@ -32,8 +32,10 @@ jobs:
           version: latest
 
       - name: Install OpenClaw
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
-          pnpm add -g openclaw@latest promptfoo
+          pnpm add -g @buape/carbon openclaw@latest promptfoo
           # Add pnpm global bin to GITHUB_PATH
           echo "$(pnpm bin -g)" >> $GITHUB_PATH
 
