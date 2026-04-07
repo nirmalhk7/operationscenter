@@ -35,7 +35,7 @@ jobs:
 
       - name: Install OpenClaw
         run: |
-          pnpm add -g openclaw@latest promptfoo @buape/carbon @larksuiteoapi/node-sdk
+          pnpm add -g openclaw@latest promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
           # Add pnpm global bin to GITHUB_PATH
           echo "$(pnpm bin -g)" >> $GITHUB_PATH
 
