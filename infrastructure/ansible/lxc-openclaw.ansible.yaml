@@ -214,6 +214,8 @@
           NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
           OPENCLAW_NO_RESPAWN=1
           KUBECONFIG="{{ openclaw_support_home }}/.kube/config"
+          ALPACA_SECRET_KEY={{ lookup('env', 'ALPACA_SECRET_KEY') }}
+          ALPACA_API_KEY={{ lookup('env', 'ALPACA_API_KEY') }}
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'

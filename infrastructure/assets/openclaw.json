@@ -514,19 +514,36 @@
   },
   "mcp": {
     "servers": {
+      "alpaca": {
+        "command": "/root/.local/bin/uvx",
+        "args": ["alpaca-mcp-server", "serve"],
+        "env": {
+          "ALPACA_API_KEY": "${ALPACA_API_KEY}",
+          "ALPACA_SECRET_KEY": "${ALPACA_SECRET_KEY}",
+          "ALPACA_PAPER": "true"
+        }
+      },
       "kite": {
-        "url": "https://mcp.kite.trade/sse",
-        "transport": "streamable-http"
+        "url": "https://mcp.kite.trade/sse"
+      },
+      "notion": {
+        "url": "https://mcp.notion.com/mcp"
       },
       "todoist": {
-        "url": "https://mcp.todoist.com/mcp",
-        "transport": "streamable-http"
+        "url": "https://ai.todoist.net/mcp"
       },
       "alphavantage": {
-        "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}"
+        "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}",
+        "transport": "streamable-http"
       },
       "polymarket": {
-        "url": "https://mcp.polymarket.net/mcp"
+        "url": "https://mcp.polymarket.com/mcp"
+      },
+      "github": {
+        "url": "https://api.githubcopilot.com/mcp/",
+        "headers": {
+          "Authorization": "Bearer ${OPENCLAW_GITHUB_PAT}"
+        }
       }
     }
   }

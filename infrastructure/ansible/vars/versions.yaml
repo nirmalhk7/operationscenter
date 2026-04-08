@@ -35,3 +35,4 @@ gh_cli_version: "2.88.1"
 
 # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
 kubectl_version: "1.35.3"
+uv_version: "0.6.2"
