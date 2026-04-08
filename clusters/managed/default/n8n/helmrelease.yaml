@@ -7,7 +7,7 @@ spec:
   chart:
     spec:
       chart: n8n
-      version: 0.1.3
+      version: 1.16.35
       sourceRef:
         kind: HelmRepository
         name: community-charts
@@ -17,42 +17,32 @@ spec:
   values:
     podLabels:
       milano.app: *app
-    externalPostgresql:
-      host: "172.16.0.106"
-      port: 5432
-      username: "n8n_rw"
-      database: *app
-      existingSecret: "n8n-credentials"
-      passwordSecretKey: "DB_POSTGRESDB_PASSWORD"
-    extraEnvVars:
-      - name: DB_TYPE
-        value: postgresdb
-      - name: DB_POSTGRESDB_DATABASE
-        value: *app
-      - name: DB_POSTGRESDB_HOST
-        value: "172.16.0.106"
-      - name: DB_POSTGRESDB_PORT
-        value: "5432"
-      - name: DB_POSTGRESDB_USER
-        value: "n8n_rw"
-      - name: WEBHOOK_URL
-        value: "https://n8n.trusted.nirmalhk7.com"
-      - name: N8N_HOST
-        value: "n8n.trusted.nirmalhk7.com"
-      - name: N8N_PORT
-        value: "5678"
-      - name: N8N_PROTOCOL
-        value: "https"
-      - name: NODE_ENV
-        value: "production"
-    extraSecretNamesForEnvFrom:
-      - n8n-credentials
-    persistence:
-      enabled: true
-      storageClass: milano-v2
-      size: 1Gi
-    config:
-      generic:
-        timezone: "Asia/Kolkata"
-      webhook:
-        url: "https://n8n.trusted.nirmalhk7.com"
+    main:
+      persistence:
+        enabled: true
+        storageClass: milano-v2
+        size: 1Gi
+      extraEnvVars:
+        - name: N8N_PROTOCOL
+          value: "https"
+        - name: N8N_HOST
+          value: "n8n.trusted.nirmalhk7.com"
+        - name: N8N_PORT
+          value: "5678"
+        - name: NODE_ENV
+          value: "production"
+        - name: DB_TYPE
+          value: postgresdb
+        - name: DB_POSTGRESDB_DATABASE
+          value: *app
+        - name: DB_POSTGRESDB_HOST
+          value: "172.16.0.106"
+        - name: DB_POSTGRESDB_PORT
+          value: "5432"
+        - name: DB_POSTGRESDB_USER
+          value: "n8n_rw"
+      extraSecretNamesForEnvFrom:
+        - n8n-credentials
+    webhook:
+      url: "https://n8n.trusted.nirmalhk7.com"
+    timezone: "America/Denver"

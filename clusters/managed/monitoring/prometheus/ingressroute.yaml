@@ -9,8 +9,8 @@ metadata:
     gethomepage.dev/icon: prometheus
     gethomepage.dev/app: prometheus # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Prometheus
-    gethomepage.dev/widget.type: "prometheus"
-    gethomepage.dev/widget.url: "https://prometheus.trusted.nirmalhk7.com"
+    # gethomepage.dev/widget.type: "prometheus"
+    # gethomepage.dev/widget.url: "https://prometheus.trusted.nirmalhk7.com"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=prometheus"
 spec:
   entryPoints:

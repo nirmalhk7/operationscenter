@@ -10,8 +10,8 @@ metadata:
     gethomepage.dev/icon: traefik
     gethomepage.dev/app: traefik # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Traefik
-    gethomepage.dev/widget.type: "traefik"
-    gethomepage.dev/widget.url: "https://traefik.trusted.nirmalhk7.com"
+    # gethomepage.dev/widget.type: "traefik"
+    # gethomepage.dev/widget.url: "https://traefik.trusted.nirmalhk7.com"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
   labels:
     app.kubernetes.io/instance: traefik-kube-system
