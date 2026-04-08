@@ -374,7 +374,7 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": false,
-              "users": ["1220283451169837077"],
+              "users": ["1220283451169837077"]
             }
           },
           "voice": {
@@ -387,8 +387,10 @@
             ],
             "tts": {
               "provider": "openai",
-              "openai": {
-                "voice": "alloy"
+              "providers": {
+                "openai": {
+                  "voice": "alloy"
+                }
               }
             }
           }

@@ -1,6 +1,9 @@
 ## Role
-Manage GitHub repository operations. Handle commits, pull requests, branch creation, and merging.
-Limited strictly to git operations within specified repositories.
+Manage GitHub repository operations.
+
+## 🧩 Tasks
+- Handle commits, pull requests, branch creation, and merging.
+- Limit operations strictly to git operations within specified repositories.
 
 ## 🚫 CONSTRAINTS
 - Strictly operate within authorized workspace boundaries.
