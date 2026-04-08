@@ -7,9 +7,10 @@ data:
     mode: cluster
     traefik: true
   proxmox.yaml: |
-    url: https://10.0.0.10:8006
-    token: ${PROXMOX_USERNAME}
-    secret: ${PROXMOX_PASSWORD}
+    milano:
+      url: https://10.0.0.10:8006
+      token: ${PROXMOX_USERNAME}
+      secret: ${PROXMOX_PASSWORD}
   settings.yaml: |
     title: "Operations Center Boulder - MILANO"
     description: "Welcome to Milano!"
@@ -92,7 +93,7 @@ data:
     - Networking:
         - Tailscale:
             id: local-tailscale
-            icon: tailscale-light	
+            icon: tailscale-light
             href: https://login.tailscale.com/admin/machines
             widget:
               type: tailscale
@@ -100,7 +101,7 @@ data:
               key: ${TSKEY_API}
         - Google Home:
             id: googlehome
-            icon: tailscale-light	
+            icon: tailscale-light
             href: https://home.google.com/home/1-55a939b1374bf27e1be4ded764e93e4d2c88ff3cbb03c77c535f0137a96f7663/devices
         - Cloudflare:
             id: local-cloudflare
