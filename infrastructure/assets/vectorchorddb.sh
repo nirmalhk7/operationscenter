@@ -6,6 +6,7 @@ set -euo pipefail
 : "${AUTHENTIK_PASSWORD:?}"
 : "${SONARQUBE_PASSWORD:?}"
 : "${OUTLINE_PASSWORD:?}"
+: "${N8N_PASSWORD:?}"
 
 psql_exec=(docker exec -i vectorchorddb env PGPASSWORD="${VECTORCHORD_PG_PASSWORD}" psql -U postgres)
 dollar='$'
@@ -39,3 +40,8 @@ dollar='$'
 "${psql_exec[@]}" -tAc "DO ${dollar}${dollar} BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='outline_rw') THEN CREATE ROLE outline_rw LOGIN PASSWORD '${OUTLINE_PASSWORD}'; END IF; END ${dollar}${dollar};"
 "${psql_exec[@]}" -d outline -c "GRANT ALL PRIVILEGES ON DATABASE outline TO outline_rw;"
 "${psql_exec[@]}" -d outline -c "GRANT ALL PRIVILEGES ON SCHEMA public TO outline_rw;"
+# n8n
+"${psql_exec[@]}" -tAc "DO ${dollar}${dollar} BEGIN IF NOT EXISTS (SELECT FROM pg_database WHERE datname='n8n') THEN CREATE DATABASE n8n; END IF; END ${dollar}${dollar};"
+"${psql_exec[@]}" -tAc "DO ${dollar}${dollar} BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='n8n_rw') THEN CREATE ROLE n8n_rw LOGIN PASSWORD '${N8N_PASSWORD}'; END IF; END ${dollar}${dollar};"
+"${psql_exec[@]}" -d n8n -c "GRANT ALL PRIVILEGES ON DATABASE n8n TO n8n_rw;"
+"${psql_exec[@]}" -d n8n -c "GRANT ALL PRIVILEGES ON SCHEMA public TO n8n_rw;"
