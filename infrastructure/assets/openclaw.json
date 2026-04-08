@@ -63,6 +63,41 @@
         "channel": "discord",
         "accountId": "rahul"
       }
+    },
+    {
+      "agentId": "alexa",
+      "match": {
+        "channel": "discord",
+        "accountId": "alexa"
+      }
+    },
+    {
+      "agentId": "taylor",
+      "match": {
+        "channel": "discord",
+        "accountId": "taylor"
+      }
+    },
+    {
+      "agentId": "max",
+      "match": {
+        "channel": "discord",
+        "accountId": "max"
+      }
+    },
+    {
+      "agentId": "marie",
+      "match": {
+        "channel": "discord",
+        "accountId": "marie"
+      }
+    },
+    {
+      "agentId": "sue",
+      "match": {
+        "channel": "discord",
+        "accountId": "sue"
+      }
     }
   ],
   "models": {
@@ -424,6 +459,54 @@
         },
         "rahul": {
           "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
+          }
+        },
+
+
+        
+        "alexa": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_ALEXA}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
+          }
+        },
+        "taylor": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_TAYLOR}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
+          }
+        },
+        "max": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAX}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
+          }
+        },
+        "marie": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MARIE}",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": true,
+              "users": ["1220283451169837077"]
+            }
+          }
+        },
+        "sue": {
+          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_SUE}",
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
