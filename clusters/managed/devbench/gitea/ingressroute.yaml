@@ -2,9 +2,10 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app gitea
+  labels:
+    gethomepage.dev/enabled: "true"
   annotations:
     gethomepage.dev/href: "https://git.trusted.nirmalhk7.com"
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Devbench
     gethomepage.dev/description: "Gitea"
     gethomepage.dev/icon: *app

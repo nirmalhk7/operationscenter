@@ -2,10 +2,11 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app portainer
+  labels:
+    gethomepage.dev/enabled: "true"
   annotations:
     gethomepage.dev/href: "https://portainer.trusted.nirmalhk7.com"
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Applications
+    gethomepage.dev/group: Observability
     gethomepage.dev/icon: portainer
     gethomepage.dev/app: portainer # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Portainer

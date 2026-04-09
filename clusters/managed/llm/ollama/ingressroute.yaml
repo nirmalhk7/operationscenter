@@ -3,6 +3,13 @@ kind: IngressRoute
 metadata:
   name: ollama-ingressroute
   namespace: mgd-llm
+  labels:
+    gethomepage.dev/enabled: "true"
+  annotations:
+    gethomepage.dev/group: LLM
+    gethomepage.dev/name: Ollama
+    gethomepage.dev/icon: ollama
+    gethomepage.dev/href: "https://ollama.trusted.nirmalhk7.com"
 spec:
   entryPoints:
     - websecure

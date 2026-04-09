@@ -2,9 +2,10 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app immich-server
+  labels:
+    gethomepage.dev/enabled: "true"
   annotations:
     gethomepage.dev/app: immich
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Applications
     gethomepage.dev/href: https://immich.trusted.nirmalhk7.com
     gethomepage.dev/icon: immich

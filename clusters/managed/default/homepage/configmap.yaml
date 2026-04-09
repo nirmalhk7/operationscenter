@@ -33,20 +33,6 @@ data:
       });
       widgetsWrap.insertBefore(div, widgetsWrap.lastElementChild);
     }
-    const elements = document.querySelectorAll('.service');
-    if(window.location.host === '10.0.0.10'){
-      Array.from(document.querySelectorAll('.services-list')).map(e=>{
-        Array.from(e.children).forEach(el => {
-            if (!el.id.startsWith('local-')) {
-              el.remove();
-            }
-        });
-        if(e.children.length===0){
-          // console.log(e?.parentElement?.parentElement)
-          return e?.parentElement?.parentElement?.remove()
-        }
-      })
-    }
   bookmarks.yaml: |
     - Quick Links:
         - Operations Center Agile:
@@ -121,13 +107,7 @@ data:
               password: ${PROXMOX_PASSWORD}
               node: milano
   kubernetes.yaml: |
-    - mgd-devbench:
-        show: true
-    - mgd-multimedia:
-        show: true
-    - mgd-security:
-        show: true
-    - mgd-llm:
+    - milano:
         show: true
   proxmox.yaml: |
     milano:
@@ -140,11 +120,11 @@ data:
         text: Operations Center Boulder
         font: bold
     - kubernetes:
-        cluster:
-          show: true
-          cpu: true
-          memory: true
-          showLabel: false
+        cluster: milano
+        show: true
+        cpu: true
+        memory: true
+        showLabel: false
         nodes:
           show: true
           cpu: true

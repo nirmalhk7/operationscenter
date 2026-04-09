@@ -2,9 +2,10 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app prometheus
+  labels:
+    gethomepage.dev/enabled: "true"
   annotations:
     gethomepage.dev/href: "https://prometheus.trusted.nirmalhk7.com"
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Observability
     gethomepage.dev/icon: prometheus
     gethomepage.dev/app: prometheus # optional, may be needed if app.kubernetes.io/name != ingress metadata.name

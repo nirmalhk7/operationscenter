@@ -2,9 +2,10 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app tools
+  labels:
+    gethomepage.dev/enabled: "true"
   annotations:
     gethomepage.dev/href: "https://tools.trusted.nirmalhk7.com"
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Devbench
     gethomepage.dev/description: "IT-Tools"
     gethomepage.dev/icon: mdi-tools

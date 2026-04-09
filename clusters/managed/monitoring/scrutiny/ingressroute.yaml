@@ -2,9 +2,10 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app scrutiny-api
+  labels:
+    gethomepage.dev/enabled: "true"
   annotations:
     gethomepage.dev/href: "https://scrutiny.trusted.nirmalhk7.com"
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Observability
     gethomepage.dev/icon: scrutiny-light
     gethomepage.dev/app: scrutiny # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
