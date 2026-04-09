@@ -29,3 +29,4 @@ data:
   ENABLE_RAG_HYBRID_SEARCH: "true"
   RAG_EMBEDDING_BATCH_SIZE: "8"
   RAG_RELEVANCE_THRESHOLD: "0.2"
+  WEBUI_URL: "https://llms.trusted.nirmalhk7.com"
