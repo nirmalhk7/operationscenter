@@ -76,9 +76,9 @@
         - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication yes' }
       notify: Restart sshd
 
-    - name: Ensure NFS server installed at requested version
+    - name: Ensure NFS server installed
       ansible.builtin.apt:
-        name: "nfs-kernel-server={{ nfs_kernel_server_version }}"
+        name: "nfs-kernel-server"
         update_cache: true
 
   handlers:

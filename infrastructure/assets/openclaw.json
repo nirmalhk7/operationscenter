@@ -18,10 +18,6 @@
       "openrouter:default": {
         "provider": "openrouter",
         "mode": "api_key"
-      },
-      "poe:default": {
-        "provider": "poe",
-        "mode": "api_key"
       }
     }
   },
@@ -34,73 +30,10 @@
       }
     },
     {
-      "agentId": "main",
+      "agentId": "Victor",
       "match": {
-        "channel": "discord",
-        "accountId": "main"
-      }
-    },
-    {
-      "agentId": "victor",
-      "match": {
-        "channel": "discord",
+        "channel": "telegram",
         "accountId": "victor"
-      }
-    },
-    {
-      "agentId": "david",
-      "match": {
-        "channel": "discord",
-        "accountId": "david"
-      }
-    },
-    {
-      "agentId": "motabhai",
-      "match": {
-        "channel": "discord",
-        "accountId": "motabhai"
-      }
-    },
-    {
-      "agentId": "rahul",
-      "match": {
-        "channel": "discord",
-        "accountId": "rahul"
-      }
-    },
-    {
-      "agentId": "alexa",
-      "match": {
-        "channel": "discord",
-        "accountId": "alexa"
-      }
-    },
-    {
-      "agentId": "taylor",
-      "match": {
-        "channel": "discord",
-        "accountId": "taylor"
-      }
-    },
-    {
-      "agentId": "max",
-      "match": {
-        "channel": "discord",
-        "accountId": "max"
-      }
-    },
-    {
-      "agentId": "marie",
-      "match": {
-        "channel": "discord",
-        "accountId": "marie"
-      }
-    },
-    {
-      "agentId": "sue",
-      "match": {
-        "channel": "discord",
-        "accountId": "sue"
       }
     }
   ],
@@ -128,29 +61,26 @@
             "maxTokens": 4096
           }
         ]
-      },
-      "poe": {
-        "baseUrl": "https://api.poe.com/v1",
-        "apiKey": "${OPENCLAW_POE_API_KEY}",
-        "api": "openai-completions",
-        "models": [
-          { "id": "gemma-4-31b", "name": "gemma-4-31b" }
-        ]
-      },
-      "nvidia": {
-        "baseUrl": "https://integrate.api.nvidia.com/v1",
-        "api": "openai-completions",
-        "models": [
-          {
-            "id": "deepseek-ai/deepseek-v3.2",
-            "name": "deepseek-ai/deepseek-v3.2"
-          }
-        ]
       }
     }
   },
   "agents": {
     "defaults": {
+      "model": {
+        "primary": "openrouter/stepfun/step-3.5-flash:free",
+        "fallbacks": [
+          "openrouter/free",
+          "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+          "openrouter/qwen/qwen3-coder:free",
+          "openrouter/openai/gpt-oss-120b:free",
+          "openrouter/google/gemma-3-27b-it:free",
+          "google/gemini-3.1-flash-lite-preview",
+          "openrouter/auto",
+          "google/gemma-3-27b-it",
+          "nvidia-nim/gpt-oss-120b",
+          "local-ollama/qwen2.5-coder:3b"
+        ]
+      },
       "models": {
         "local-ollama/qwen2.5-coder:3b": {
           "alias": "qwen2.5-coder:3b"
@@ -162,12 +92,9 @@
         "openrouter/qwen/qwen3-coder:free": {},
         "openrouter/stepfun/step-3.5-flash:free": {},
         "openrouter/openai/gpt-oss-120b:free": {},
-        "openrouter/minimax/minimax-m2.5:free": {},
         "openrouter/google/gemma-3-27b-it:free": {},
         "google/gemma-3-27b-it": {},
-        "nvidia/gpt-oss-120b": {},
-        "poe/gemma-4-31b": {},
-        "nvidia/deepseek-ai/deepseek-v3.2": {}
+        "nvidia-nim/gpt-oss-120b": {}
       },
       "workspace": "/root/.openclaw/workspace",
       "compaction": {
@@ -191,13 +118,11 @@
       {
         "id": "main",
         "model": {
-          "primary": "openrouter/google/gemma-4-26b-a4b-it:free",
+          "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
-            "openrouter/google/gemma-4-31b-it:free",
-            "openrouter/qwen/qwen3-next-80b-a3b-instruct:free",
-            "openrouter/qwen/qwen3-coder:free",
-            "openrouter/minimax/minimax-m2.5:free",
-            "poe/gemma-4-31b"
+            "openrouter/free",
+            "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+            "openrouter/google/gemma-3-27b-it:free"
           ]
         },
         "tools": {
@@ -222,7 +147,8 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        }
+        },
+        
       },
       {
         "id": "david",
@@ -242,7 +168,8 @@
             "openrouter/free",
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
-        }
+        },
+        
       },
       {
         "id": "motabhai",
@@ -262,7 +189,8 @@
             "openrouter/free",
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
-        }
+        },
+        
       },
       {
         "id": "rahul",
@@ -282,7 +210,8 @@
             "openrouter/qwen/qwen3-coder:free",
             "openrouter/free"
           ]
-        }
+        },
+        
       },
       {
         "id": "alexa",
@@ -302,7 +231,8 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        }
+        },
+        
       },
       {
         "id": "taylor",
@@ -322,7 +252,8 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        }
+        },
+        
       },
       {
         "id": "max",
@@ -342,7 +273,8 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        }
+        },
+        
       },
       {
         "id": "marie",
@@ -362,7 +294,8 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        }
+        },
+        
       },
       {
         "id": "sue",
@@ -382,7 +315,8 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        }
+        },
+        
       }
     ]
   },
@@ -402,8 +336,6 @@
     "native": "auto",
     "nativeSkills": "auto",
     "restart": true,
-    "mcp": true,
-    "plugins": true,
     "ownerDisplay": "raw"
   },
   "session": {
@@ -411,119 +343,23 @@
   },
   "channels": {
     "discord": {
-      "enabled": true,
-      "accounts": {
-        "main": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAIN}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": false,
-              "users": ["1220283451169837077"]
-            }
+      voice: {
+        enabled: true,
+        autoJoin: [
+          {
+            guildId: "123456789012345678",
+            channelId: "234567890123456789",
           },
-          "voice": {
-            "enabled": true,
-            "autoJoin": [
-              {
-                "guildId": "1487714737964716084",
-                "channelId": "1487714739319603234"
-              }
-            ],
-            "tts": {
-              "provider": "openai",
-              "providers": {
-                "openai": {
-                  "voice": "alloy"
-                }
-              }
-            }
-          }
+        ],
+        daveEncryption: true,
+        decryptionFailureTolerance: 24,
+        tts: {
+          provider: "openai",
+          openai: { voice: "alloy" },
         },
-        "victor": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_VICTOR}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "david": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_DAVID}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "motabhai": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MOTABHAI}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "rahul": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-
-
-        
-        "alexa": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_ALEXA}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "taylor": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_TAYLOR}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "max": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAX}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "marie": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MARIE}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "sue": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_SUE}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        }
       },
+      "enabled": true,
+      "token": "MTQ4NzU3ODI5NDg5NDMyOTkzNw.GD9u43.exJVoCCiBz59d_hX5DgC4ddTiQcHPdrgm1Oz-w",
       "groupPolicy": "allowlist",
       "streaming": "off",
       "dmPolicy": "allowlist",
@@ -532,6 +368,19 @@
       ],
       "dm": {
         "enabled": true
+      },
+      "guilds": {
+        "1487714737964716084": {
+          "requireMention": false,
+          "users": [
+            "1220283451169837077"
+          ],
+          "channels": {
+            "1487714739319603233": {
+              "allow": true
+            }
+          }
+        }
       }
     },
     "telegram": {
@@ -603,40 +452,6 @@
     "entries": {
       "telegram": {
         "enabled": true
-      }
-    }
-  },
-  "mcp": {
-    "servers": {
-      "alpaca": {
-        "command": "/root/.local/bin/uvx",
-        "args": ["alpaca-mcp-server"],
-        "env": {
-          "APCA_API_KEY_ID": "${ALPACA_API_KEY}",
-          "APCA_API_SECRET_KEY": "${ALPACA_SECRET_KEY}",
-        }
-      },
-      "kite": {
-        "url": "https://mcp.kite.trade/sse"
-      },
-      "notion": {
-        "url": "https://mcp.notion.com/mcp"
-      },
-      "todoist": {
-        "url": "https://ai.todoist.net/mcp"
-      },
-      "alphavantage": {
-        "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}",
-        "transport": "streamable-http"
-      },
-      "polymarket": {
-        "url": "https://mcp.polymarket.com/mcp"
-      },
-      "github": {
-        "url": "https://api.githubcopilot.com/mcp/",
-        "headers": {
-          "Authorization": "Bearer ${OPENCLAW_GITHUB_PAT}"
-        }
       }
     }
   }
