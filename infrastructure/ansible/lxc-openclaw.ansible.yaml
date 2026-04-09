@@ -210,6 +210,7 @@
           {{ key }}="{{ lookup('env', key) }}"
           {% endfor %}
           OPENROUTER_API_KEY={{ lookup('env', 'OPENROUTER_API_KEY') }}
+          NVIDIA_API_KEY={{ lookup('env', 'NVIDIA_API_KEY') }}
           GEMINI_API_KEY={{ lookup('env', 'GEMINI_API_KEY') }}
           NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
           OPENCLAW_NO_RESPAWN=1

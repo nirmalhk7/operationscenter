@@ -18,6 +18,10 @@
       "openrouter:default": {
         "provider": "openrouter",
         "mode": "api_key"
+      },
+      "poe:default": {
+        "provider": "poe",
+        "mode": "api_key"
       }
     }
   },
@@ -124,27 +128,29 @@
             "maxTokens": 4096
           }
         ]
+      },
+      "poe": {
+        "baseUrl": "https://api.poe.com/v1",
+        "apiKey": "${OPENCLAW_POE_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "gemma-4-31b", "name": "gemma-4-31b" }
+        ]
+      },
+      "nvidia": {
+        "baseUrl": "https://integrate.api.nvidia.com/v1",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "deepseek-ai/deepseek-v3.2",
+            "name": "deepseek-ai/deepseek-v3.2"
+          }
+        ]
       }
     }
   },
   "agents": {
     "defaults": {
-      "model": {
-        "primary": "openrouter/minimax/minimax-m2.5:free",
-        "fallbacks": [
-          "openrouter/stepfun/step-3.5-flash:free",
-          "openrouter/free",
-          "openrouter/google/gemma-3-27b-it:free",
-          "openrouter/openai/gpt-oss-120b:free",
-          "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
-          "openrouter/qwen/qwen3-coder:free",
-          "google/gemini-3.1-flash-lite-preview",
-          "openrouter/auto",
-          "google/gemma-3-27b-it",
-          "nvidia-nim/gpt-oss-120b",
-          "local-ollama/qwen2.5-coder:3b"
-        ]
-      },
       "models": {
         "local-ollama/qwen2.5-coder:3b": {
           "alias": "qwen2.5-coder:3b"
@@ -159,7 +165,9 @@
         "openrouter/minimax/minimax-m2.5:free": {},
         "openrouter/google/gemma-3-27b-it:free": {},
         "google/gemma-3-27b-it": {},
-        "nvidia-nim/gpt-oss-120b": {}
+        "nvidia/gpt-oss-120b": {},
+        "poe/gemma-4-31b": {},
+        "nvidia/deepseek-ai/deepseek-v3.2": {}
       },
       "workspace": "/root/.openclaw/workspace",
       "compaction": {
@@ -183,12 +191,13 @@
       {
         "id": "main",
         "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "primary": "openrouter/google/gemma-4-26b-a4b-it:free",
           "fallbacks": [
-            "openrouter/stepfun/step-3.5-flash:free",
-            "openrouter/free",
-            "openrouter/google/gemma-3-27b-it:free",
-            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
+            "openrouter/google/gemma-4-31b-it:free",
+            "openrouter/qwen/qwen3-next-80b-a3b-instruct:free",
+            "openrouter/qwen/qwen3-coder:free",
+            "openrouter/minimax/minimax-m2.5:free",
+            "poe/gemma-4-31b"
           ]
         },
         "tools": {
@@ -601,11 +610,10 @@
     "servers": {
       "alpaca": {
         "command": "/root/.local/bin/uvx",
-        "args": ["alpaca-mcp-server", "serve"],
+        "args": ["alpaca-mcp-server"],
         "env": {
-          "ALPACA_API_KEY": "${ALPACA_API_KEY}",
-          "ALPACA_SECRET_KEY": "${ALPACA_SECRET_KEY}",
-          "ALPACA_PAPER": "true"
+          "APCA_API_KEY_ID": "${ALPACA_API_KEY}",
+          "APCA_API_SECRET_KEY": "${ALPACA_SECRET_KEY}",
         }
       },
       "kite": {
