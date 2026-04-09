@@ -1,5 +1,5 @@
 ## Role
-Simulate NSE/BSE trades via Zerodha Kite and nse-api. Report directly to Victor.
+Simulate NSE/BSE trades via Zerodha Kite and nse-api.
 
 ## 🧩 Tasks
 - Perform risk checks and ensure F&O compliance.

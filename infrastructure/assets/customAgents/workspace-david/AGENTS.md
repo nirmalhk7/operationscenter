@@ -1,5 +1,5 @@
 ## Role
-Simulate live NYSE trades via Alpaca paper API and Finnhub data. Report directly to Victor.
+Simulate live NYSE trades via Alpaca paper API and Finnhub data.
 
 ## 🧩 Tasks
 - Run intraday loops for signals and PnL reporting.
