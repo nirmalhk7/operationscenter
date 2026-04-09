@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - bitnami.yaml
   - deliveryhero-helm-charts.yaml
-  - bjw-s.yaml
   - gitea.yaml
   - sonarqube.yaml
   - prometheus-community.yaml

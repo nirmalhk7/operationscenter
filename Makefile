@@ -136,6 +136,21 @@ onboard-agents-discord:
 		done; \
 	fi
 
+# --- Flux ---
+flux-suspend:
+	@if [ -z "$(NS)" ]; then \
+		echo "Usage: make flux-suspend NS=namespace (e.g., default, monitoring)"; \
+	else \
+		flux suspend kustomization mgd-$(NS); \
+	fi
+
+flux-resume:
+	@if [ -z "$(NS)" ]; then \
+		echo "Usage: make flux-resume NS=namespace"; \
+	else \
+		flux resume kustomization mgd-$(NS); \
+	fi
+
 sync:
 	git add .
 	git commit --amend --no-edit

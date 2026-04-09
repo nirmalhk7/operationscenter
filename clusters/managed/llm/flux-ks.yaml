@@ -1,0 +1,12 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: mgd-llm
+  namespace: flux-system
+spec:
+  interval: 24h
+  path: ./clusters/managed/llm
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: operationscenter-git

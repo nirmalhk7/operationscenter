@@ -20,3 +20,4 @@ spec:
     storageClass:
       name: milano-v3
       reclaimPolicy: Retain
+    replicaCount: 3

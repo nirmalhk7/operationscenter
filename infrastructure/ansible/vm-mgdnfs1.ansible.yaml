@@ -81,8 +81,31 @@
         name: "nfs-kernel-server"
         update_cache: true
 
+    - name: Configure NFS exports
+      ansible.builtin.lineinfile:
+        path: /etc/exports
+        line: "{{ mount_point }} *(rw,sync,no_subtree_check,no_root_squash)"
+        state: present
+        create: true
+      notify: Reload nfs exports
+
+    - name: Ensure NFS service is running and enabled
+      ansible.builtin.systemd:
+        name: nfs-kernel-server
+        state: started
+        enabled: true
+
   handlers:
     - name: Restart sshd
       ansible.builtin.systemd:
         name: sshd
+        state: restarted
+
+    - name: Reload nfs exports
+      ansible.builtin.command: exportfs -ra
+      notify: Restart nfs-kernel-server
+
+    - name: Restart nfs-kernel-server
+      ansible.builtin.systemd:
+        name: nfs-kernel-server
         state: restarted

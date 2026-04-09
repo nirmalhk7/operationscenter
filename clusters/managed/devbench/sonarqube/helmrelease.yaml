@@ -19,7 +19,7 @@ spec:
       enabled: true
     persistence:
       enabled: true
-      storageClass: milano-v2
+      storageClass: milano-v3
     jdbcOverwrite:
       enabled: true
       jdbcUrl: "jdbc:postgresql://172.16.0.106:5432/sonarqube"
