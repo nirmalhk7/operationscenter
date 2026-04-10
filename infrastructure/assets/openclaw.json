@@ -343,20 +343,20 @@
   },
   "channels": {
     "discord": {
-      voice: {
-        enabled: true,
-        autoJoin: [
+      "voice": {
+        "enabled": true,
+        "autoJoin": [
           {
-            guildId: "123456789012345678",
-            channelId: "234567890123456789",
-          },
+            "guildId": "123456789012345678",
+            "channelId": "234567890123456789"
+          }
         ],
-        daveEncryption: true,
-        decryptionFailureTolerance: 24,
-        tts: {
-          provider: "openai",
-          openai: { voice: "alloy" },
-        },
+        "daveEncryption": true,
+        "decryptionFailureTolerance": 24,
+        "tts": {
+          "provider": "openai",
+          "openai": { "voice": "alloy" }
+        }
       },
       "enabled": true,
       "token": "MTQ4NzU3ODI5NDg5NDMyOTkzNw.GD9u43.exJVoCCiBz59d_hX5DgC4ddTiQcHPdrgm1Oz-w",

@@ -10,3 +10,4 @@ spec:
   sourceRef:
     kind: GitRepository
     name: operationscenter-git
+    namespace: flux-system

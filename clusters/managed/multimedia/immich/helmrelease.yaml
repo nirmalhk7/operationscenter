@@ -43,3 +43,7 @@ spec:
           storageClass: "milano-v3"
           accessMode: ReadWriteMany
           size: 11Gi
+        server:
+          storageClass: "milano-v3"
+          accessMode: ReadWriteOnce
+          size: 1Gi

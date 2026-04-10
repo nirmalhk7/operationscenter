@@ -6,4 +6,3 @@ metadata:
 spec:
   url: https://deliveryhero.github.io/helm-charts
   interval: 1h
-  type: oci 
