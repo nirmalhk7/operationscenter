@@ -6,7 +6,6 @@ resources:
   - ../_middlewares
   - _repositories
   - namespace.yaml
-  - authentik
   - authelia
   - vaultwarden
 

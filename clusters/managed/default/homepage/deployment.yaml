@@ -48,6 +48,8 @@ spec:
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
               value: "home.trusted.nirmalhk7.com,10.0.0.10"
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              value: "0"
           envFrom:
             - secretRef: 
                 name: homepage-secret

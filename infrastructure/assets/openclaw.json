@@ -359,7 +359,7 @@
         }
       },
       "enabled": true,
-      "token": "MTQ4NzU3ODI5NDg5NDMyOTkzNw.GD9u43.exJVoCCiBz59d_hX5DgC4ddTiQcHPdrgm1Oz-w",
+      "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAIN}",
       "groupPolicy": "allowlist",
       "streaming": "off",
       "dmPolicy": "allowlist",
