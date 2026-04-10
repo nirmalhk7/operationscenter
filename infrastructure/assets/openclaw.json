@@ -148,7 +148,12 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        
+        "subagents": {
+          "allowAgents": [
+            "david",
+            "motabhai"
+          ]
+        }
       },
       {
         "id": "david",
@@ -168,8 +173,7 @@
             "openrouter/free",
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
-        },
-        
+        }
       },
       {
         "id": "motabhai",
@@ -189,8 +193,7 @@
             "openrouter/free",
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
-        },
-        
+        }
       },
       {
         "id": "rahul",
@@ -210,8 +213,7 @@
             "openrouter/qwen/qwen3-coder:free",
             "openrouter/free"
           ]
-        },
-        
+        }
       },
       {
         "id": "alexa",
@@ -231,8 +233,7 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        },
-        
+        }
       },
       {
         "id": "taylor",
@@ -253,7 +254,12 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        
+        "subagents": {
+          "allowAgents": [
+            "rahul",
+            "alexa"
+          ]
+        }
       },
       {
         "id": "max",
@@ -274,7 +280,11 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        
+        "subagents": {
+          "allowAgents": [
+            "marie"
+          ]
+        }
       },
       {
         "id": "marie",
@@ -295,7 +305,11 @@
             "openrouter/google/gemma-3-27b-it:free"
           ]
         },
-        
+        "subagents": {
+          "allowAgents": [
+            "max"
+          ]
+        }
       },
       {
         "id": "sue",
@@ -315,8 +329,7 @@
             "openrouter/free",
             "openrouter/google/gemma-3-27b-it:free"
           ]
-        },
-        
+        }
       }
     ]
   },
@@ -355,7 +368,9 @@
         "decryptionFailureTolerance": 24,
         "tts": {
           "provider": "openai",
-          "openai": { "voice": "alloy" }
+          "openai": {
+            "voice": "alloy"
+          }
         }
       },
       "enabled": true,
@@ -389,18 +404,24 @@
         "main": {
           "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
           "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         },
         "victor": {
           "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR}",
           "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         }
       },
       "groups": {
         "-1003812665515": {
           "requireMention": false,
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         }
       }
     }
