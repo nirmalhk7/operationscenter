@@ -4,5 +4,5 @@ metadata:
   name: &app deliveryhero-helm-charts
   namespace: mgd-devbench
 spec:
-  url: https://deliveryhero.github.io/helm-charts
+  url: https://raw.githubusercontent.com/deliveryhero/helm-charts/master/
   interval: 1h

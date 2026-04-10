@@ -37,7 +37,7 @@ spec:
     persistence:  
       enabled: true
       size: 20Gi
-      storageClass: milano-v3
+      storageClass: milano-v2
 
     nextcloud:
       host: drive.trusted.nirmalhk7.com
