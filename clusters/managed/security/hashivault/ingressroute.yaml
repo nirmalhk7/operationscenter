@@ -2,9 +2,8 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app hashivault
-  labels:
-    gethomepage.dev/enabled: "true"
   annotations:
+    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://vault.trusted.nirmalhk7.com"
     gethomepage.dev/description: "Hashicorp Vault"
     gethomepage.dev/group: Security

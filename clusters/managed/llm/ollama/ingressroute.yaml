@@ -3,9 +3,8 @@ kind: IngressRoute
 metadata:
   name: ollama-ingressroute
   namespace: mgd-llm
-  labels:
-    gethomepage.dev/enabled: "true"
   annotations:
+    gethomepage.dev/enabled: "true"
     gethomepage.dev/group: LLM
     gethomepage.dev/name: Ollama
     gethomepage.dev/icon: ollama

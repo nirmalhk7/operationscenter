@@ -2,9 +2,8 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app n8n
-  labels:
-    gethomepage.dev/enabled: "true"
   annotations:
+    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://n8n.trusted.nirmalhk7.com"
     gethomepage.dev/group: Applications
     gethomepage.dev/icon: *app

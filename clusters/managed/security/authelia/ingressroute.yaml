@@ -2,9 +2,8 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: &app authelia
-  labels:
-    gethomepage.dev/enabled: "true"
   annotations:
+    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://secure.trusted.nirmalhk7.com"
     gethomepage.dev/group: Security
     gethomepage.dev/icon: *app
