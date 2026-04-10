@@ -3,6 +3,13 @@ kind: ConfigMap
 metadata:
   name: &app homepage
 data:
+  kubernetes.yaml: |
+    mode: cluster
+    traefik: true
+  proxmox.yaml: |
+    url: https://10.0.0.10:8006
+    token: ${PROXMOX_USERNAME}
+    secret: ${PROXMOX_PASSWORD}
   settings.yaml: |
     title: "Operations Center Boulder - MILANO"
     description: "Welcome to Milano!"
@@ -33,6 +40,20 @@ data:
       });
       widgetsWrap.insertBefore(div, widgetsWrap.lastElementChild);
     }
+    const elements = document.querySelectorAll('.service');
+    if(window.location.host === '10.0.0.10'){
+      Array.from(document.querySelectorAll('.services-list')).map(e=>{
+        Array.from(e.children).forEach(el => {
+            if (!el.id.startsWith('local-')) {
+              el.remove();
+            }
+        });
+        if(e.children.length===0){
+          // console.log(e?.parentElement?.parentElement)
+          return e?.parentElement?.parentElement?.remove()
+        }
+      })
+    }
   bookmarks.yaml: |
     - Quick Links:
         - Operations Center Agile:
@@ -42,10 +63,10 @@ data:
             - icon: linkace
               href: https://dashboardicons.com/icons
   services.yaml: |
-    - Applications:
+      - Applications:
         - Robot:
-            name: Robot
             icon: openclaw
+            name: Robot
             description: Openclaw Dashboard
             href: "https://robot.trusted.nirmalhk7.com"
     - Infrastructure:
@@ -72,15 +93,15 @@ data:
     - Networking:
         - Tailscale:
             id: local-tailscale
-            icon: tailscale-light
+            icon: tailscale-light	
             href: https://login.tailscale.com/admin/machines
             widget:
               type: tailscale
-              deviceid: nCxuNd54B921CNTRL
+              deviceid: ${TSKEY_DEVICEID}
               key: ${TSKEY_API}
         - Google Home:
             id: googlehome
-            icon: google-home
+            icon: tailscale-light	
             href: https://home.google.com/home/1-55a939b1374bf27e1be4ded764e93e4d2c88ff3cbb03c77c535f0137a96f7663/devices
         - Cloudflare:
             id: local-cloudflare
@@ -106,27 +127,17 @@ data:
               username: ${PROXMOX_USERNAME}
               password: ${PROXMOX_PASSWORD}
               node: milano
-  kubernetes.yaml: |
-    - milano:
-        show: true
-        ingress: true
-        ingressroute: true
-  proxmox.yaml: |
-    milano:
-      url: https://10.0.0.10:8006/
-      username: ${PROXMOX_USERNAME}
-      password: ${PROXMOX_PASSWORD}
   widgets.yaml: |
     - greeting:
         text_size: xl
         text: Operations Center Boulder
         font: bold
     - kubernetes:
-        cluster: milano
-        show: true
-        cpu: true
-        memory: true
-        showLabel: false
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: false
         nodes:
           show: true
           cpu: true

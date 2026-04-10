@@ -21,35 +21,13 @@ spec:
       automountServiceAccountToken: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
-      hostAliases:
-        - ip: "172.16.0.101"
-          hostnames:
-            - home.trusted.nirmalhk7.com
-            - auth.trusted.nirmalhk7.com
-            - grafana.trusted.nirmalhk7.com
-            - prometheus.trusted.nirmalhk7.com
-            - scrutiny.trusted.nirmalhk7.com
-            - secure.trusted.nirmalhk7.com
-            - portainer.trusted.nirmalhk7.com
-            - robot.trusted.nirmalhk7.com
-            - proxmox.trusted.nirmalhk7.com
-            - vault.trusted.nirmalhk7.com
-            - authelia.trusted.nirmalhk7.com
-            - authentik.trusted.nirmalhk7.com
-            - immich.trusted.nirmalhk7.com
-            - drive.trusted.nirmalhk7.com
-            - git.trusted.nirmalhk7.com
-            - n8n.trusted.nirmalhk7.com
-            - outline.trusted.nirmalhk7.com
       containers:
         - name: *app
-          image: "ghcr.io/gethomepage/homepage:v1.12.3"
+          image: "ghcr.io/gethomepage/homepage:v1.11.0"
           imagePullPolicy: Always
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
               value: "home.trusted.nirmalhk7.com,10.0.0.10"
-            - name: NODE_TLS_REJECT_UNAUTHORIZED
-              value: "0"
           envFrom:
             - secretRef: 
                 name: homepage-secret
@@ -82,9 +60,6 @@ spec:
             - mountPath: /app/config/widgets.yaml
               name: homepage-config
               subPath: widgets.yaml
-            - mountPath: /app/config/proxmox.yaml
-              name: homepage-config
-              subPath: proxmox.yaml
             - mountPath: /app/config/logs
               name: logs
             - mountPath: /app/secret
