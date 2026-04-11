@@ -359,7 +359,7 @@
         }
       },
       "enabled": true,
-      "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAIN}",
+      "token": "${}",
       "groupPolicy": "allowlist",
       "streaming": "off",
       "dmPolicy": "allowlist",

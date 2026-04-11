@@ -19,6 +19,7 @@ metadata:
   name: traefik-dashboard-ingress
 spec:
   entryPoints:
+  - web
   - websecure
   routes:
   - kind: Rule
