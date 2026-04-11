@@ -1,4 +1,4 @@
-- [x] Fix nfsprovisioner-subdir-external-provisioner-root (Fixed by adding nfs-common to nodes in vm-k8mgd.ansible.yaml)
+- [ ] Fix nfsprovisioner-subdir-external-provisioner-root (NFS mount options update pending)
 ```
 ...
 ```

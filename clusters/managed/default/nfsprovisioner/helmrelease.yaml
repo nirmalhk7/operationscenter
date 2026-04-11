@@ -18,8 +18,12 @@ spec:
       server: 172.16.0.108
       path: /mnt/2tbhdd
       mountOptions:
-        - nfsvers=4
+        - nfsvers=4.1
+        - hard
+        - noresvport
     storageClass:
       name: milano-v3
       reclaimPolicy: Retain
     replicaCount: 3
+    metrics:
+      enabled: true

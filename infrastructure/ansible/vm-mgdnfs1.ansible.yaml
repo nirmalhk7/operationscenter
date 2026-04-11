@@ -84,7 +84,7 @@
     - name: Configure NFS exports
       ansible.builtin.lineinfile:
         path: /etc/exports
-        line: "{{ mount_point }} *(rw,sync,no_subtree_check,no_root_squash)"
+        line: "{{ mount_point }} 172.16.0.0/24(rw,sync,no_subtree_check,no_root_squash)"
         state: present
         create: true
       notify: Reload nfs exports
