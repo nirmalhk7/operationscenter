@@ -121,5 +121,20 @@ spec:
         serviceMonitorSelector:
           matchLabels:
             prometheus: prometheus_servicemonitor
+        retention: 1d
+        storageSpec:
+          v1beta1:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 2Gi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 2Gi
     commonLabels:
       milano.level: managed
