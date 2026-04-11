@@ -34,7 +34,7 @@
         - name: Ensure base deps
           ansible.builtin.apt:
             update_cache: true
-            name: [ca-certificates, curl, nfs-common]
+            name: [ca-certificates, curl]
 
         - name: Ensure keyrings directory exists
           ansible.builtin.file:
