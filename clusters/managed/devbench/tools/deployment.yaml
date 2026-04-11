@@ -17,7 +17,7 @@ spec:
       - name: it-tools
         image: ghcr.io/sharevb/it-tools:nightly
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
 ---
 apiVersion: v1
@@ -28,7 +28,7 @@ metadata:
 spec:
   ports:
   - port: 8080
-    targetPort: 80
+    targetPort: 8080
     protocol: TCP
     name: http
   selector:
