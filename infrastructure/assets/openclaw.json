@@ -107,7 +107,7 @@
         "openrouter/google/gemma-4-26b-a4b-it:free": {},
         "openrouter/google/gemma-4-31b-it:free": {},
         "openrouter/minimax/minimax-m2.5:free": {},
-        "openrouter/meta-llama/llama-3.3-70b-instruct:free":{},
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free": {},
         "google/gemma-3-27b-it": {},
         "nvidia-nim/gpt-oss-120b": {},
         "groq/qwen/qwen3-32b": {},
@@ -161,6 +161,12 @@
           "fallbacks": [
             "openrouter/free"
           ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "david",
+            "motabhai"
+          ]
         }
       },
       {
@@ -180,6 +186,11 @@
           "fallbacks": [
             "openrouter/free",
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
+          ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "victor"
           ]
         }
       },
@@ -201,6 +212,11 @@
             "openrouter/free",
             "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
           ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "victor"
+          ]
         }
       },
       {
@@ -221,6 +237,11 @@
             "openrouter/qwen/qwen3-coder:free",
             "openrouter/free"
           ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "taylor"
+          ]
         }
       },
       {
@@ -239,6 +260,11 @@
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free"
+          ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "taylor"
           ]
         }
       },
@@ -259,6 +285,12 @@
           "fallbacks": [
             "openrouter/free"
           ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "rahul",
+            "alexa"
+          ]
         }
       },
       {
@@ -278,6 +310,11 @@
           "fallbacks": [
             "openrouter/free"
           ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "marie"
+          ]
         }
       },
       {
@@ -296,6 +333,11 @@
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/free"
+          ]
+        },
+        "subagents": {
+          "allowAgents": [
+            "max"
           ]
         }
       },
@@ -351,7 +393,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": false,
-              "users": ["1220283451169837077"],
+              "users": [
+                "1220283451169837077"
+              ]
             }
           },
           "voice": {
@@ -375,7 +419,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -384,7 +430,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -393,7 +441,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -402,7 +452,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -411,7 +463,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -420,7 +474,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -429,7 +485,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -438,7 +496,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         },
@@ -447,7 +507,9 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           }
         }
@@ -468,18 +530,24 @@
         "main": {
           "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
           "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         },
         "victor": {
           "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR}",
           "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         }
       },
       "groups": {
         "-1003812665515": {
           "requireMention": false,
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         }
       }
     }
