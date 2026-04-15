@@ -103,8 +103,17 @@
           - nodejs
           - gh
           - kubectl
+          - python3-venv
+          - python3-pip
         state: present
         update_cache: true
+
+    - name: Install uv via official script
+      ansible.builtin.shell:
+        cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+        creates: "{{ openclaw_home }}/.local/bin/uv"
+      environment:
+        HOME: "{{ openclaw_home }}"
 
     - name: Check if pnpm is already installed
       ansible.builtin.command: pnpm --version
@@ -292,5 +301,12 @@
           when: 
             - obsidian_repo != ""
             - gh_auth is succeeded
+
+        - name: Install Polymarket MCP tool via uv
+          ansible.builtin.shell:
+            cmd: "{{ openclaw_home }}/.local/bin/uv tool install git+https://github.com/berlinbra/polymarket-mcp --force"
+          environment:
+            PATH: "{{ openclaw_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
+          changed_when: true
 
 

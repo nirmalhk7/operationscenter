@@ -84,6 +84,14 @@
   },
   "agents": {
     "defaults": {
+      "heartbeat": {
+        "every": "30m",
+        "model": "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+        "target": "discord",
+        "directPolicy": "allow",
+        "lightContext": true,
+        "isolatedSession": true
+      },
       "model": {
         "primary": "openrouter/qwen/qwen3-coder:free",
         "fallbacks": [
@@ -100,6 +108,7 @@
         "openrouter/auto": {},
         "openrouter/free": {},
         "openrouter/nvidia/nemotron-3-super-120b-a12b:free": {},
+        "openrouter/nvidia/nemotron-3-nano-30b-a3b:free": {},
         "openrouter/qwen/qwen3-coder:free": {},
         "openrouter/qwen/qwen3-next-80b-a3b-instruct:free": {},
         "openrouter/openai/gpt-oss-120b:free": {},
@@ -351,7 +360,7 @@
           "guilds": {
             "1487714737964716084": {
               "requireMention": false,
-              "users": ["1220283451169837077"],
+              "users": ["1220283451169837077"]
             }
           },
           "voice": {
@@ -537,18 +546,23 @@
   "mcp": {
     "servers": {
       "kite": {
-        "url": "https://mcp.kite.trade/sse",
+        "url": "https://mcp.kite.trade/mcp",
         "transport": "streamable-http"
       },
       "todoist": {
-        "url": "https://mcp.todoist.com/mcp",
-        "transport": "streamable-http"
+        "url": "https://ai.todoist.net/mcp",
+        "transport": "streamable-http",
+        "headers": {
+          "Authorization": "Bearer ${OPENCLAW_TODOIST_API_KEY}"
+        }
       },
       "alphavantage": {
-        "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}"
+        "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}",
+        "transport": "streamable-http"
       },
       "polymarket": {
-        "url": "https://mcp.polymarket.net/mcp"
+        "command": "smithery",
+        "args": ["run", "aryankeluskar/polymarket-mcp"]
       }
     }
   }
