@@ -18,7 +18,7 @@ spec:
       server: 172.16.0.108
       path: /mnt/2tbhdd
       mountOptions:
-        - nfsvers=4.1
+        - nfsvers=3
         - hard
         - noresvport
     storageClass:
