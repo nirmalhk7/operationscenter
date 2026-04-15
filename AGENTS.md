@@ -47,9 +47,9 @@
 The Operations Center is managed by a specialized team of AI agents, coordinated by **Nestor (Chief of Staff)**.
 
 ### 📈 Core Trading Agents
-- **David (US Equity Trader)**: Simulates live trades (Alpaca/Finnhub); intraday specialist.
-- **Motabhai (Indian Equity Trader)**: Simulates NSE/BSE trades (Zerodha/nse-api); Indian market expert.
-- **Victor (Trading Orchestrator)**: Routes tasks and aggregates PnL reports via A2A protocol.
+- **David (US Equity Analyst)**: Deep-value specialist (Graham/Greenblatt); researches high-conviction US ideas.
+- **Motabhai (Indian Equity Analyst)**: Deep-value specialist (Graham/Greenblatt); researches high-conviction Indian ideas.
+- **Victor (Investment Committee Inquisitor)**: Siberian orchestrator; grills analysts, enforces 24h quotas, and publishes final reports.
 
 ### 🏗️ Infrastructure Agents
 - **Rahul (Cluster Manager)**: Monitors K8s/Proxmox and proactively fixes YAML manifests via PRs.

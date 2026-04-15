@@ -28,7 +28,7 @@
 
     - name: Copy custom agent workspaces
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/customAgents/"
+        src: "{{ playbook_dir }}/../../openclaw/customAgents/"
         dest: /root/.openclaw/
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
@@ -37,7 +37,7 @@
 
     - name: Copy main agent workspaces
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/mainAgent/"
+        src: "{{ playbook_dir }}/../../openclaw/mainAgent/"
         dest: /root/.openclaw/workspace/
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
@@ -202,12 +202,21 @@
 
     - name: Deploy main OpenClaw configuration file
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/openclaw.json"
+        src: "{{ playbook_dir }}/../../openclaw/openclaw.json"
         dest: /root/.openclaw/openclaw.json
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
         force: yes
+
+    - name: Deploy Investment Committee state file
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../openclaw/investment_committee_state.json"
+        dest: /root/.openclaw/investment_committee_state.json
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0600'
+        force: no
 
 
 
