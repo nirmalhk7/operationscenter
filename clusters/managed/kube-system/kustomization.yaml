@@ -5,6 +5,7 @@ resources:
   - flux-ks.yaml
   - ../_middlewares
   - traefik
+  - coredns
   - sealedsecrets
   - bot-openclaw
 
