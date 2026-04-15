@@ -1,4 +1,4 @@
-- [ ] Fix nfsprovisioner-subdir-external-provisioner-root (NFS mount options update pending)
+- [x] Fix nfsprovisioner-subdir-external-provisioner-root (NFS mount options update pending)
 ```
 ...
 ```
