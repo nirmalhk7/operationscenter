@@ -8,5 +8,5 @@ spec:
   ports:
     - name: http
       port: 80
-      targetPort: 3100
+      targetPort: 3001
   type: ClusterIP
