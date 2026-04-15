@@ -233,44 +233,6 @@
         }
       },
       {
-        "id": "alexa",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free"
-          ]
-        }
-      },
-      {
-        "id": "taylor",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free"
-          ]
-        }
-      },
-      {
         "id": "max",
         "tools": {
           "alsoAllow": [
@@ -291,25 +253,6 @@
       },
       {
         "id": "marie",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free"
-          ]
-        }
-      },
-      {
-        "id": "sue",
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -415,24 +358,6 @@
             }
           }
         },
-        "alexa": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_ALEXA}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "taylor": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_TAYLOR}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
         "max": {
           "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAX}",
           "guilds": {
@@ -444,15 +369,6 @@
         },
         "marie": {
           "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MARIE}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "sue": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_SUE}",
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
