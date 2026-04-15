@@ -17,9 +17,9 @@ spec:
     spec:
       containers:
         - name: *app
-          image: smithery/polymarket-mcp:latest
+          image: berlinbra/polymarket-mcp:latest
           ports:
-            - containerPort: 3001
+            - containerPort: 3100
               name: http
           env:
             - name: GAMMA_API_URL
