@@ -53,9 +53,6 @@ The Operations Center is managed by a specialized team of AI agents, coordinated
 
 ### 🏗️ Infrastructure Agents
 - **Rahul (Cluster Manager)**: Monitors K8s/Proxmox and proactively fixes YAML manifests via PRs.
-- **Alexa (Obsidian Manager)**: Archivist; reads/writes vault data via Obsidian CLI and logs trades.
-- **Taylor (Writer Agent)**: Content creator; drafts blogs based on technical hurdles from Rahul.
-- **Sue (Calendar Manager)**: Manages ICS calendar feeds and sends proactive scheduling alerts via her own Telegram bot.
 
 ### 💡 Idea Refinement Agents
 - **Max (Idea Suggestor)**: Generates trend-aware tech startup ideas.
