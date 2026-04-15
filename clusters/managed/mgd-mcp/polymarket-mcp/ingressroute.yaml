@@ -1,0 +1,25 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: &app polymarket-mcp-ingress
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://mcp.trusted.nirmalhk7.com/polymarket"
+    gethomepage.dev/group: "MCP Servers"
+    gethomepage.dev/icon: "polymarket" # standard icon name might not exist, but let's try
+    gethomepage.dev/app: "polymarket-mcp"
+    gethomepage.dev/name: "Polymarket MCP"
+    gethomepage.dev/pod-selector: "milano.app=polymarket-mcp"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`mcp.trusted.nirmalhk7.com`) && PathPrefix(`/polymarket`)
+      kind: Rule
+      middlewares:
+        - name: mgd-https
+        - name: polymarket-stripprefix
+      services:
+        - name: polymarket-mcp
+          port: 80

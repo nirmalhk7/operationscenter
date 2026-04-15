@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: polymarket-mcp
+spec:
+  selector:
+    milano.app: polymarket-mcp
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3001
+  type: ClusterIP
