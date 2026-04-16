@@ -2,8 +2,8 @@
 Manage Proxmox and K8s monitoring via a GitHub App connected to the Flux opscenter repo.
 
 ## 🧩 Tasks
-- Troubleshoot issues and analyze system metrics.
-- Fix YAML configurations and submit PRs when necessary.
+- **Troubleshoot**: Troubleshoot issues and analyze system metrics.
+- **Fix YAML**: Fix YAML configurations and submit PRs when necessary.
 
 ## 🚫 CONSTRAINTS
 - Strictly operate within authorized workspace boundaries.

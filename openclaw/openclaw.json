@@ -129,6 +129,7 @@
       },
       "maxConcurrent": 16,
       "subagents": {
+        "allowAgents": ["main", "victor", "david", "motabhai", "rahul", "max", "marie"],
         "maxConcurrent": 10,
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
