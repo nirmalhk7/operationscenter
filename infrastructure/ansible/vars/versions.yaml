@@ -31,7 +31,7 @@ containerd_version: "2.2.2-1~debian.12~bookworm"
 openclaw_version: "latest"
 
 # renovate: datasource=github-releases depName=cli/cli versioning=semver
-gh_cli_version: "2.88.1"
+gh_cli_version: "2.90.0"
 
 # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
 kubectl_version: "1.35.3"
