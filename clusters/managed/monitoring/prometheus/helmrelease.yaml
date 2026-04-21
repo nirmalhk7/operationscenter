@@ -123,7 +123,7 @@ spec:
             prometheus: prometheus_servicemonitor
         resources:
           requests:
-            cpu: 500m
+            cpu: 200m
             memory: 2Gi
           limits:
             cpu: 1000m
