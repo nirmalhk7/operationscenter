@@ -23,7 +23,7 @@ docker_ce_version: "5:29.3.0-1~debian.13~trixie"
 docker_buildx_plugin_version: "0.31.1-1~debian.13~trixie"
 
 # renovate: datasource=deb depName=docker-compose-plugin versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
-docker_compose_plugin_version: "5.1.1-1~debian.13~trixie"
+docker_compose_plugin_version: "5.1.3-1~debian.12~bookworm"
 
 # renovate: datasource=deb depName=containerd.io versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
 containerd_version: "2.2.2-1~debian.13~trixie"
