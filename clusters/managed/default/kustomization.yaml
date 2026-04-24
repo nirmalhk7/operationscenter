@@ -10,5 +10,6 @@ resources:
   - n8n
   - outline
   - nfsprovisioner
+  - calendar-merge
   
 namespace: mgd-default
