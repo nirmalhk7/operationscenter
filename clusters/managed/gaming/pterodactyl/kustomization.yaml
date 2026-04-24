@@ -5,6 +5,7 @@ resources:
   - deployment.yaml
   - pvc.yaml
   - service.yaml
-  - ingress.yaml
-  - redis.yaml
+  - ingressroute.yaml
+  - redis-deployment.yaml
+  - redis-service.yaml
   - secret.yaml

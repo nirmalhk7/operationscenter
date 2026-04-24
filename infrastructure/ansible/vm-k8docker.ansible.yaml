@@ -13,7 +13,7 @@
     repo_list: "/etc/apt/sources.list.d/docker.list"
     mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
     mariadb_rw_password: "{{ lookup('env', 'MARIADB_RW_PASSWORD') }}"
-    mariadb_db_names: [nextcloud, gitea, sonarqube, bugsink, authelia]
+    mariadb_db_names: [nextcloud, gitea, sonarqube, bugsink, authelia,pterodactyl]
     vectorchord_pg_password: "{{ lookup('env', 'VECTORCHORD_PG_PASSWORD') }}" 
     vectorchord_image: "tensorchord/vchord-postgres:pg17-v0.4.3"
     vectorchord_db_names: [immich, authentik, sonarqube, outline, n8n]
