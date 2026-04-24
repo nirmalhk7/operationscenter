@@ -18,21 +18,8 @@ spec:
         milano.level: managed
     spec:
       initContainers:
-        - name: llmfit
-          image: alpine:latest
-          command:
-            - /bin/sh
-            - -c
-            - |
-              curl -sL https://github.com/AlexsJones/llmfit/releases/download/v0.8.4/llmfit-v0.8.4-x86_64-unknown-linux-musl.tar.gz | tar -xz -C /tmp
-              cp /tmp/llmfit-v0.8.4-x86_64-unknown-linux-musl/llmfit /shared-bin/llmfit
-              chmod +x /shared-bin/llmfit
-              /shared-bin/llmfit fit -n 5 --json > ~/llmfit.json
-          volumeMounts:
-            - name: shared-bin
-              mountPath: /shared-bin
         - name: pull-models
-          image: ollama/ollama:0.18.2
+          image: ollama/ollama:0.21.1
           command:
             - /bin/sh
             - -c
@@ -51,7 +38,7 @@ spec:
               mountPath: /models
       containers:
         - name: *app
-          image: ollama/ollama:0.18.2
+          image: ollama/ollama:0.21.1
           command: ["ollama", "serve"]
           ports:
             - containerPort: 11434
@@ -69,9 +56,6 @@ spec:
           volumeMounts:
             - name: models
               mountPath: /models
-            - name: shared-bin
-              mountPath: /usr/local/bin/llmfit
-              subPath: llmfit
           livenessProbe:
             httpGet:
               path: /api/tags
@@ -128,5 +112,7 @@ spec:
         - name: models
           persistentVolumeClaim:
             claimName: ollama-models
-        - name: shared-bin
-          emptyDir: {}
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"

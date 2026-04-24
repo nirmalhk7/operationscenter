@@ -1,6 +1,19 @@
 # Makefile for operationscenter
 
-.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply
+.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply init onboard-agents-discord sync kubernetes-init kubernetes-clean ansible-run ansible-run-one
+
+# --- Initialization ---
+init:
+	@./install.sh
+	@echo "=== Part 1: Terraform ==="
+	$(MAKE) terraform-apply
+	@echo "=== Part 2: Ansible ==="
+	$(MAKE) ansible-run
+	@echo "=== Part 3: Kubernetes ==="
+	$(MAKE) kubernetes-init
+	@echo "=== Part 4: Docker & Nginx ==="
+	$(MAKE) nginx-build
+	@echo "=== Initialization Complete ==="
 
 # --- Sealed Secrets ---
 encrypt:
@@ -109,6 +122,34 @@ kubernetes-clean:
 	  echo "Force deleting namespace: $$ns"; \
 	  kubectl get namespace $$ns -o json | jq 'del(.spec.finalizers)' | kubectl replace --raw "/api/v1/namespaces/$$ns/finalize" -f -; \
 	done
+
+
+# --- Discord ---
+onboard-agents-discord:
+	@if [ -z "$(CLIENT_IDS)" ]; then \
+		echo "Usage: make onboard-agents CLIENT_IDS=\"id1 id2 id3\""; \
+	else \
+		for id in $(CLIENT_IDS); do \
+			echo "Onboarding agent with Client ID: $$id"; \
+			open "https://discord.com/oauth2/authorize?client_id=$$id&permissions=0&integration_type=0&scope=bot"; \
+			sleep 10; \
+		done; \
+	fi
+
+# --- Flux ---
+flux-suspend:
+	@if [ -z "$(NS)" ]; then \
+		echo "Usage: make flux-suspend NS=namespace (e.g., default, monitoring)"; \
+	else \
+		flux suspend kustomization mgd-$(NS); \
+	fi
+
+flux-resume:
+	@if [ -z "$(NS)" ]; then \
+		echo "Usage: make flux-resume NS=namespace"; \
+	else \
+		flux resume kustomization mgd-$(NS); \
+	fi
 
 sync:
 	git add .
