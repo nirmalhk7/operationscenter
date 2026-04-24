@@ -13,5 +13,3 @@ spec:
       services:
         - name: *app
           port: 80
-  tls:
-    secretName: pterodactyl-tls

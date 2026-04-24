@@ -120,6 +120,7 @@
               name: "{{ item }}_rw"
               password: "{{ mariadb_rw_password }}"
               priv: "{{ item }}.*:ALL"
+              host: "%"
               state: present
               login_user: root
               login_password: "{{ mariadb_root_password }}"
