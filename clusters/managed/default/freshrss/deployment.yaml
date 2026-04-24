@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app freshrss
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: *app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: *app
+        milano.app: *app
+        milano.level: managed
+    spec:
+      volumes:
+        - name: freshrss-config
+          emptyDir: {}
+        - name: opml
+          configMap:
+            name: freshrss-opml
+      containers:
+        - name: *app
+          image: lscr.io/linuxserver/freshrss:latest
+          imagePullPolicy: Always
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Etc/UTC"
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: freshrss-config
+              mountPath: /config
+            - name: opml
+              mountPath: /opml.xml
+              subPath: feeds.opml
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    for i in {1..30}; do
+                      if su -s /bin/bash -c "php /app/www/freshrss/cli/do-install.php --default_user admin --auth_type none --environment production --language en --db-type sqlite >/dev/null 2>&1" abc; then
+                        su -s /bin/bash -c "php /app/www/freshrss/cli/create-user.php --user admin --password admin >/dev/null 2>&1" abc || true
+                        su -s /bin/bash -c "php /app/www/freshrss/cli/import-for-user.php --user admin --filename /opml.xml >/dev/null 2>&1" abc
+                        break
+                      fi
+                      sleep 2
+                    done
