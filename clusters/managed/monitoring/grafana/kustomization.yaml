@@ -4,6 +4,10 @@ kind: Kustomization
 resources:
   - ingressroute.yaml
 
+labels:
+  - pairs:
+      milano.app: prometheusstack
+
 configMapGenerator:
   - name: grafana-dash-k8global
     files:

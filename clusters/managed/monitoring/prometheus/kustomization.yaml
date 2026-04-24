@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - helmrelease.yaml
-  - secret.yaml
   - ingressroute.yaml
   - nginx_scrapeconfigs.yaml
   - flux_podmonitor.yaml

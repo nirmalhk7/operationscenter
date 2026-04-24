@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: &app mgd-monitoring
+  name: &app mgd-llm

@@ -2,12 +2,10 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - flux-ks.yaml
   - ../_middlewares
   - _repositories
   - namespace.yaml
   - homepage
-  - n8n
   - outline
   - nfsprovisioner
   

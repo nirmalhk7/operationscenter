@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.3.13",
+    "lastTouchedAt": "2026-03-22T05:19:48.456Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-21T05:51:14.376Z",
+    "lastRunVersion": "2026.3.13",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local"
+  },
+  "auth": {
+    "profiles": {
+      "google:default": {
+        "provider": "google",
+        "mode": "api_key"
+      },
+      "openrouter:default": {
+        "provider": "openrouter",
+        "mode": "api_key"
+      }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "local-ollama": {
+        "baseUrl": "http://172.16.0.105:32363",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "qwen2.5-coder:3b",
+            "name": "qwen2.5-coder:3b (Custom Provider)",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32000,
+            "maxTokens": 4096
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/free",
+        "fallbacks": [
+          "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+          "openrouter/qwen/qwen3-coder:free",
+          "openrouter/stepfun/step-3.5-flash:free",
+          "openrouter/openai/gpt-oss-120b:free",
+          "openrouter/google/gemma-3-27b-it:free",
+          "google/gemini-3.1-flash-lite-preview",
+          "openrouter/auto",
+          "google/gemma-3-27b-it",
+          "nvidia-nim/gpt-oss-120b",
+          "local-ollama/qwen2.5-coder:3b"
+        ]
+      },
+      "models": {
+        "local-ollama/qwen2.5-coder:3b": {
+          "alias": "qwen2.5-coder:3b"
+        },
+        "google/gemini-3.1-flash-lite-preview": {},
+        "openrouter/auto": {},
+        "openrouter/free": {},
+        "openrouter/nvidia/nemotron-3-super-120b-a12b:free": {},
+        "openrouter/qwen/qwen3-coder:free": {},
+        "openrouter/stepfun/step-3.5-flash:free": {},
+        "openrouter/openai/gpt-oss-120b:free": {},
+        "openrouter/google/gemma-3-27b-it:free": {},
+        "google/gemma-3-27b-it": {},
+        "nvidia-nim/gpt-oss-120b": {}
+      },
+      "workspace": "/root/.openclaw/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 16,
+      "subagents": {
+        "maxConcurrent": 32
+      }
+    },
+    "list": [
+      {
+        "id": "main"
+      },
+      {
+        "id": "dayplanner",
+        "name": "dayplanner",
+        "model": "local-ollama/qwen2.5-coder:3b",
+        "workspace": "/root/openclaw_support/obsidian",
+        "agentDir": "/root/.openclaw/agents/dayplanner/agent"
+      },
+      {
+        "id": "labmaintaner",
+        "name": "labmaintaner",
+        "model": "openrouter/qwen/qwen3-coder:free",
+        "workspace": "/root/openclaw_support/operationscenter",
+        "agentDir": "/root/.openclaw/agents/labmaintaner/agent"
+      }
+    ]
+  },
+  "tools": {
+    "profile": "coding"
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "open",
+      "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN}",
+      "groups": {
+        "-5168321382": {
+          "requireMention": false,
+          "allowFrom": [
+            "*"
+          ]
+        }
+      },
+      "allowFrom": [
+        "8163098638"
+      ],
+      "groupPolicy": "allowlist",
+      "streaming": "partial"
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "lan",
+    "customBindHost": "0.0.0.0",
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "https://robot.trusted.nirmalhk7.com",
+        "http://robot.trusted.nirmalhk7.com",
+        "http://172.16.0.104:18789",
+        "http://127.0.0.1:18789"
+      ]
+    },
+    "auth": {
+      "mode": "token",
+      "token": "8156ecdc6d750aa7d55e3b73e40b68ceb33386adfed8da76",
+      "password": "nirmal"
+    },
+    "trustedProxies": [
+      "127.0.0.1",
+      "::1",
+      "172.16.0.101",
+      "172.16.0.1"
+    ],
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "nodes": {
+      "denyCommands": [
+        "camera.snap",
+        "camera.clip",
+        "screen.record",
+        "contacts.add",
+        "calendar.add",
+        "reminders.add",
+        "sms.send"
+      ]
+    }
+  },
+  "skills": {
+    "install": [
+      "clawdbot",
+      "self-improving-agent",
+      "arc-memory-pruner",
+      "token-optimizer"
+    ]
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      }
+    }
+  }
+}

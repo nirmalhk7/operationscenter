@@ -1,0 +1,19 @@
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: authentik
+  name: authentik-servicemonitor
+spec:
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 15s
+  namespaceSelector:
+    matchNames:
+    - mgd-security
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: authentik-embedded-outpost

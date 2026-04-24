@@ -19,20 +19,20 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
   pool_id = proxmox_virtual_environment_pool.pool-mgd.id
 
   cpu {
-    cores = 2
-    type  = "x86-64-v2-AES" # recommended for modern CPUs
+    cores        = 2
+    type         = "x86-64-v2-AES"  # recommended for modern CPUs
   }
 
   memory {
-    dedicated = 1024 * 4
-    floating  = 1024 * 2
+    dedicated = 1024*4
+    floating  = 1024*2
   }
 
   disk {
     datastore_id = "local"
     import_from  = proxmox_virtual_environment_download_file.debian-13-generic-amd64-qcow2.id
     interface    = "scsi0"
-    size         = 20
+    size = 20
   }
 
 
@@ -47,7 +47,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
 
     user_account {
       password = "${var.vm_password}106"
-      keys     = [local.sshKeys.mgd]
+      keys = [local.sshKeys.mgd]
       username = "root"
     }
 
@@ -55,7 +55,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
   }
 
   network_device {
-    bridge   = "wmnet"
+    bridge = "wmnet"
     firewall = false
   }
 

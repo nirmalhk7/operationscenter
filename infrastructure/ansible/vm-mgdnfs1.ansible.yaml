@@ -76,36 +76,13 @@
         - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication yes' }
       notify: Restart sshd
 
-    - name: Ensure NFS server installed
+    - name: Ensure NFS server installed at requested version
       ansible.builtin.apt:
-        name: "nfs-kernel-server"
+        name: "nfs-kernel-server={{ nfs_kernel_server_version }}"
         update_cache: true
-
-    - name: Configure NFS exports
-      ansible.builtin.lineinfile:
-        path: /etc/exports
-        line: "{{ mount_point }} 172.16.0.0/24(rw,sync,no_subtree_check,no_root_squash,insecure)"
-        state: present
-        create: true
-      notify: Reload nfs exports
-
-    - name: Ensure NFS service is running and enabled
-      ansible.builtin.systemd:
-        name: nfs-kernel-server
-        state: started
-        enabled: true
 
   handlers:
     - name: Restart sshd
       ansible.builtin.systemd:
         name: sshd
-        state: restarted
-
-    - name: Reload nfs exports
-      ansible.builtin.command: exportfs -ra
-      notify: Restart nfs-kernel-server
-
-    - name: Restart nfs-kernel-server
-      ansible.builtin.systemd:
-        name: nfs-kernel-server
         state: restarted

@@ -3,14 +3,14 @@ kind: IngressRoute
 metadata:
   name: &app portainer
   annotations:
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://portainer.trusted.nirmalhk7.com"
-    gethomepage.dev/group: Observability
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Applications
     gethomepage.dev/icon: portainer
     gethomepage.dev/app: portainer # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Portainer
-    # gethomepage.dev/widget.type: "portainer"
-    # gethomepage.dev/widget.url: "https://portainer.trusted.nirmalhk7.com"
+    gethomepage.dev/widget.type: "portainer"
+    gethomepage.dev/widget.url: "https://portainer.trusted.nirmalhk7.com"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=portainer"
 spec:
   entryPoints:

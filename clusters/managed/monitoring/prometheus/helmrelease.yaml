@@ -7,7 +7,7 @@ spec:
   chart:
     spec:
       chart: kube-prometheus-stack
-      version: 82.13.6
+      version: 82.10.4
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
@@ -24,15 +24,11 @@ spec:
           secretKeyRef:
             name: authelia-app-secrets
             key: grafana-client-secret
-        TELEGRAM_TOKEN:
-          secretKeyRef:
-            name: grafana-credentials
-            key: token
         
       grafana.ini:
         server:
-          domain: grafana.trusted.nirmalhk7.com
-          root_url: https://grafana.trusted.nirmalhk7.com
+          domain: "grafana.trusted.nirmalhk7.com"
+          root_url: "https://grafana.trusted.nirmalhk7.com"
         auth.generic_oauth:
           enabled: true
           name: Authelia
@@ -53,73 +49,12 @@ spec:
         dashboards:
           enabled: true
           label: milano_grafana_dashboard
-          labelValue: "true"
+          labelValue: true
           searchNamespace: ALL
-      assertNoLeakedSecrets: false
-      alerting:
-        contactpoints.yaml:
-          apiVersion: 1
-          contactPoints:
-            - orgId: 1
-              name: telegram
-              receivers:
-                - uid: telegram_1
-                  type: telegram
-                  disableResolveMessage: false
-                  settings:
-                    bottoken: $TELEGRAM_TOKEN
-                    chatid: "-1003812665515"
-                    message_thread_id: "204"
-        policies.yaml:
-          apiVersion: 1
-          policies:
-            - orgId: 1
-              receiver: telegram
-              group_by:
-                - namespace
-                - alertname
-        rules.yaml:
-          apiVersion: 1
-          groups:
-            - orgId: 1
-              name: Sample External Alerts
-              folder: Infrastructure
-              interval: 1m
-              rules:
-                - uid: example_up_alert
-                  title: Endpoint Down (up == 0)
-                  condition: C
-                  data:
-                    - refId: A
-                      datasourceUid: prometheus
-                      model:
-                        expr: up == 0
-                      relativeTimeRange:
-                        from: 300
-                        to: 0
-                    - refId: B
-                      datasourceUid: __expr__
-                      model:
-                        type: reduce
-                        reducer: last
-                        expression: A
-                    - refId: C
-                      datasourceUid: __expr__
-                      model:
-                        type: math
-                        expression: $B > 0
-                  noDataState: OK
-                  execErrState: Alerting
-                  for: 1m
-                  annotations:
-                    summary: "A monitored endpoint is down or unreachable."
-                  labels:
-                    severity: warning
-                    namespace: sample
-                    alertname: EndpointDown
+
     prometheus:
       prometheusSpec:
-        externalUrl: https://prometheus.trusted.nirmalhk7.com
+        externalUrl: "https://prometheus.trusted.nirmalhk7.com"
         routePrefix: /
         scrapeConfigSelector:
           matchLabels:
@@ -127,31 +62,5 @@ spec:
         serviceMonitorSelector:
           matchLabels:
             prometheus: prometheus_servicemonitor
-        resources:
-          requests:
-            cpu: 200m
-            memory: 2Gi
-          limits:
-            cpu: 1000m
-            memory: 4Gi
-        env:
-          - name: GOMEMLIMIT
-            value: 3600MiB
-        livenessProbe:
-          initialDelaySeconds: 60
-          periodSeconds: 15
-          timeoutSeconds: 10
-        readinessProbe:
-          initialDelaySeconds: 60
-          periodSeconds: 15
-          timeoutSeconds: 10
-        retention: 2d
-        storageSpec:
-          volumeClaimTemplate:
-            spec:
-              accessModes: ["ReadWriteOnce"]
-              resources:
-                requests:
-                  storage: 10Gi
     commonLabels:
       milano.level: managed

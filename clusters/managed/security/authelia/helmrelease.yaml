@@ -16,11 +16,11 @@ spec:
   values:
     pod:
       extraVolumes:
-        - name: authelia-credentials
-          secret:
-            secretName: authelia-credentials
+          - name: &appCredentials authelia-credentials
+            secret:
+              secretName: *appCredentials
       extraVolumeMounts:
-        - name: authelia-credentials
+        - name: *appCredentials
           mountPath: /config/users_database.yaml
           subPath: users_database.yaml
           readOnly: true
@@ -28,14 +28,14 @@ spec:
       enabled: true
       storageClass: milano-v2
     secret:
-      existingSecret: authelia-credentials
+      existingSecret: *appCredentials
       additionalSecrets:
         authelia-credentials:
           items:
             - key: storage.encryption.key
               path: storage.encryption.key
             - key: storage.mysql.password
-              path: storage.mysql.password
+              path: storage.mysql.password.txt
             - key: session.encryption.key
               path: session.encryption.key
             - key: jwt-secret
@@ -48,15 +48,13 @@ spec:
               path: oidc-jwks-private-key.pem
         authelia-app-secrets:
           items:
-            - key: client-secret-grafana
-              path: client-secret-grafana
-            - key: client-secret-nextcloud
-              path: client-secret-nextcloud
+            - key: grafana-client-secret
+              path: grafana-client-secret
     configMap:
       identity_validation:
         reset_password:
           secret:
-            secret_name: authelia-credentials
+            secret_name: *appCredentials
             path: jwt-secret
       access_control:
         default_policy: 'one_factor'
@@ -73,7 +71,7 @@ spec:
         oidc:
           enabled: true
           hmac_secret:
-            secret_name: authelia-credentials
+            secret_name: *appCredentials
             path: oidc-hmac-secret
           jwks:
             - key_id: authelia-oidc-rs256
@@ -101,21 +99,6 @@ spec:
                 - authorization_code
               authorization_policy: one_factor
               token_endpoint_auth_method: client_secret_basic
-            - client_id: nextcloud
-              client_name: Nextcloud
-              client_secret:
-                path: /secrets/authelia-app-secrets/client-secret-nextcloud
-              public: false
-              authorization_policy: one_factor
-              redirect_uris:
-                - https://drive.trusted.nirmalhk7.com/apps/user_oidc/code
-              scopes:
-                - openid
-                - profile
-                - email
-                - groups
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_basic
       theme: 'dark'
       telemetry:
         metrics:
@@ -127,9 +110,6 @@ spec:
         ldap:
           enabled: false
       session:
-        encryption_key:
-          secret_name: authelia-credentials
-          path: session.encryption.key
         cookies:
           - name: authelia_session
             domain: nirmalhk7.com
@@ -141,8 +121,7 @@ spec:
           filename: /config/notification.txt
       storage:
         encryption_key:
-          secret_name: authelia-credentials
-          path: storage.encryption.key
+          secret_name: *appCredentials
         local:
           enabled: false
         postgres:
@@ -153,6 +132,5 @@ spec:
           database: *app
           username: 'authelia_rw'
           password:
-            secret_name: authelia-credentials
-            path: storage.mysql.password
+            secret_name: *appCredentials
         

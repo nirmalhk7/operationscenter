@@ -16,7 +16,7 @@ spec:
   releaseName: *app
   values:
     web:
-      forceHttps: false
+      forceHttps: true
     url: "https://outline.trusted.nirmalhk7.com"
     fileStorage:
       local:

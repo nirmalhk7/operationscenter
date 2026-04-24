@@ -1,10 +1,10 @@
 resource "proxmox_virtual_environment_container" "lxc-nginx" {
 
   description = "NginX"
-  node_name   = local.nodeName
-  vm_id       = 101
-  tags        = ["mgd"]
-  pool_id     = proxmox_virtual_environment_pool.pool-mgd.pool_id
+  node_name = local.nodeName
+  vm_id     = 101
+  tags = ["mgd"]
+  pool_id = "${proxmox_virtual_environment_pool.pool-mgd.pool_id}"
 
   initialization {
     hostname = "nginx"
@@ -17,15 +17,15 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
     }
 
     user_account {
-      keys     = [local.sshKeys.mgd]
-      password = "${var.vm_password}101"
+        keys = [local.sshKeys.mgd]
+        password = "${var.vm_password}101"
     }
   }
 
   network_interface {
-    bridge   = "wmnet"
-    name     = "net0"
-    enabled  = true
+    bridge = "wmnet"
+    name = "net0"
+    enabled = true
     firewall = false
   }
 
@@ -40,7 +40,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
 
   disk {
     datastore_id = "local"
-    size         = 9
+    size         = 8
   }
 
   console {
@@ -75,9 +75,9 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
-  depends_on = [proxmox_virtual_environment_container.lxc-nginx]
-  node_name  = local.nodeName
-  vm_id      = proxmox_virtual_environment_container.lxc-nginx.vm_id
+  depends_on = [ proxmox_virtual_environment_container.lxc-nginx ]
+  node_name = local.nodeName
+  vm_id     = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
-  enabled = false
+  enabled       = false
 }

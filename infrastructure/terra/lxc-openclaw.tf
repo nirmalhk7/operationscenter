@@ -1,10 +1,10 @@
 resource "proxmox_virtual_environment_container" "lxc-openclaw" {
 
   description = "openclaw"
-  node_name   = local.nodeName
-  vm_id       = 104
-  tags        = ["mgd"]
-  pool_id     = proxmox_virtual_environment_pool.pool-mgd.pool_id
+  node_name = local.nodeName
+  vm_id     = 104
+  tags = ["mgd"]
+  pool_id = "${proxmox_virtual_environment_pool.pool-mgd.pool_id}"
 
   initialization {
     hostname = "openclaw"
@@ -17,27 +17,27 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
     }
 
     user_account {
-      keys     = [local.sshKeys.mgd]
-      password = "${var.vm_password}104"
+        keys = [local.sshKeys.mgd]
+        password = "${var.vm_password}104"
     }
   }
 
   network_interface {
-    bridge   = "wmnet"
-    name     = "net0"
-    enabled  = true
+    bridge = "wmnet"
+    name = "net0"
+    enabled = true
     firewall = false
 
   }
 
   memory {
-    dedicated = 1024 * 2
-    swap      = 1024 * 2
+    dedicated = 1024*2
+    swap = 1024*2
   }
 
   cpu {
     architecture = "amd64"
-    cores        = 2
+    cores        = 1
   }
 
   disk {
@@ -56,10 +56,6 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
   operating_system {
     template_file_id = local.osTemplates.debian12
     type             = "debian"
-  }
-
-  features {
-    nesting = true
   }
 }
 
@@ -81,9 +77,9 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
-  depends_on = [proxmox_virtual_environment_container.lxc-openclaw]
-  node_name  = local.nodeName
-  vm_id      = proxmox_virtual_environment_container.lxc-openclaw.vm_id
+  depends_on = [ proxmox_virtual_environment_container.lxc-openclaw ]
+  node_name = local.nodeName
+  vm_id     = proxmox_virtual_environment_container.lxc-openclaw.vm_id
 
-  enabled = false
+  enabled       = false
 }

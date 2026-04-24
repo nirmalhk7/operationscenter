@@ -18,13 +18,13 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   pool_id = proxmox_virtual_environment_pool.pool-mgd.id
 
   cpu {
-    cores = 4
-    type  = "x86-64-v2-AES" # recommended for modern CPUs
+    cores        = 4
+    type         = "x86-64-v2-AES"  # recommended for modern CPUs
   }
 
   memory {
-    dedicated = 1024 * 15
-    floating  = 1024 * 6
+    dedicated = 1024*15
+    floating  = 1024*6
   }
 
   disk {
@@ -46,7 +46,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 
     user_account {
       password = "${var.vm_password}105"
-      keys     = [local.sshKeys.mgd]
+      keys = [local.sshKeys.mgd]
       username = "root"
     }
 
@@ -54,7 +54,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   }
 
   network_device {
-    bridge   = "wmnet"
+    bridge = "wmnet"
     firewall = false
   }
 

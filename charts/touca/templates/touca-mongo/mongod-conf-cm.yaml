@@ -12,5 +12,6 @@ data:
        authorization: enabled
 kind: ConfigMap
 metadata:
+  creationTimestamp: null
   name: mongod-conf
   namespace: {{ .Release.Name }}-touca

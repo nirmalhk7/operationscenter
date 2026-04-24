@@ -3,8 +3,8 @@ kind: IngressRoute
 metadata:
   name: &app outline
   annotations:
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://outline.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Applications
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name

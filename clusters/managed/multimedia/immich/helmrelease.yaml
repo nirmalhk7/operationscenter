@@ -43,20 +43,3 @@ spec:
           storageClass: "milano-v3"
           accessMode: ReadWriteMany
           size: 11Gi
-    server:
-      persistence:
-        server:
-          enabled: true
-          type: persistentVolumeClaim
-          storageClass: "milano-v3"
-          accessMode: ReadWriteOnce
-          size: 1Gi
-    machine-learning:
-      enabled: true
-      persistence:
-        cache:
-          enabled: true
-          size: 10Gi
-          type: persistentVolumeClaim
-          accessMode: ReadWriteMany
-          storageClass: "milano-v3"

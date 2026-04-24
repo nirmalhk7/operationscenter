@@ -1,0 +1,8 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: &app plcnk
+  namespace: mgd-devbench
+spec:
+  url: https://charts.plcnk.net
+  interval: 1h

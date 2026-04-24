@@ -16,8 +16,8 @@ resource "proxmox_virtual_environment_dns" "milano" {
 }
 
 resource "proxmox_virtual_environment_time" "milano" {
-  node_name = local.nodeName
-  time_zone = "America/Denver"
+  node_name  = local.nodeName
+  time_zone  = "America/Denver"
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "inbound" {

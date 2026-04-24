@@ -19,7 +19,7 @@ spec:
     spec:
       initContainers:
         - name: pull-models
-          image: ollama/ollama:0.21.1
+          image: ollama/ollama:0.18.2
           command:
             - /bin/sh
             - -c
@@ -38,7 +38,7 @@ spec:
               mountPath: /models
       containers:
         - name: *app
-          image: ollama/ollama:0.21.1
+          image: ollama/ollama:0.18.2
           command: ["ollama", "serve"]
           ports:
             - containerPort: 11434
@@ -69,6 +69,16 @@ spec:
               port: 11434
             initialDelaySeconds: 10
             periodSeconds: 10
+        - name: busybox
+          image: curlimages/curl:latest
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "5m"
+            limits:
+              memory: "64Mi"
+              cpu: "50m"
         - name: ollama-metrics
           image: ghcr.io/norskhelsenett/ollama-metrics:latest
           env:
@@ -112,7 +122,3 @@ spec:
         - name: models
           persistentVolumeClaim:
             claimName: ollama-models
-      dnsConfig:
-        options:
-          - name: ndots
-            value: "1"

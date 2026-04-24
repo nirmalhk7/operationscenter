@@ -1,0 +1,26 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: &app authentik
+  annotations:
+    gethomepage.dev/href: "https://auth.trusted.nirmalhk7.com"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Security
+    gethomepage.dev/icon: authentik
+    gethomepage.dev/app: authentik # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    gethomepage.dev/name: Authentik
+    gethomepage.dev/description: "Authentik"
+    gethomepage.dev/widget.type: "authentik"
+    gethomepage.dev/widget.url: "https://auth.trusted.nirmalhk7.com"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/name=authentik"
+    gethomepage.dev/widget.key: L2cP2qFi88g2a6vMFrHBPiaGxJOrGUfHbFldFtRVXjxrDJyW3slG5gca1Sss
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`auth.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: authentik-server
+          port: 80

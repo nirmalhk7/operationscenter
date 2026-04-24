@@ -3,7 +3,6 @@ kind: Kustomization
 
 
 resources:
-  - helmchartconfig.yaml
   - ingressroute.yaml
   - service.yaml
   - servicemonitor.yaml

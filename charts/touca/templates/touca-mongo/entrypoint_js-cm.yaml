@@ -12,5 +12,6 @@ data:
     });
 kind: ConfigMap
 metadata:
+  creationTimestamp: null
   name: mongo-entrypoint
   namespace: {{ .Release.Name }}-touca

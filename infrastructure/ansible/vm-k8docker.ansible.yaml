@@ -13,21 +13,19 @@
     repo_list: "/etc/apt/sources.list.d/docker.list"
     mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
     mariadb_rw_password: "{{ lookup('env', 'MARIADB_RW_PASSWORD') }}"
-    mariadb_db_names: [nextcloud, gitea, sonarqube, bugsink, authelia]
     vectorchord_pg_password: "{{ lookup('env', 'VECTORCHORD_PG_PASSWORD') }}" 
     vectorchord_image: "tensorchord/vchord-postgres:pg17-v0.4.3"
-    vectorchord_db_names: [immich, authentik, sonarqube, outline, n8n]
+    vectorchord_db_users:
+      - { name: "immich", user: "immich_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
+      - { name: "authentik", user: "authentik_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
+      - { name: "sonarqube", user: "sonarqube_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
+      - { name: "outline", user: "outline_rw", pass: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}" }
 
   tasks:
     - name: Check if docker is installed
       ansible.builtin.stat:
         path: /usr/bin/docker
       register: docker_bin
-
-    - name: Ensure DB management dependencies are installed
-      ansible.builtin.apt:
-        update_cache: true
-        name: [python3-pymysql, python3-psycopg2]
 
     - name: Docker setup
       block:
@@ -79,6 +77,18 @@
             path: /root/operationscenter-artifacts
             state: directory
             mode: '0755'
+
+        - name: Download MariaDB seed script
+          ansible.builtin.get_url:
+            url: "https://raw.githubusercontent.com/nirmalhk7/operationscenter/refs/heads/main/infrastructure/assets/mariadb.sh"
+            dest: /root/operationscenter-artifacts/mariadb.sh
+            mode: '0750'
+
+        - name: Download VectorChord seed script
+          ansible.builtin.get_url:
+            url: "https://raw.githubusercontent.com/nirmalhk7/operationscenter/refs/heads/main/infrastructure/assets/vectorchorddb.sh"
+            dest: /root/operationscenter-artifacts/vectorchorddb.sh
+            mode: '0750'
       
     - name: Perform docker deployments
       block:
@@ -105,26 +115,12 @@
             delay: 5
             until: maria_health.stdout == "healthy"
             changed_when: false
-          
-          - name: Create MariaDB databases
-            community.mysql.mysql_db:
-              name: "{{ item }}"
-              state: present
-              login_user: root
-              login_password: "{{ mariadb_root_password }}"
-              login_host: 127.0.0.1
-            loop: "{{ mariadb_db_names }}"
-
-          - name: Create MariaDB users
-            community.mysql.mysql_user:
-              name: "{{ item }}_rw"
-              password: "{{ mariadb_rw_password }}"
-              priv: "{{ item }}.*:ALL"
-              state: present
-              login_user: root
-              login_password: "{{ mariadb_root_password }}"
-              login_host: 127.0.0.1
-            loop: "{{ mariadb_db_names }}"
+          - name: Seed MariaDB databases and users
+            ansible.builtin.command: /root/operationscenter-artifacts/mariadb.sh
+            environment:
+              MARIADB_ROOT_PASSWORD: "{{ mariadb_root_password }}"
+              MARIADB_RW_PASSWORD: "{{ mariadb_rw_password }}"
+            changed_when: false
 
         - name: VectorChord deployment
           tags: vectorchord
@@ -148,35 +144,13 @@
             until: vchord_health.stdout == ""
             changed_when: false
 
-          - name: Create VectorChord users
-            community.postgresql.postgresql_user:
-              name: "{{ item }}_rw"
-              password: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}"
-              login_db: postgres # Corrected from database
-              state: present
-              login_user: postgres
-              login_password: "{{ vectorchord_pg_password }}"
-              login_host: 127.0.0.1
-            loop: "{{ vectorchord_db_names }}"
-
-          - name: Create VectorChord databases
-            community.postgresql.postgresql_db:
-              name: "{{ item }}"
-              state: present
-              login_user: postgres
-              login_password: "{{ vectorchord_pg_password }}"
-              login_host: 127.0.0.1
-              owner: "{{ item }}_rw"
-            loop: "{{ vectorchord_db_names }}"
-
-          - name: Install VectorChord extensions
-            community.postgresql.postgresql_ext:
-              name: "{{ item.1 }}"
-              db: "{{ item.0 }}"
-              cascade: yes
-              login_user: postgres
-              login_password: "{{ vectorchord_pg_password }}"
-              login_host: 127.0.0.1
-            loop: "{{ vectorchord_db_names | product(['vchord', 'earthdistance']) | list }}"
-            when: item.0 == 'immich'
+          - name: Create databases and users on VectorChord DB
+            ansible.builtin.command: /root/operationscenter-artifacts/vectorchorddb.sh
+            environment:
+              VECTORCHORD_PG_PASSWORD: "{{ vectorchord_pg_password }}"
+              IMMICH_PASSWORD: "{{ vectorchord_db_users[0].pass }}"
+              AUTHENTIK_PASSWORD: "{{ vectorchord_db_users[1].pass }}"
+              SONARQUBE_PASSWORD: "{{ vectorchord_db_users[2].pass }}"
+              OUTLINE_PASSWORD: "{{ vectorchord_db_users[3].pass }}"
+            changed_when: false
       tags: [deployments]
