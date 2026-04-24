@@ -65,10 +65,11 @@ data:
   services.yaml: |
       - Applications:
         - Robot:
+            icon: openclaw
             name: Robot
             description: Openclaw Dashboard
             href: "https://robot.trusted.nirmalhk7.com"
-    - Infrastructure:
+      - Infrastructure:
         - lxc_nginx:
             name: NginX
             description: LXC
@@ -89,10 +90,10 @@ data:
             href: "https://10.0.0.10:8006/#v1:0:=qemu%2F105:4::::::=consolejs"
             proxmoxNode: milano
             proxmoxVMID: 105
-    - Networking:
+      - Networking:
         - Tailscale:
             id: local-tailscale
-            icon: tailscale-light	
+            icon: tailscale-light
             href: https://login.tailscale.com/admin/machines
             widget:
               type: tailscale
@@ -100,7 +101,7 @@ data:
               key: ${TSKEY_API}
         - Google Home:
             id: googlehome
-            icon: tailscale-light	
+            icon: google-home
             href: https://home.google.com/home/1-55a939b1374bf27e1be4ded764e93e4d2c88ff3cbb03c77c535f0137a96f7663/devices
         - Cloudflare:
             id: local-cloudflare
@@ -143,6 +144,8 @@ data:
           memory: true
           showLabel: false
     - openmeteo:
+        latitude: 40.0150
+        longitude: -105.2705
         units: metric # or imperial
         cache: 5 # Time in minutes to cache API responses, to stay within limits
         format: # optional, Intl.NumberFormat options

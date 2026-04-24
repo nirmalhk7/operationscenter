@@ -28,7 +28,7 @@
 
     - name: Copy custom agent workspaces
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/customAgents/"
+        src: "{{ playbook_dir }}/../../openclaw/customAgents/"
         dest: /root/.openclaw/
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
@@ -37,7 +37,7 @@
 
     - name: Copy main agent workspaces
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/mainAgent/"
+        src: "{{ playbook_dir }}/../../openclaw/mainAgent/"
         dest: /root/.openclaw/workspace/
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
@@ -103,8 +103,17 @@
           - nodejs
           - gh
           - kubectl
+          - python3-venv
+          - python3-pip
         state: present
         update_cache: true
+
+    - name: Install uv via official script
+      ansible.builtin.shell:
+        cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+        creates: "{{ openclaw_home }}/.local/bin/uv"
+      environment:
+        HOME: "{{ openclaw_home }}"
 
     - name: Check if pnpm is already installed
       ansible.builtin.command: pnpm --version
@@ -118,7 +127,7 @@
 
     - name: Install OpenClaw globally (using pnpm)
       ansible.builtin.shell:
-        cmd: pnpm install -g openclaw@{{ openclaw_version | default('latest') }}
+        cmd: pnpm install -g openclaw@{{ openclaw_version | default('latest') }} 
         executable: /bin/bash
       environment:
         PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
@@ -170,10 +179,10 @@
             group: "{{ openclaw_user }}"
             mode: '0600'
           vars:
-            openclaw_k8s_ca: "{{ lookup('env', 'CLUSTER_CA') }}"
-            openclaw_k8s_token: "{{ lookup('env', 'CLUSTER_TOKEN') }}"
-            openclaw_client_cert: "{{ lookup('env', 'CLIENT_CERT') }}"
-            openclaw_client_key: "{{ lookup('env', 'CLIENT_KEY') }}"
+            openclaw_k8s_ca: "{{ lookup('env', 'OPENCLAW_CLUSTER_CA') }}"
+            openclaw_k8s_token: "{{ lookup('env', 'OPENCLAW_CLUSTER_TOKEN') }}"
+            openclaw_client_cert: "{{ lookup('env', 'OPENCLAW_CLIENT_CERT') }}"
+            openclaw_client_key: "{{ lookup('env', 'OPENCLAW_CLIENT_KEY') }}"
 
     - name: Ensure OpenClaw configuration directory exists
       ansible.builtin.file:
@@ -193,12 +202,21 @@
 
     - name: Deploy main OpenClaw configuration file
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/openclaw.json"
+        src: "{{ playbook_dir }}/../../openclaw/openclaw.json"
         dest: /root/.openclaw/openclaw.json
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
         force: yes
+
+    - name: Deploy Investment Committee state file
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../openclaw/investment_committee_state.json"
+        dest: /root/.openclaw/investment_committee_state.json
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0600'
+        force: no
 
 
 
@@ -206,20 +224,22 @@
       ansible.builtin.copy:
         dest: "{{ openclaw_home }}/.openclaw/.env"
         content: |
-          OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN="{{ lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN') }}"
-          OPENCLAW_DISCORD_BOT_TOKEN_MAIN="{{ lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_MAIN') }}"
-          OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR="{{ lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR') }}"
-          OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
-          OPENCLAW_GATEWAY_PASSWORD="{{ lookup('env', 'OPENCLAW_GATEWAY_PASSWORD') }}"
-          GEMINI_API_KEY="{{ lookup('env', 'GEMINI_API_KEY') }}"
-          OPENROUTER_API_KEY="{{ lookup('env', 'OPENROUTER_API_KEY') }}"
-          TODOIST_TOKEN="{{ lookup('env', 'TODOIST_TOKEN') }}"
+          {% for key in lookup('pipe', 'env | cut -d= -f1 | grep ^OPENCLAW_ || true').splitlines() %}
+          {{ key }}="{{ lookup('env', key) }}"
+          {% endfor %}
+          OPENROUTER_API_KEY={{ lookup('env', 'OPENROUTER_API_KEY') }}
+          NVIDIA_API_KEY={{ lookup('env', 'NVIDIA_API_KEY') }}
+          GEMINI_API_KEY={{ lookup('env', 'GEMINI_API_KEY') }}
+          GROQ_API_KEY={{ lookup('env', 'GROQ_API_KEY')}}
           NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
           OPENCLAW_NO_RESPAWN=1
           KUBECONFIG="{{ openclaw_support_home }}/.kube/config"
+          ALPACA_SECRET_KEY={{ lookup('env', 'ALPACA_SECRET_KEY') }}
+          ALPACA_API_KEY={{ lookup('env', 'ALPACA_API_KEY') }}
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
+
 
     - name: Create OpenClaw systemd service
       ansible.builtin.copy:
@@ -268,7 +288,7 @@
                 echo "{{ github_token }}" | gh auth login --with-token
               fi
           vars:
-            github_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+            github_token: "{{ lookup('env', 'OPENCLAW_GITHUB_TOKEN') }}"
           when: github_token != ""
           register: gh_auth
           changed_when: false
@@ -278,7 +298,7 @@
             cmd: "gh repo clone nirmalhk7/operationscenter {{ openclaw_support_home }}/operationscenter"
             creates: "{{ openclaw_support_home }}/operationscenter"
           when: 
-            - lookup('env', 'GITHUB_TOKEN') != ""
+            - lookup('env', 'OPENCLAW_GITHUB_TOKEN') != ""
             - gh_auth is succeeded
 
         - name: Clone Obsidian repository
@@ -286,9 +306,16 @@
             cmd: "gh repo clone {{ obsidian_repo }} {{ openclaw_support_home }}/obsidian"
             creates: "{{ openclaw_support_home }}/obsidian"
           vars:
-            obsidian_repo: "{{ lookup('env', 'OBSIDIAN_REPO') }}"
+            obsidian_repo: "{{ lookup('env', 'OPENCLAW_OBSIDIAN_REPO') }}"
           when: 
             - obsidian_repo != ""
             - gh_auth is succeeded
+
+        - name: Install Polymarket MCP tool via uv
+          ansible.builtin.shell:
+            cmd: "{{ openclaw_home }}/.local/bin/uv tool install git+https://github.com/berlinbra/polymarket-mcp --force"
+          environment:
+            PATH: "{{ openclaw_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
+          changed_when: true
 
 

@@ -5,18 +5,20 @@ on:
     branches:
       - main
     paths:
-      - 'infrastructure/assets/openclaw.json'
+      - 'openclaw/openclaw.json'
       - '.github/workflows/test-openclaw.yaml'
   pull_request:
     branches:
       - '**'
     paths:
-      - 'infrastructure/assets/openclaw.json'
+      - 'openclaw/openclaw.json'
       - '.github/workflows/test-openclaw.yaml'
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,15 +35,12 @@ jobs:
 
       - name: Install OpenClaw
         run: |
-          pnpm add -g openclaw@latest promptfoo
+          pnpm add -g openclaw@latest promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
           # Add pnpm global bin to GITHUB_PATH
           echo "$(pnpm bin -g)" >> $GITHUB_PATH
 
       - name: Validate OpenClaw Configuration
         run: |
-          # Copy the configuration to the default search path (~/.openclaw/openclaw.json)
           mkdir -p ~/.openclaw
-          cp infrastructure/assets/openclaw.json ~/.openclaw/openclaw.json
-          
-          # Validate the configuration
+          cp openclaw/openclaw.json ~/.openclaw/openclaw.json
           openclaw config validate
