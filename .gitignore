@@ -14,6 +14,7 @@ repo.bkp.zip
 start.sh
 wikis
 .vscode
+.claude
 
 # Terraform
 **/*terraform.tfvars

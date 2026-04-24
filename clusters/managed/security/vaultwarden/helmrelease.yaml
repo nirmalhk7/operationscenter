@@ -27,6 +27,12 @@ spec:
       enableWebVault: true
       enableSends: true
       orgCreationUsers: all
+      # Using external DB on 172.16.0.106
+      databaseUrl:
+        valueFrom:
+          secretKeyRef:
+            name: credentials-db
+            key: DATABASE_URL
       
     persistence:
       enabled: true

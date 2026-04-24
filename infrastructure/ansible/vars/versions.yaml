@@ -1,16 +1,16 @@
 ---
 
 # renovate: datasource=deb depName=nginx versioning=loose registryUrl=http://nginx.org/packages/debian?suite=bookworm&components=nginx&binaryArch=amd64
-nginx_package_version: "1.28.2-1~bookworm"
+nginx_package_version: "1.28.3-1~bookworm"
 
 # renovate: datasource=github-releases depName=nginxinc/nginx-prometheus-exporter versioning=semver
 nginx_exporter_version: "1.5.1"
 
 # renovate: datasource=github-releases depName=k3s-io/k3s versioning=loose
-k3s_version: "v1.35.2+k3s1"
+k3s_version: "v1.35.3+k3s1"
 
 # renovate: datasource=deb depName=tailscale versioning=loose registryUrl=https://pkgs.tailscale.com/stable/debian?suite=bookworm&components=main&binaryArch=amd64
-tailscale_version: "1.94.2"
+tailscale_version: "1.96.4"
 
 # renovate: datasource=deb depName=nfs-kernel-server versioning=loose registryUrl=http://deb.debian.org/debian?suite=bookworm&components=main&binaryArch=amd64
 nfs_kernel_server_version: "1:2.6.2-4+deb12u1"
@@ -31,7 +31,8 @@ containerd_version: "2.2.2-1~debian.12~bookworm"
 openclaw_version: "latest"
 
 # renovate: datasource=github-releases depName=cli/cli versioning=semver
-gh_cli_version: "2.47.0"
+gh_cli_version: "2.90.0"
 
 # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
-kubectl_version: "1.35.2"
+kubectl_version: "1.35.3"
+uv_version: "0.6.2"

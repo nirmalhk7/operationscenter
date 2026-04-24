@@ -4,7 +4,7 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
   node_name    = "milano"
 
   source_raw {
-    data = <<-EOT
+    data      = <<-EOT
     #cloud-config
     package_update: true
     packages:

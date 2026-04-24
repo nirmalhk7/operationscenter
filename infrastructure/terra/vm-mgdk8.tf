@@ -5,11 +5,11 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 
   node_name = local.nodeName
   vm_id     = 105
-  
+
   agent {
     enabled = true
   }
-  
+
   # if agent is not enabled, the VM may not be able to shutdown properly, and may need to be forced off
   stop_on_destroy = true
 
@@ -18,13 +18,13 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   pool_id = proxmox_virtual_environment_pool.pool-mgd.id
 
   cpu {
-    cores        = 4
-    type         = "x86-64-v2-AES"  # recommended for modern CPUs
+    cores = 4
+    type  = "x86-64-v2-AES" # recommended for modern CPUs
   }
 
   memory {
-    dedicated = 1024*15
-    floating  = 1024*6
+    dedicated = 1024 * 15
+    floating  = 1024 * 6
   }
 
   disk {
@@ -34,7 +34,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
     size         = 100
   }
 
-  
+
   initialization {
     datastore_id = "local"
     ip_config {
@@ -46,7 +46,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 
     user_account {
       password = "${var.vm_password}105"
-      keys = [local.sshKeys.mgd]
+      keys     = [local.sshKeys.mgd]
       username = "root"
     }
 
@@ -54,7 +54,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   }
 
   network_device {
-    bridge = "wmnet"
+    bridge   = "wmnet"
     firewall = false
   }
 
@@ -74,14 +74,14 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
-  depends_on = [ 
+  depends_on = [
     proxmox_virtual_environment_vm.vm-k8mgd,
     proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
   ]
 
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
-  
+
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Dev Test"

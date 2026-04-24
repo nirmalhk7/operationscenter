@@ -12,7 +12,7 @@ spec:
       chart: it-tools
       sourceRef:
         kind: HelmRepository
-        name: plcnk
+        name: bjw-s
         namespace: mgd-devbench
       version: "*"
   values:

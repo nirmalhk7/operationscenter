@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: open-webui
-      version: 12.10.0
+      version: 12.13.0
       sourceRef:
         kind: HelmRepository
         name: open-webui
@@ -17,16 +17,15 @@ spec:
   values:
     ollama:
       enabled: false
-    redis-cluster:
+    redis:
       enabled: true
     podLabels:
       milano.app: *app
       milano.level: managed
     persistence:
       storageClass: milano-v2
-    extraEnvVars:
-      - secretRef:
-          name: open-webui-secrets
     extraEnvFrom:
       - configMapRef:
           name: open-webui-env
+      - secretRef:
+          name: open-webui-secrets
