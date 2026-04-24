@@ -37,7 +37,7 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
 
   cpu {
     architecture = "amd64"
-    cores        = 1
+    cores        = 2
   }
 
   disk {
@@ -56,6 +56,10 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
   operating_system {
     template_file_id = local.osTemplates.debian12
     type             = "debian"
+  }
+
+  features {
+    nesting = true
   }
 }
 

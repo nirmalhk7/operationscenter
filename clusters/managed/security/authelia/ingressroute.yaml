@@ -3,17 +3,17 @@ kind: IngressRoute
 metadata:
   name: &app authelia
   annotations:
-    gethomepage.dev/href: "https://secure.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://secure.trusted.nirmalhk7.com"
     gethomepage.dev/group: Security
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Secure
     gethomepage.dev/description: *app
-    gethomepage.dev/widget.type: *app
-    gethomepage.dev/widget.url: "https://secure.trusted.nirmalhk7.com"
+    # gethomepage.dev/widget.type: *app
+    # gethomepage.dev/widget.url: "https://secure.trusted.nirmalhk7.com"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=authelia"
-    gethomepage.dev/widget.key: L2cP2qFi88g2a6vMFrHBPiaGxJOrGUfHbFldFtRVXjxrDJyW3slG5gca1Sss
+    # gethomepage.dev/widget.key: L2cP2qFi88g2a6vMFrHBPiaGxJOrGUfHbFldFtRVXjxrDJyW3slG5gca1Sss
 spec:
   entryPoints:
     - websecure
