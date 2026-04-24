@@ -1,6 +1,22 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: &app pterodactyl
+  namespace: mgd-gaming
+  labels:
+    milano.app: *app
+spec:
+  type: ClusterIP
+  ports:
+    - name: web
+      port: 80
+      targetPort: 80
+  selector:
+    milano.app: *app
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: &app pterodactyl-lb
   namespace: mgd-gaming
   labels:
