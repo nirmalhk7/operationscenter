@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   name: &app pterodactyl
   namespace: mgd-gaming
-  labels:
-    milano.app: *app
 spec:
   replicas: 1
   selector:
