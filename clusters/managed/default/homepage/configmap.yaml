@@ -63,13 +63,13 @@ data:
             - icon: linkace
               href: https://dashboardicons.com/icons
   services.yaml: |
-      - Applications:
+    - Applications:
         - Robot:
             icon: openclaw
             name: Robot
             description: Openclaw Dashboard
             href: "https://robot.trusted.nirmalhk7.com"
-      - Infrastructure:
+    - Infrastructure:
         - lxc_nginx:
             name: NginX
             description: LXC
@@ -90,7 +90,7 @@ data:
             href: "https://10.0.0.10:8006/#v1:0:=qemu%2F105:4::::::=consolejs"
             proxmoxNode: milano
             proxmoxVMID: 105
-      - Networking:
+    - Networking:
         - Tailscale:
             id: local-tailscale
             icon: tailscale-light
