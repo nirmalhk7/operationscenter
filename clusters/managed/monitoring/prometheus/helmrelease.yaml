@@ -24,6 +24,10 @@ spec:
           secretKeyRef:
             name: authelia-app-secrets
             key: grafana-client-secret
+        TELEGRAM_TOKEN:
+          secretKeyRef:
+            name: grafana-credentials
+            key: token
         
       grafana.ini:
         server:
@@ -51,11 +55,6 @@ spec:
           label: milano_grafana_dashboard
           labelValue: "true"
           searchNamespace: ALL
-      envValueFrom:
-        TELEGRAM_TOKEN:
-          secretKeyRef:
-            name: grafana-credentials
-            key: token
       assertNoLeakedSecrets: false
       alerting:
         contactpoints.yaml:
