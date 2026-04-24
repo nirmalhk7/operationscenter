@@ -3,8 +3,8 @@ kind: IngressRoute
 metadata:
   name: &app gitea
   annotations:
-    gethomepage.dev/href: "https://git.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://git.trusted.nirmalhk7.com"
     gethomepage.dev/group: Devbench
     gethomepage.dev/description: "Gitea"
     gethomepage.dev/icon: *app

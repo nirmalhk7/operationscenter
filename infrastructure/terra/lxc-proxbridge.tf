@@ -31,12 +31,12 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
   }
 
   memory {
-    dedicated = 1024
+    dedicated = 500
   }
 
   cpu {
     architecture = "amd64"
-    cores        = 2
+    cores        = 1
   }
 
   disk {

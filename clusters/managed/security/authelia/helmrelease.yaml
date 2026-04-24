@@ -16,11 +16,11 @@ spec:
   values:
     pod:
       extraVolumes:
-          - name: &appCredentials authelia-credentials
-            secret:
-              secretName: *appCredentials
+        - name: authelia-credentials
+          secret:
+            secretName: authelia-credentials
       extraVolumeMounts:
-        - name: *appCredentials
+        - name: authelia-credentials
           mountPath: /config/users_database.yaml
           subPath: users_database.yaml
           readOnly: true
@@ -28,14 +28,14 @@ spec:
       enabled: true
       storageClass: milano-v2
     secret:
-      existingSecret: *appCredentials
+      existingSecret: authelia-credentials
       additionalSecrets:
         authelia-credentials:
           items:
             - key: storage.encryption.key
               path: storage.encryption.key
             - key: storage.mysql.password
-              path: storage.mysql.password.txt
+              path: storage.mysql.password
             - key: session.encryption.key
               path: session.encryption.key
             - key: jwt-secret
@@ -48,13 +48,15 @@ spec:
               path: oidc-jwks-private-key.pem
         authelia-app-secrets:
           items:
-            - key: grafana-client-secret
-              path: grafana-client-secret
+            - key: client-secret-grafana
+              path: client-secret-grafana
+            - key: client-secret-nextcloud
+              path: client-secret-nextcloud
     configMap:
       identity_validation:
         reset_password:
           secret:
-            secret_name: *appCredentials
+            secret_name: authelia-credentials
             path: jwt-secret
       access_control:
         default_policy: 'one_factor'
@@ -71,7 +73,7 @@ spec:
         oidc:
           enabled: true
           hmac_secret:
-            secret_name: *appCredentials
+            secret_name: authelia-credentials
             path: oidc-hmac-secret
           jwks:
             - key_id: authelia-oidc-rs256
@@ -82,8 +84,8 @@ spec:
           clients:
             - client_id: grafana
               client_name: Grafana
-              client_secret_jwt:
-                path: /secrets/authelia-app-secrets/grafana-client-secret
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-grafana
               redirect_uris:
                 - https://grafana.trusted.nirmalhk7.com/login/generic_oauth
               post_logout_redirect_uris:
@@ -99,6 +101,21 @@ spec:
                 - authorization_code
               authorization_policy: one_factor
               token_endpoint_auth_method: client_secret_basic
+            - client_id: nextcloud
+              client_name: Nextcloud
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-nextcloud
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://drive.trusted.nirmalhk7.com/apps/user_oidc/code
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_basic
       theme: 'dark'
       telemetry:
         metrics:
@@ -110,6 +127,9 @@ spec:
         ldap:
           enabled: false
       session:
+        encryption_key:
+          secret_name: authelia-credentials
+          path: session.encryption.key
         cookies:
           - name: authelia_session
             domain: nirmalhk7.com
@@ -121,7 +141,8 @@ spec:
           filename: /config/notification.txt
       storage:
         encryption_key:
-          secret_name: *appCredentials
+          secret_name: authelia-credentials
+          path: storage.encryption.key
         local:
           enabled: false
         postgres:
@@ -132,5 +153,6 @@ spec:
           database: *app
           username: 'authelia_rw'
           password:
-            secret_name: *appCredentials
+            secret_name: authelia-credentials
+            path: storage.mysql.password
         
