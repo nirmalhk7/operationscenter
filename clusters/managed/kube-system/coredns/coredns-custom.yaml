@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: coredns-custom
   namespace: kube-system
+  labels:
+    milano.level: managed
 data:
   trusted.override: |
     rewrite name regex (.*)\.trusted\.nirmalhk7\.com traefik.kube-system.svc.cluster.local

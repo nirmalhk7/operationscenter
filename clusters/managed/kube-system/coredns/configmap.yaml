@@ -1,4 +1,11 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+    milano.level: managed
+    k8s-app: kube-dns
 data:
   Corefile: |
     .:53 {
@@ -25,20 +32,3 @@ data:
     import /etc/coredns/custom/*.server
   NodeHosts: |
     172.16.0.105 localhost
-kind: ConfigMap
-metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"v1","data":{"Corefile":".:53 {\n    errors\n    rewrite name regex (.*)\\.trusted\\.nirmalhk7\\.com traefik.kube-system.svc.cluster.local\n    health\n    ready\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    hosts /etc/coredns/NodeHosts {\n      ttl 60\n      reload 15s\n      fallthrough\n    }\n    prometheus :9153\n    cache 30\n    loop\n    reload\n    loadbalance\n    import /etc/coredns/custom/*.override\n    forward . /etc/resolv.conf\n}\nimport /etc/coredns/custom/*.server\n","NodeHosts":"172.16.0.105 localhost\n"},"kind":"ConfigMap","metadata":{"annotations":{"objectset.rio.cattle.io/applied":"H4sIAAAAAAAA/4yQwWrzMBCEX0Xs2fEf20nsX9BDybH02lMva2kdq1Z2g6SkBJN3L8IUCiVtbyNGOzvfzoAn90IhOmHQcKmgAIsJQc+wl0CD8wQaSr1t1PzKSilFIUiIix4JfRoXHQjtdZHTuafAlCgq488xUSi9wK2AybEFDXvhwR2e8QQFHCnh50ZkloTJCcf8lP6NTIqUyuCkNJiSp9LJP5czoLjryztTWB0uE2iYmvjFuVSFenJsHx6tFf41gvGY6Y0Eshz/9D2e0OSZfIJVvMZExwzusSf/I9SIcQQNvaG6a+r/XVdV7abBddPtsN9W66Eedi0N7aberM22zaHf6t0tcPsIAAD//8Ix+PfoAQAA","objectset.rio.cattle.io/id":"","objectset.rio.cattle.io/owner-gvk":"k3s.cattle.io/v1, Kind=Addon","objectset.rio.cattle.io/owner-name":"coredns","objectset.rio.cattle.io/owner-namespace":"kube-system"},"creationTimestamp":"2026-03-16T05:28:42Z","labels":{"objectset.rio.cattle.io/hash":"bce283298811743a0386ab510f2f67ef74240c57"},"name":"coredns","namespace":"kube-system","resourceVersion":"384","uid":"d238802e-9c5e-4b9f-b4f4-ea8637ae017d"}}
-    objectset.rio.cattle.io/applied: H4sIAAAAAAAA/4yQwWrzMBCEX0Xs2fEf20nsX9BDybH02lMva2kdq1Z2g6SkBJN3L8IUCiVtbyNGOzvfzoAn90IhOmHQcKmgAIsJQc+wl0CD8wQaSr1t1PzKSilFIUiIix4JfRoXHQjtdZHTuafAlCgq488xUSi9wK2AybEFDXvhwR2e8QQFHCnh50ZkloTJCcf8lP6NTIqUyuCkNJiSp9LJP5czoLjryztTWB0uE2iYmvjFuVSFenJsHx6tFf41gvGY6Y0Eshz/9D2e0OSZfIJVvMZExwzusSf/I9SIcQQNvaG6a+r/XVdV7abBddPtsN9W66Eedi0N7aberM22zaHf6t0tcPsIAAD//8Ix+PfoAQAA
-    objectset.rio.cattle.io/id: ""
-    objectset.rio.cattle.io/owner-gvk: k3s.cattle.io/v1, Kind=Addon
-    objectset.rio.cattle.io/owner-name: coredns
-    objectset.rio.cattle.io/owner-namespace: kube-system
-  creationTimestamp: "2026-03-16T05:28:42Z"
-  labels:
-    objectset.rio.cattle.io/hash: bce283298811743a0386ab510f2f67ef74240c57
-  name: coredns
-  namespace: kube-system
-  resourceVersion: "48100607"
-  uid: d238802e-9c5e-4b9f-b4f4-ea8637ae017d

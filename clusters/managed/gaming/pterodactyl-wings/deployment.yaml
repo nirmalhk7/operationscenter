@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app pterodactyl-wings
+  namespace: mgd-gaming
+  labels:
+    milano.app: *app
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      milano.app: *app
+  template:
+    metadata:
+      labels:
+        milano.app: *app
+    spec:
+      containers:
+        - name: wings
+          image: ghcr.io/pterodactyl/wings:latest
+          env:
+            - name: DOCKER_HOST
+              value: tcp://127.0.0.1:2375
+          ports:
+            - name: api
+              containerPort: 8080
+            - name: sftp
+              containerPort: 2022
+            - name: mc
+              containerPort: 25565
+              protocol: TCP
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: config
+              mountPath: /etc/pterodactyl
+            - name: volumes
+              mountPath: /var/lib/pterodactyl/volumes
+              mountPropagation: Bidirectional
+            - name: dockerlib
+              mountPath: /var/lib/docker
+            - name: tmp
+              mountPath: /tmp/pterodactyl
+          startupProbe:
+            httpGet:
+              path: /api/system
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 2
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+        - name: dind
+          image: docker:26-dind
+          args:
+            - --host=tcp://0.0.0.0:2375
+            - --tls=false
+            - --mtu=1400
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: dockerlib
+              mountPath: /var/lib/docker
+            - name: volumes
+              mountPath: /var/lib/pterodactyl/volumes
+              mountPropagation: Bidirectional
+            - name: tmp
+              mountPath: /tmp/pterodactyl
+      volumes:
+        - name: config
+          secret:
+            secretName: pterodactyl-wings-config
+        - name: volumes
+          persistentVolumeClaim:
+            claimName: pterodactyl-wings-volumes
+        - name: dockerlib
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

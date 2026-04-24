@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ../_middlewares
   - namespace.yaml
-  - pterodactyl
+  - pterodactyl-panel
+  - pterodactyl-wings
 
 namespace: mgd-gaming

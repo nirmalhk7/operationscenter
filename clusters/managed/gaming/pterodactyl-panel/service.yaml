@@ -11,6 +11,6 @@ spec:
     - name: web
       port: 80
       targetPort: 80
-      nodePort: 31217
+      nodePort: 31221
   selector:
     milano.app: *app

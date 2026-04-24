@@ -3,6 +3,8 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: &app mgd-https
+  labels:
+    milano.level: managed
 spec:
   redirectScheme:
     scheme: https
