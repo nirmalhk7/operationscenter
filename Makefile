@@ -22,7 +22,7 @@ encrypt:
 	else \
 		DIR=$$(dirname $(FILE)); \
 		BASE=$$(basename $(FILE) .px.yaml); \
-		kubeseal --format=yaml --cert=pub-sealed-secrets.pem < $(FILE) > $$DIR/$$BASE.yaml; \
+		kubeseal --format=yaml --cert=pub-sealed-secrets.pem < $(FILE) | grep -v 'creationTimestamp: null' > $$DIR/$$BASE.yaml; \
 	fi
 
 encrypt_all:

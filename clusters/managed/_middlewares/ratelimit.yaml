@@ -2,8 +2,6 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: &app mgd-ratelimit
-  labels:
-    milano.level: managed
 spec:
   rateLimit:
     average: 25
