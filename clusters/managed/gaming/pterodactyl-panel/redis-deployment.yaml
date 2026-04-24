@@ -5,6 +5,7 @@ metadata:
   namespace: mgd-gaming
   labels:
     milano.app: *app
+    milano.level: managed
 spec:
   replicas: 1
   selector:

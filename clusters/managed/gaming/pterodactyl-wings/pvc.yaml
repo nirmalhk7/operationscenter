@@ -1,14 +1,11 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: &app pterodactyl-wings-volumes
-  namespace: mgd-gaming
-  labels:
-    milano.app: *app
+  name: &app pterodactyl-wings-pvc
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: milano-v3
+  storageClassName: milano-v2
   resources:
     requests:
       storage: 50Gi

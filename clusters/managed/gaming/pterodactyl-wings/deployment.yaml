@@ -2,9 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: &app pterodactyl-wings
-  namespace: mgd-gaming
-  labels:
-    milano.app: *app
 spec:
   replicas: 1
   strategy:
@@ -78,7 +75,7 @@ spec:
             secretName: pterodactyl-wings-config
         - name: volumes
           persistentVolumeClaim:
-            claimName: pterodactyl-wings-volumes
+            claimName: pterodactyl-wings-pvc
         - name: dockerlib
           emptyDir: {}
         - name: tmp

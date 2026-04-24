@@ -3,6 +3,8 @@ kind: IngressRoute
 metadata:
   name: &app pterodactyl
   namespace: mgd-gaming
+  labels:
+    milano.level: managed
 spec:
   entryPoints:
     - websecure
@@ -13,5 +15,3 @@ spec:
       services:
         - name: *app
           port: 80
-  tls:
-    secretName: pterodactyl-tls

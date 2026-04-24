@@ -23,6 +23,12 @@ spec:
             - secretRef:
                 name: pterodactyl-secrets
           env:
+            - name: APP_URL
+              value: "https://gaming.trusted.nirmalhk7.com"
+            - name: TRUSTED_PROXIES
+              value: "*"
+            - name: RECAPTCHA_ENABLED
+              value: "false"
             - name: APP_ENV
               value: "production"
             - name: APP_ENVIRONMENT_ONLY
