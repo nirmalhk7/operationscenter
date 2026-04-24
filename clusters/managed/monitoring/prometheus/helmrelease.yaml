@@ -129,7 +129,7 @@ spec:
             prometheus: prometheus_servicemonitor
         resources:
           requests:
-            cpu: 500m
+            cpu: 200m
             memory: 2Gi
           limits:
             cpu: 1000m
@@ -147,7 +147,7 @@ spec:
           timeoutSeconds: 10
         retention: 2d
         storageSpec:
-          v1beta1:
+          volumeClaimTemplate:
             spec:
               accessModes: ["ReadWriteOnce"]
               resources:

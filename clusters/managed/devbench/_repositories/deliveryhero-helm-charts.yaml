@@ -4,5 +4,6 @@ metadata:
   name: &app deliveryhero-helm-charts
   namespace: mgd-devbench
 spec:
-  url: https://raw.githubusercontent.com/deliveryhero/helm-charts/master/
+  type: oci
+  url: oci://ghcr.io/deliveryhero/helm-charts
   interval: 1h

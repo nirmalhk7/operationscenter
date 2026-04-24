@@ -19,19 +19,10 @@ spec:
         - name: authelia-credentials
           secret:
             secretName: authelia-credentials
-        - name: authelia-app-secrets
-          secret:
-            secretName: authelia-app-secrets
       extraVolumeMounts:
         - name: authelia-credentials
           mountPath: /config/users_database.yaml
           subPath: users_database.yaml
-          readOnly: true
-        - name: authelia-credentials
-          mountPath: /secrets/authelia-credentials
-          readOnly: true
-        - name: authelia-app-secrets
-          mountPath: /secrets/authelia-app-secrets
           readOnly: true
     persistence:
       enabled: true
@@ -44,7 +35,7 @@ spec:
             - key: storage.encryption.key
               path: storage.encryption.key
             - key: storage.mysql.password
-              path: storage.mysql.password.txt
+              path: storage.mysql.password
             - key: session.encryption.key
               path: session.encryption.key
             - key: jwt-secret
@@ -136,7 +127,7 @@ spec:
         ldap:
           enabled: false
       session:
-        secret:
+        encryption_key:
           secret_name: authelia-credentials
           path: session.encryption.key
         cookies:
