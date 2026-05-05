@@ -1,0 +1,22 @@
+---
+- name: Deploy ed25519 public key
+  ansible.posix.authorized_key:
+    user: root
+    key: "{{ ssh_pubkey_ed25519 }}"
+    state: present
+    exclusive: false
+
+- name: Harden SSH configuration
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    backup: true
+  loop:
+    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin prohibit-password' }
+    - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+    - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+    - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding yes' }
+    - { regexp: '^#?ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
+  notify: Restart sshd

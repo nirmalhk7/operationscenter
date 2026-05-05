@@ -4,24 +4,15 @@
   become: true
   vars_files:
     - vars/versions.yaml
+    - vars/network.yaml
   vars:
     homelab_path: /root/operationscenter
-    # Network Configuration
-    host_ip: "10.0.0.10"
-    int_subnet: "172.16.0.0/24"
-    nginx_ip: "172.16.0.101"
-    k8s_ip: "172.16.0.105"
-    nfs_ip: "172.16.0.108"
-    vpn_ip: "100.87.0.43"
-    wan_iface: "wlp4s0"
-    lan_iface: "wmnet"
-    vpn_iface: "tailscale0"
     tailscale_auth_key: "{{ lookup('env', 'TAILSCALE_AUTHKEY') | default('', true) }}"
-    # SSH Key for passwordless auth (ed25519)
     ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
 
   tasks:
     - name: Routine package update/ basic setup
+      tags: [packages]
       block:
       - name: Update apt cache and upgrade packages
         ansible.builtin.apt:
@@ -29,35 +20,9 @@
           cache_valid_time: 3600
           upgrade: safe
       - name: SSH hardening for Proxmox host
-        tags: ssh
-        block:
-          - name: Update apt cache and upgrade packages
-            ansible.builtin.apt:
-              update_cache: true
-              cache_valid_time: 3600
-              upgrade: safe
-
-          - name: Deploy ed25519 public key to Proxmox host
-            ansible.posix.authorized_key:
-              user: root
-              key: "{{ ssh_pubkey_ed25519 }}"
-              state: present
-              exclusive: false
-
-          - name: Harden SSH configuration on Proxmox host
-            ansible.builtin.lineinfile:
-              path: /etc/ssh/sshd_config
-              regexp: "{{ item.regexp }}"
-              line: "{{ item.line }}"
-              state: present
-              backup: true
-            loop:
-              - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin prohibit-password' }
-              - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
-              - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
-              - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding yes' }
-              - { regexp: '^#?ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
-            notify: Restart SSH
+        ansible.builtin.include_role:
+          name: ssh-hardening
+        tags: [ssh]
 
     - name: Networking configuration
       tags: hostconf
@@ -142,8 +107,8 @@
         - name: Remove subscription popup from Proxmox web UI
           ansible.builtin.replace:
             path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
-            regexp: "res === null \\|\\| res === undefined \\|\\| \\!res \\|\\| res"
-            replace: "false"
+            regexp: "Ext\\.Msg\\.show\\(\\{\\s+title: gettext\\('No valid subscription'\\),"
+            replace: "void({ //title: gettext('No valid subscription'),"
           notify: Restart pveproxy
 
     - name: Tailscale setup on Proxmox host
@@ -232,11 +197,6 @@
             pct exec 104 -- sed -i 's/^#PermitRootLogin.*/PermitRootLogin prohibit-password/g' /etc/ssh/sshd_config && pct exec 104 -- systemctl restart ssh
             
   handlers:
-    - name: Restart SSH
-      ansible.builtin.systemd:
-        name: sshd
-        state: restarted
-
     - name: Restart Tailscale metrics
       ansible.builtin.systemd:
         name: tailscale-metrics.service

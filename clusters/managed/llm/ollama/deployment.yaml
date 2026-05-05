@@ -70,6 +70,7 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
         - name: ollama-metrics
+          # renovate: depName=ghcr.io/norskhelsenett/ollama-metrics
           image: ghcr.io/norskhelsenett/ollama-metrics:latest
           env:
             - name: OLLAMA_BASE_URL

@@ -73,30 +73,37 @@
       tags: [docker_setup]
 
     - name: Container setup - collecting artifacts
+      tags: [setup]
       block:
         - name: Ensure artifacts directory exists
           ansible.builtin.file:
             path: /root/operationscenter-artifacts
             state: directory
             mode: '0755'
-      
+
     - name: Perform docker deployments
+      tags: [deployments]
       block:
         - name: MariaDB deployment
           tags: mariadb
-          block: 
+          block:
           - name: Ensure MariaDB container is running
-            ansible.builtin.command: >
-              docker run --detach --name maria
-              --env MARIADB_ROOT_PASSWORD={{ mariadb_root_password }}
-              --volume mariadb_data:/var/lib/mysql
-              --restart unless-stopped
-              --health-cmd="mariadb-admin ping -uroot -p{{ mariadb_root_password }}"
-              --health-interval=30s --health-timeout=10s --health-retries=5
-              -p 3306:3306 mariadb:12
-            register: maria_run
-            failed_when: maria_run.rc not in [0,125]
-            changed_when: maria_run.rc == 0
+            community.docker.docker_container:
+              name: maria
+              image: mariadb:12
+              state: started
+              restart_policy: unless-stopped
+              published_ports:
+                - "3306:3306"
+              volumes:
+                - mariadb_data:/var/lib/mysql
+              env:
+                MARIADB_ROOT_PASSWORD: "{{ mariadb_root_password }}"
+              healthcheck:
+                test: ["CMD", "mariadb-admin", "ping", "-uroot", "-p{{ mariadb_root_password }}"]
+                interval: 30s
+                timeout: 10s
+                retries: 5
           - name: Wait for MariaDB healthy
             ansible.builtin.shell: >
               {% raw %}docker inspect --format '{{.State.Health.Status}}' maria{% endraw %}
@@ -131,22 +138,25 @@
           tags: vectorchord
           block:
           - name: Ensure VectorChord DB container is running
-            ansible.builtin.command: >
-              docker run --name vectorchorddb --restart unless-stopped
-              -e POSTGRES_PASSWORD="{{ vectorchord_pg_password }}"
-              -p 5432:5432 -v vectorchorddb_data:/var/lib/postgresql/data
-              -d {{ vectorchord_image }}
-            register: vchord_run
-            failed_when: vchord_run.rc not in [0,125]
-            changed_when: vchord_run.rc == 0
+            community.docker.docker_container:
+              name: vectorchorddb
+              image: "{{ vectorchord_image }}"
+              state: started
+              restart_policy: unless-stopped
+              published_ports:
+                - "5432:5432"
+              volumes:
+                - vectorchorddb_data:/var/lib/postgresql/data
+              env:
+                POSTGRES_PASSWORD: "{{ vectorchord_pg_password }}"
 
-          - name: Wait for VectorChord DB healthy
-            ansible.builtin.shell: >
-              {% raw %}docker inspect --format '{{.State.Error}}' vectorchorddb{% endraw %}
+          - name: Wait for VectorChord DB ready
+            ansible.builtin.command: >
+              docker exec vectorchorddb pg_isready -U postgres
             register: vchord_health
             retries: 20
             delay: 5
-            until: vchord_health.stdout == ""
+            until: vchord_health.rc == 0
             changed_when: false
 
           - name: Create VectorChord users

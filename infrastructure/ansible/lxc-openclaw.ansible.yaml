@@ -4,12 +4,12 @@
   become: yes
   vars_files:
     - vars/versions.yaml
+    - vars/network.yaml
 
   vars:
     openclaw_user: root
     openclaw_home: /root
     openclaw_support_home: /root/openclaw_support
-    nodejs_version: "22.x"
   tasks:
     - name: Clean up old NodeSource list files to prevent conflicts
       ansible.builtin.shell: rm -f /etc/apt/sources.list.d/nodesource*
@@ -85,7 +85,7 @@
           ansible.builtin.shell:
             cmd: |
               set -o pipefail
-              curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | \
+              curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ kubectl_version.split('.')[0] }}.{{ kubectl_version.split('.')[1] }}/deb/Release.key | \
                 gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
               chmod a+r /etc/apt/keyrings/kubernetes-apt-keyring.gpg
             creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
@@ -94,7 +94,7 @@
         - name: Add Kubernetes repository file
           ansible.builtin.copy:
             dest: /etc/apt/sources.list.d/kubernetes.list
-            content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /\n"
+            content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubectl_version.split('.')[0] }}.{{ kubectl_version.split('.')[1] }}/deb/ /\n"
             mode: '0644'
 
     - name: Install main software packages
@@ -110,7 +110,7 @@
 
     - name: Install uv via official script
       ansible.builtin.shell:
-        cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+        cmd: curl -LsSf https://astral.sh/uv/install.sh | UV_VERSION={{ uv_version }} sh
         creates: "{{ openclaw_home }}/.local/bin/uv"
       environment:
         HOME: "{{ openclaw_home }}"
@@ -122,12 +122,12 @@
       changed_when: false
 
     - name: Install pnpm globally
-      ansible.builtin.command: npm install -g pnpm
-      when: pnpm_check.rc != 0
+      ansible.builtin.command: npm install -g pnpm@{{ pnpm_version }}
+      when: pnpm_check.rc != 0 or (pnpm_check.stdout is defined and pnpm_check.stdout != pnpm_version)
 
     - name: Install OpenClaw globally (using pnpm)
       ansible.builtin.shell:
-        cmd: pnpm install -g openclaw@{{ openclaw_version | default('latest') }} 
+        cmd: pnpm install -g openclaw@{{ openclaw_version }} 
         executable: /bin/bash
       environment:
         PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
@@ -163,7 +163,7 @@
               clusters:
               - cluster:
                   certificate-authority-data: {{ openclaw_k8s_ca }}
-                  server: https://172.16.0.105:6443
+                  server: "{{ k8s_api_endpoint }}"
                 name: homelab
               contexts:
               - context:

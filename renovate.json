@@ -3,6 +3,20 @@
   "extends": [
     "config:recommended"
   ],
+  "packageRules": [
+    {
+      "description": "Only allow major upgrades for non-kubernetes packages",
+      "matchManagers": ["regex"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "enabled": false
+    },
+    {
+      "description": "Enable pin and digest updates for Kubernetes images so :latest tags get pinned",
+      "matchManagers": ["kubernetes"],
+      "matchUpdateTypes": ["pin", "digest"],
+      "enabled": true
+    }
+  ],
   "regexManagers": [
     {
       "fileMatch": ["^infrastructure/ansible/vars/versions\\.yaml$"],

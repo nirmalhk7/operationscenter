@@ -14,7 +14,7 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: mgd-devbench
-      version: "*"
+      version: ">=1.0.0 <2.0.0"
   values:
     controllers:
       main:

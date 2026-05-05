@@ -15,9 +15,22 @@ spec:
     spec:
       containers:
       - name: *app
-        # The local-only TP-Link plug exporter image
-        image: fffonion/tplink-plug-exporter:latest 
+        # renovate: depName=fffonion/tplink-plug-exporter
+        image: fffonion/tplink-plug-exporter:latest
         ports:
-        - containerPort: 9233 # Default listening port for this exporter
+        - containerPort: 9233
           name: http-metrics
-        # No environment variables are needed for local discovery/scraping
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 9233
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi

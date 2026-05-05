@@ -83,6 +83,7 @@ ansible-install:
 	else \
 	  pip install --user ansible; \
 	fi
+	ansible-galaxy collection install -r infrastructure/ansible/requirements.yaml
 
 ansible-run: ansible-install
 	@eval "$$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_homelab && \
@@ -153,5 +154,5 @@ flux-resume:
 
 sync:
 	git add .
-	git commit --amend --no-edit
-	git push --force
+	git commit -m "chore: sync"
+	git push

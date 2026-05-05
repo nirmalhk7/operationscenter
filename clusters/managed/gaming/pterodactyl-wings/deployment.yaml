@@ -16,6 +16,7 @@ spec:
     spec:
       containers:
         - name: wings
+          # renovate: depName=ghcr.io/pterodactyl/wings
           image: ghcr.io/pterodactyl/wings:latest
           env:
             - name: DOCKER_HOST
@@ -40,6 +41,13 @@ spec:
               mountPath: /var/lib/docker
             - name: tmp
               mountPath: /tmp/pterodactyl
+          readinessProbe:
+            httpGet:
+              path: /api/system
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /api/system

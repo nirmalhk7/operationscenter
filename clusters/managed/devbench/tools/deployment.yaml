@@ -15,10 +15,25 @@ spec:
     spec:
       containers:
       - name: it-tools
+        # renovate: depName=ghcr.io/sharevb/it-tools
         image: ghcr.io/sharevb/it-tools:nightly
         ports:
         - containerPort: 8080
           name: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 20m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
