@@ -281,36 +281,6 @@
 
     - name: Post-install tasks
       block:
-        - name: Authenticate GitHub CLI
-          ansible.builtin.shell:
-            cmd: |
-              if ! gh auth status >/dev/null 2>&1; then
-                echo "{{ github_token }}" | gh auth login --with-token
-              fi
-          vars:
-            github_token: "{{ lookup('env', 'OPENCLAW_GITHUB_TOKEN') }}"
-          when: github_token != ""
-          register: gh_auth
-          changed_when: false
-
-        - name: Clone operationscenter repository
-          ansible.builtin.shell:
-            cmd: "gh repo clone nirmalhk7/operationscenter {{ openclaw_support_home }}/operationscenter"
-            creates: "{{ openclaw_support_home }}/operationscenter"
-          when: 
-            - lookup('env', 'OPENCLAW_GITHUB_TOKEN') != ""
-            - gh_auth is succeeded
-
-        - name: Clone Obsidian repository
-          ansible.builtin.shell:
-            cmd: "gh repo clone {{ obsidian_repo }} {{ openclaw_support_home }}/obsidian"
-            creates: "{{ openclaw_support_home }}/obsidian"
-          vars:
-            obsidian_repo: "{{ lookup('env', 'OPENCLAW_OBSIDIAN_REPO') }}"
-          when: 
-            - obsidian_repo != ""
-            - gh_auth is succeeded
-
         - name: Install Polymarket MCP tool via uv
           ansible.builtin.shell:
             cmd: "{{ openclaw_home }}/.local/bin/uv tool install git+https://github.com/berlinbra/polymarket-mcp --force"

@@ -28,11 +28,20 @@ docker_compose_plugin_version: "5.1.1-1~debian.13~trixie"
 # renovate: datasource=deb depName=containerd.io versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
 containerd_version: "2.2.2-1~debian.13~trixie"
 
-openclaw_version: "latest"
+# renovate: datasource=npm depName=openclaw
+openclaw_version: "2026.3.28"
+
+# renovate: datasource=node depName=node
+nodejs_version: "24.x"
+
+# renovate: datasource=npm depName=pnpm
+pnpm_version: "10.33.2"
 
 # renovate: datasource=github-releases depName=cli/cli versioning=semver
 gh_cli_version: "2.90.0"
 
 # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
 kubectl_version: "1.35.3"
+
+# renovate: datasource=github-releases depName=astral-sh/uv versioning=semver
 uv_version: "0.6.2"

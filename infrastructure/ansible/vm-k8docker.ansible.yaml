@@ -87,107 +87,106 @@
         - name: MariaDB deployment
           tags: mariadb
           block:
-          - name: Ensure MariaDB container is running
-            community.docker.docker_container:
-              name: maria
-              image: mariadb:12
-              state: started
-              restart_policy: unless-stopped
-              published_ports:
-                - "3306:3306"
-              volumes:
-                - mariadb_data:/var/lib/mysql
-              env:
-                MARIADB_ROOT_PASSWORD: "{{ mariadb_root_password }}"
-              healthcheck:
-                test: ["CMD", "mariadb-admin", "ping", "-uroot", "-p{{ mariadb_root_password }}"]
-                interval: 30s
-                timeout: 10s
-                retries: 5
-          - name: Wait for MariaDB healthy
-            ansible.builtin.shell: >
-              {% raw %}docker inspect --format '{{.State.Health.Status}}' maria{% endraw %}
-            register: maria_health
-            retries: 20
-            delay: 5
-            until: maria_health.stdout == "healthy"
-            changed_when: false
-          
-          - name: Create MariaDB databases
-            community.mysql.mysql_db:
-              name: "{{ item }}"
-              state: present
-              login_user: root
-              login_password: "{{ mariadb_root_password }}"
-              login_host: 127.0.0.1
-            loop: "{{ mariadb_db_names }}"
+            - name: Ensure MariaDB container is running
+              community.docker.docker_container:
+                name: maria
+                image: mariadb:12
+                state: started
+                restart_policy: unless-stopped
+                published_ports:
+                  - "3306:3306"
+                volumes:
+                  - mariadb_data:/var/lib/mysql
+                env:
+                  MARIADB_ROOT_PASSWORD: "{{ mariadb_root_password }}"
+                healthcheck:
+                  test: ["CMD", "mariadb-admin", "ping", "-uroot", "-p{{ mariadb_root_password }}"]
+                  interval: 30s
+                  timeout: 10s
+                  retries: 5
+            - name: Wait for MariaDB healthy
+              ansible.builtin.shell: >
+                {% raw %}docker inspect --format '{{.State.Health.Status}}' maria{% endraw %}
+              register: maria_health
+              retries: 20
+              delay: 5
+              until: maria_health.stdout == "healthy"
+              changed_when: false
 
-          - name: Create MariaDB users
-            community.mysql.mysql_user:
-              name: "{{ item }}_rw"
-              password: "{{ mariadb_rw_password }}"
-              priv: "{{ item }}.*:ALL"
-              host: "%"
-              state: present
-              login_user: root
-              login_password: "{{ mariadb_root_password }}"
-              login_host: 127.0.0.1
-            loop: "{{ mariadb_db_names }}"
+            - name: Create MariaDB databases
+              community.mysql.mysql_db:
+                name: "{{ item }}"
+                state: present
+                login_user: root
+                login_password: "{{ mariadb_root_password }}"
+                login_host: 127.0.0.1
+              loop: "{{ mariadb_db_names }}"
+
+            - name: Create MariaDB users
+              community.mysql.mysql_user:
+                name: "{{ item }}_rw"
+                password: "{{ mariadb_rw_password }}"
+                priv: "{{ item }}.*:ALL"
+                host: "%"
+                state: present
+                login_user: root
+                login_password: "{{ mariadb_root_password }}"
+                login_host: 127.0.0.1
+              loop: "{{ mariadb_db_names }}"
 
         - name: VectorChord deployment
           tags: vectorchord
           block:
-          - name: Ensure VectorChord DB container is running
-            community.docker.docker_container:
-              name: vectorchorddb
-              image: "{{ vectorchord_image }}"
-              state: started
-              restart_policy: unless-stopped
-              published_ports:
-                - "5432:5432"
-              volumes:
-                - vectorchorddb_data:/var/lib/postgresql/data
-              env:
-                POSTGRES_PASSWORD: "{{ vectorchord_pg_password }}"
+            - name: Ensure VectorChord DB container is running
+              community.docker.docker_container:
+                name: vectorchorddb
+                image: "{{ vectorchord_image }}"
+                state: started
+                restart_policy: unless-stopped
+                published_ports:
+                  - "5432:5432"
+                volumes:
+                  - vectorchorddb_data:/var/lib/postgresql/data
+                env:
+                  POSTGRES_PASSWORD: "{{ vectorchord_pg_password }}"
 
-          - name: Wait for VectorChord DB ready
-            ansible.builtin.command: >
-              docker exec vectorchorddb pg_isready -U postgres
-            register: vchord_health
-            retries: 20
-            delay: 5
-            until: vchord_health.rc == 0
-            changed_when: false
+            - name: Wait for VectorChord DB ready
+              ansible.builtin.command: >
+                docker exec vectorchorddb pg_isready -U postgres
+              register: vchord_health
+              retries: 20
+              delay: 5
+              until: vchord_health.rc == 0
+              changed_when: false
 
-          - name: Create VectorChord users
-            community.postgresql.postgresql_user:
-              name: "{{ item }}_rw"
-              password: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}"
-              login_db: postgres # Corrected from database
-              state: present
-              login_user: postgres
-              login_password: "{{ vectorchord_pg_password }}"
-              login_host: 127.0.0.1
-            loop: "{{ vectorchord_db_names }}"
+            - name: Create VectorChord users
+              community.postgresql.postgresql_user:
+                name: "{{ item }}_rw"
+                password: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}"
+                login_db: postgres
+                state: present
+                login_user: postgres
+                login_password: "{{ vectorchord_pg_password }}"
+                login_host: 127.0.0.1
+              loop: "{{ vectorchord_db_names }}"
 
-          - name: Create VectorChord databases
-            community.postgresql.postgresql_db:
-              name: "{{ item }}"
-              state: present
-              login_user: postgres
-              login_password: "{{ vectorchord_pg_password }}"
-              login_host: 127.0.0.1
-              owner: "{{ item }}_rw"
-            loop: "{{ vectorchord_db_names }}"
+            - name: Create VectorChord databases
+              community.postgresql.postgresql_db:
+                name: "{{ item }}"
+                state: present
+                login_user: postgres
+                login_password: "{{ vectorchord_pg_password }}"
+                login_host: 127.0.0.1
+                owner: "{{ item }}_rw"
+              loop: "{{ vectorchord_db_names }}"
 
-          - name: Install VectorChord extensions
-            community.postgresql.postgresql_ext:
-              name: "{{ item.1 }}"
-              db: "{{ item.0 }}"
-              cascade: yes
-              login_user: postgres
-              login_password: "{{ vectorchord_pg_password }}"
-              login_host: 127.0.0.1
-            loop: "{{ vectorchord_db_names | product(['vchord', 'earthdistance']) | list }}"
-            when: item.0 == 'immich'
-      tags: [deployments]
+            - name: Install VectorChord extensions
+              community.postgresql.postgresql_ext:
+                name: "{{ item.1 }}"
+                db: "{{ item.0 }}"
+                cascade: yes
+                login_user: postgres
+                login_password: "{{ vectorchord_pg_password }}"
+                login_host: 127.0.0.1
+              loop: "{{ vectorchord_db_names | product(['vchord', 'earthdistance']) | list }}"
+              when: item.0 == 'immich'

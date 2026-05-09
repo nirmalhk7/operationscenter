@@ -8,6 +8,7 @@
   gather_facts: false
   vars:
     playbooks:
+      - lxc-vm-ssh.ansible.yaml
       - lxc-nginx.ansible.yaml
       - lxc-openclaw.ansible.yaml
       - vm-k8docker.ansible.yaml

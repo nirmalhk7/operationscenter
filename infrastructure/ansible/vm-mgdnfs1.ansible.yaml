@@ -1,5 +1,5 @@
 ---
-- name: Prepare NFS node storage and SSH access
+- name: Prepare NFS node storage
   hosts: vm_mgdnfs1
   become: true
   gather_facts: false
@@ -64,18 +64,6 @@
       ansible.builtin.command: df -h {{ mount_point }}
       changed_when: false
 
-    - name: Enable SSH password and root login
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
-        state: present
-        backup: true
-      loop:
-        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin yes' }
-        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication yes' }
-      notify: Restart sshd
-
     - name: Ensure NFS server installed
       ansible.builtin.apt:
         name: "nfs-kernel-server"
@@ -96,11 +84,6 @@
         enabled: true
 
   handlers:
-    - name: Restart sshd
-      ansible.builtin.systemd:
-        name: sshd
-        state: restarted
-
     - name: Reload nfs exports
       ansible.builtin.command: exportfs -ra
       notify: Restart nfs-kernel-server
