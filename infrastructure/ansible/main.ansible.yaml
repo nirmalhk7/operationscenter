@@ -10,9 +10,9 @@
     playbooks:
       - lxc-vm-ssh.ansible.yaml
       - lxc-nginx.ansible.yaml
-      - lxc-openclaw.ansible.yaml
       - vm-k8docker.ansible.yaml
       - vm-k8mgd.ansible.yaml
+      - lxc-openclaw.ansible.yaml
       - vm-mgdnfs1.ansible.yaml
   tasks:
     - name: Run infrastructure playbooks

@@ -1,4 +1,20 @@
 ---
+- name: Fetch OpenClaw Token from K8s
+  hosts: vm_k8mgd
+  become: yes
+  any_errors_fatal: true
+  tasks:
+    - name: Get openclaw-bot token
+      ansible.builtin.shell:
+        cmd: "kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get secret openclaw-bot-token -n kube-system -o jsonpath='{.data.token}' | base64 --decode"
+      register: openclaw_k8s_token_result
+      changed_when: false
+      failed_when: openclaw_k8s_token_result.rc != 0 or openclaw_k8s_token_result.stdout == ''
+
+    - name: Set dynamic token fact
+      ansible.builtin.set_fact:
+        openclaw_dynamic_token: "{{ openclaw_k8s_token_result.stdout }}"
+
 - name: Deploy OpenClaw
   hosts: vm_openclaw
   become: yes
@@ -180,7 +196,7 @@
             mode: '0600'
           vars:
             openclaw_k8s_ca: "{{ lookup('env', 'OPENCLAW_CLUSTER_CA') }}"
-            openclaw_k8s_token: "{{ lookup('env', 'OPENCLAW_CLUSTER_TOKEN') }}"
+            openclaw_k8s_token: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_token'] }}"
             openclaw_client_cert: "{{ lookup('env', 'OPENCLAW_CLIENT_CERT') }}"
             openclaw_client_key: "{{ lookup('env', 'OPENCLAW_CLIENT_KEY') }}"
 
@@ -225,8 +241,11 @@
         dest: "{{ openclaw_home }}/.openclaw/.env"
         content: |
           {% for key in lookup('pipe', 'env | cut -d= -f1 | grep ^OPENCLAW_ || true').splitlines() %}
+          {% if key != 'OPENCLAW_CLUSTER_TOKEN' %}
           {{ key }}="{{ lookup('env', key) }}"
+          {% endif %}
           {% endfor %}
+          OPENCLAW_CLUSTER_TOKEN="{{ hostvars['vm-k8mgd']['openclaw_dynamic_token'] }}"
           OPENROUTER_API_KEY={{ lookup('env', 'OPENROUTER_API_KEY') }}
           NVIDIA_API_KEY={{ lookup('env', 'NVIDIA_API_KEY') }}
           GEMINI_API_KEY={{ lookup('env', 'GEMINI_API_KEY') }}
