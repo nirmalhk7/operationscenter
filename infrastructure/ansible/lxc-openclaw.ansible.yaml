@@ -225,6 +225,15 @@
         mode: '0600'
         force: yes
 
+    - name: Deploy OpenClaw cron jobs directory
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../openclaw/cron/"
+        dest: /root/.openclaw/cron/
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0755'
+        force: yes
+
     - name: Deploy Investment Committee state file
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../../openclaw/investment_committee_state.json"
