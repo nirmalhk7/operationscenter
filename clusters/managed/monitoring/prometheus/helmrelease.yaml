@@ -22,7 +22,7 @@ spec:
       # Use an existing secret for the admin user.
       admin:
         ## Name of the secret. Can be templated.
-        existingSecret: "grafana-secret"
+        existingSecret: "grafana-credentials"
         userKey: GRAFANA-USER
         passwordKey: GRAFANA-PASSWORD
 
