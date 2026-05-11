@@ -6,3 +6,4 @@
 - **Sessions**: sessions_list, sessions_history, sessions_send, sessions_spawn, sessions_yield, subagents, session_status
 - **Automation**: cron, gateway
 - **Nodes**: nodes
+- **VCS**: git
