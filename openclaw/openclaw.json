@@ -32,13 +32,6 @@
         "channel": "telegram",
         "accountId": "main"
       }
-    },
-    {
-      "agentId": "Victor",
-      "match": {
-        "channel": "telegram",
-        "accountId": "victor"
-      }
     }
   ],
   "models": {
@@ -154,72 +147,8 @@
         }
       },
       {
-        "id": "victor",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free"
-          ]
-        }
-      },
-      {
-        "id": "david",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free",
-            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
-          ]
-        }
-      },
-      {
-        "id": "motabhai",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free",
-            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
-          ]
-        }
-      },
-      {
         "id": "rahul",
-        "skills": {
-          "load": {
-            "dirs": ["customAgents/workspace-rahul/skills"],
-            "watch": true
-          }
-        },
+        "skills": [],
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -240,44 +169,6 @@
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/qwen/qwen3-coder:free",
-            "openrouter/free"
-          ]
-        }
-      },
-      {
-        "id": "max",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free"
-          ]
-        }
-      },
-      {
-        "id": "marie",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
             "openrouter/free"
           ]
         }
@@ -334,53 +225,8 @@
             }
           }
         },
-        "victor": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_VICTOR}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "david": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_DAVID}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "motabhai": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MOTABHAI}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
         "rahul": {
           "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "max": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAX}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "marie": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MARIE}",
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
@@ -404,11 +250,6 @@
       "accounts": {
         "main": {
           "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
-          "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
-        },
-        "victor": {
-          "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR}",
           "dmPolicy": "allowlist",
           "allowFrom": ["8163098638"]
         }
