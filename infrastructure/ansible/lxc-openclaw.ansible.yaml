@@ -307,6 +307,14 @@
         state: restarted
         daemon_reload: yes
 
+    - name: Validate OpenClaw configuration
+      ansible.builtin.command: openclaw config validate
+      environment:
+        PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+        PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+        HOME: "{{ openclaw_home }}"
+      changed_when: false
+
     - name: Post-install tasks
       block:
         - name: Install Polymarket MCP tool via uv
