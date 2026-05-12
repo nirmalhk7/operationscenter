@@ -31,20 +31,15 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.33.2
+          version: latest
 
       - name: Install OpenClaw
         run: |
-          # Properly initialize pnpm environment
-          pnpm setup
-          PNPM_HOME="$HOME/.local/share/pnpm"
-          echo "$PNPM_HOME" >> $GITHUB_PATH
-          export PATH="$PNPM_HOME:$PATH"
-
           OPENCLAW_VER=$(grep "openclaw_version:" infrastructure/ansible/vars/versions.yaml | cut -d '"' -f 2)
           echo "Installing OpenClaw version $OPENCLAW_VER"
-          # Adding @sinclair/typebox as it's missing in the global store resolution
-          pnpm add -g openclaw@$OPENCLAW_VER promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy @sinclair/typebox
+          pnpm add -g openclaw@$OPENCLAW_VER promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
+          # Add pnpm global bin to GITHUB_PATH
+          echo "$(pnpm bin -g)" >> $GITHUB_PATH
 
       - name: Validate OpenClaw Configuration
         run: |
