@@ -1,7 +1,7 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-22T05:19:48.456Z"
+    "lastTouchedVersion": "2026.4.1",
+    "lastTouchedAt": "2026-05-13T06:33:40.103Z"
   },
   "wizard": {
     "lastRunAt": "2026-03-21T05:51:14.376Z",
@@ -25,22 +25,6 @@
       }
     }
   },
-  "bindings": [
-    {
-      "agentId": "main",
-      "match": {
-        "channel": "telegram",
-        "accountId": "main"
-      }
-    },
-    {
-      "agentId": "Victor",
-      "match": {
-        "channel": "telegram",
-        "accountId": "victor"
-      }
-    }
-  ],
   "models": {
     "mode": "merge",
     "providers": {
@@ -62,7 +46,8 @@
               "cacheWrite": 0
             },
             "contextWindow": 32000,
-            "maxTokens": 4096
+            "maxTokens": 4096,
+            "api": "anthropic-messages"
           }
         ]
       },
@@ -76,7 +61,16 @@
             "reasoning": false,
             "input": [
               "text"
-            ]
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192,
+            "api": "openai-responses"
           }
         ]
       }
@@ -84,14 +78,6 @@
   },
   "agents": {
     "defaults": {
-      "heartbeat": {
-        "every": "30m",
-        "model": "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
-        "target": "discord",
-        "directPolicy": "allow",
-        "lightContext": true,
-        "isolatedSession": true
-      },
       "model": {
         "primary": "openrouter/qwen/qwen3-coder:free",
         "fallbacks": [
@@ -104,7 +90,9 @@
         "local-ollama/qwen2.5-coder:3b": {
           "alias": "qwen2.5-coder:3b"
         },
-        "google/gemini-3.1-flash-lite-preview": {},
+        "google/gemini-3.1-flash-lite-preview": {
+          "alias": "gemini-flash-lite"
+        },
         "openrouter/auto": {},
         "openrouter/free": {},
         "openrouter/nvidia/nemotron-3-super-120b-a12b:free": {},
@@ -116,7 +104,7 @@
         "openrouter/google/gemma-4-26b-a4b-it:free": {},
         "openrouter/google/gemma-4-31b-it:free": {},
         "openrouter/minimax/minimax-m2.5:free": {},
-        "openrouter/meta-llama/llama-3.3-70b-instruct:free":{},
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free": {},
         "google/gemma-3-27b-it": {},
         "nvidia-nim/gpt-oss-120b": {},
         "groq/qwen/qwen3-32b": {},
@@ -126,6 +114,14 @@
       "compaction": {
         "mode": "safeguard",
         "model": "openrouter/free"
+      },
+      "heartbeat": {
+        "every": "30m",
+        "model": "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+        "target": "discord",
+        "directPolicy": "allow",
+        "lightContext": true,
+        "isolatedSession": true
       },
       "maxConcurrent": 16,
       "subagents": {
@@ -154,86 +150,21 @@
         }
       },
       {
-        "id": "victor",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free"
-          ]
-        }
-      },
-      {
-        "id": "david",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free",
-            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
-          ]
-        }
-      },
-      {
-        "id": "motabhai",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free",
-            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
-          ]
-        }
-      },
-      {
         "id": "rahul",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
         "model": {
           "primary": "openrouter/stepfun/step-3.5-flash:free",
           "fallbacks": [
             "openrouter/qwen/qwen3-coder:free",
             "openrouter/free"
           ]
-        }
-      },
-      {
-        "id": "max",
+        },
+        "skills": [],
+        "heartbeat": {
+          "every": "5m",
+          "model": "openrouter/qwen/qwen3-coder:free",
+          "lightContext": false,
+          "isolatedSession": true
+        },
         "tools": {
           "alsoAllow": [
             "subagents",
@@ -242,31 +173,6 @@
             "sessions_send",
             "sessions_history",
             "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free"
-          ]
-        }
-      },
-      {
-        "id": "marie",
-        "tools": {
-          "alsoAllow": [
-            "subagents",
-            "sessions_yield",
-            "sessions_spawn",
-            "sessions_send",
-            "sessions_history",
-            "sessions_list"
-          ]
-        },
-        "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
-          "fallbacks": [
-            "openrouter/free"
           ]
         }
       }
@@ -281,14 +187,27 @@
       ]
     }
   },
+  "bindings": [
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "accountId": "main"
+      }
+    }
+  ],
   "messages": {
-    "ackReactionScope": "group-mentions"
+    "ackReactionScope": "group-mentions",
+    "tts": {
+      "auto": "always",
+      "provider": "microsoft"
+    }
   },
   "commands": {
     "native": "auto",
     "nativeSkills": "auto",
-    "restart": true,
     "mcp": true,
+    "restart": true,
     "ownerDisplay": "raw"
   },
   "session": {
@@ -297,13 +216,24 @@
   "channels": {
     "discord": {
       "enabled": true,
+      "groupPolicy": "allowlist",
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "1220283451169837077"
+      ],
+      "dm": {
+        "enabled": true
+      },
       "accounts": {
         "main": {
           "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAIN}",
+          "groupPolicy": "allowlist",
           "guilds": {
             "1487714737964716084": {
               "requireMention": false,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
           },
           "voice": {
@@ -315,98 +245,90 @@
               }
             ],
             "tts": {
-              "provider": "openai",
-              "openai": {
-                "voice": "alloy"
+              "provider": "microsoft",
+              "providers": {
+                "microsoft": {
+                  "voice": "en-US-JennyNeural",
+                  "lang": "en-US",
+                  "outputFormat": "audio-24khz-48kbitrate-mono-mp3"
+                }
               }
             }
-          }
-        },
-        "victor": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_VICTOR}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "david": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_DAVID}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "motabhai": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MOTABHAI}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
+          },
+          "streaming": "off",
+          "activity": "At your service",
+          "autoPresence": {
+            "enabled": true
+          },
+          "activityType": 0,
+          "ui": {
+            "components": {
+              "accentColor": "#7289DA"
             }
           }
         },
         "rahul": {
           "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}",
+          "groupPolicy": "allowlist",
           "guilds": {
             "1487714737964716084": {
               "requireMention": true,
-              "users": ["1220283451169837077"]
+              "users": [
+                "1220283451169837077"
+              ]
             }
-          }
-        },
-        "max": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAX}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
-            }
-          }
-        },
-        "marie": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MARIE}",
-          "guilds": {
-            "1487714737964716084": {
-              "requireMention": true,
-              "users": ["1220283451169837077"]
+          },
+          "streaming": "off",
+          "activity": "Fullstack Dev in Koramangala",
+          "activityType": 3,
+          "status": "online",
+          "ui": {
+            "components": {
+              "accentColor": "#43B581"
             }
           }
         }
       },
-      "groupPolicy": "allowlist",
-      "streaming": "off",
-      "dmPolicy": "allowlist",
-      "allowFrom": [
-        "1220283451169837077"
-      ],
-      "dm": {
+      "agentComponents": true,
+      "mentionAliases": {
+        "Nirmal": "1220283451169837077"
+      },
+      "threadBindings": {
         "enabled": true
+      },
+      "streaming": {
+        "mode": "progress"
+      },
+      "ui": {
+        "components": {
+          "accentColor": "#5865F2"
+        }
       }
     },
     "telegram": {
       "enabled": true,
-      "accounts": {
-        "main": {
-          "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
-          "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
-        },
-        "victor": {
-          "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_VICTOR}",
-          "dmPolicy": "allowlist",
-          "allowFrom": ["8163098638"]
-        }
-      },
+      "dmPolicy": "pairing",
       "groups": {
         "-1003812665515": {
           "requireMention": false,
-          "allowFrom": ["8163098638"]
+          "allowFrom": [
+            "8163098638"
+          ]
         }
-      }
+      },
+      "groupPolicy": "allowlist",
+      "accounts": {
+        "main": {
+          "dmPolicy": "allowlist",
+          "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
+          "allowFrom": [
+            "8163098638"
+          ],
+          "groupPolicy": "allowlist",
+          "streaming": "partial"
+        }
+      },
+      "streaming": "partial"
     }
   },
   "gateway": {
@@ -449,16 +371,6 @@
       ]
     }
   },
-  "skills": {
-    "install": {}
-  },
-  "plugins": {
-    "entries": {
-      "telegram": {
-        "enabled": true
-      }
-    }
-  },
   "mcp": {
     "servers": {
       "kite": {
@@ -467,10 +379,10 @@
       },
       "todoist": {
         "url": "https://ai.todoist.net/mcp",
-        "transport": "streamable-http",
         "headers": {
           "Authorization": "Bearer ${OPENCLAW_TODOIST_API_KEY}"
-        }
+        },
+        "transport": "streamable-http"
       },
       "alphavantage": {
         "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}",
@@ -478,7 +390,21 @@
       },
       "polymarket": {
         "command": "smithery",
-        "args": ["run", "aryankeluskar/polymarket-mcp"]
+        "args": [
+          "run",
+          "aryankeluskar/polymarket-mcp"
+        ]
+      }
+    }
+  },
+  "skills": {
+    "install": {}
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true,
+        "config": {}
       }
     }
   }
