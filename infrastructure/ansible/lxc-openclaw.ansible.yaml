@@ -50,6 +50,7 @@
         group: "{{ openclaw_user }}"
         mode: '0755'
         force: no
+        tags: ["skip"]
 
     - name: Copy main agent workspaces
       ansible.builtin.copy:
@@ -59,6 +60,7 @@
         group: "{{ openclaw_user }}"
         mode: '0755'
         force: yes
+        tags: ["skip"]
 
     - name: Setup NodeSource repository
       block:
@@ -140,6 +142,11 @@
     - name: Install pnpm globally
       ansible.builtin.command: npm install -g pnpm@{{ pnpm_version }}
       when: pnpm_check.rc != 0 or (pnpm_check.stdout is defined and pnpm_check.stdout != pnpm_version)
+
+    - name: Remove conflicting global OpenClaw if exists
+      ansible.builtin.file:
+        path: /usr/bin/openclaw
+        state: absent
 
     - name: Install OpenClaw globally (using pnpm)
       ansible.builtin.shell:
@@ -225,15 +232,6 @@
         mode: '0600'
         force: yes
 
-    - name: Deploy Investment Committee state file
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../openclaw/investment_committee_state.json"
-        dest: /root/.openclaw/investment_committee_state.json
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0600'
-        force: no
-
 
 
     - name: Deploy OpenClaw environment file
@@ -276,7 +274,7 @@
           Environment="PATH={{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
           Environment="PNPM_HOME={{ openclaw_home }}/.local/share/pnpm"
           Environment="HOME={{ openclaw_home }}"
-          ExecStart=/usr/bin/openclaw gateway run --bind lan
+          ExecStart={{ openclaw_home }}/.local/share/pnpm/openclaw gateway run --bind lan
           Restart=always
           RestartSec=10
 
