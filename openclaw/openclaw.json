@@ -226,7 +226,11 @@
       },
       "accounts": {
         "main": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_MAIN}",
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_MAIN"
+          },
           "groupPolicy": "allowlist",
           "guilds": {
             "1487714737964716084": {
@@ -244,6 +248,8 @@
                 "channelId": "1487714739319603234"
               }
             ],
+            "daveEncryption": true,
+            "decryptionFailureTolerance": 24,
             "tts": {
               "provider": "microsoft",
               "providers": {
@@ -253,6 +259,9 @@
                   "outputFormat": "audio-24khz-48kbitrate-mono-mp3"
                 }
               }
+            },
+            "realtime": {
+              "bargeIn": true
             }
           },
           "streaming": "off",
@@ -265,13 +274,14 @@
             "components": {
               "accentColor": "#7289DA"
             }
-          },
-          "realtime": {
-            "bargeIn": true
           }
         },
         "rahul": {
-          "token": "${OPENCLAW_DISCORD_BOT_TOKEN_RAHUL}",
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_RAHUL"
+          },
           "groupPolicy": "allowlist",
           "guilds": {
             "1487714737964716084": {
@@ -292,16 +302,17 @@
           }
         }
       },
-      "agentComponents": true,
+      "agentComponents": {
+        "enabled": true
+      },
       "mentionAliases": {
         "Nirmal": "1220283451169837077"
       },
+      "ackReaction": "👀",
       "threadBindings": {
         "enabled": true
       },
-      "streaming": {
-        "mode": "progress"
-      },
+      "streaming": "progress",
       "ui": {
         "components": {
           "accentColor": "#5865F2"
