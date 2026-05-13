@@ -199,7 +199,7 @@
   "messages": {
     "ackReactionScope": "group-mentions",
     "tts": {
-      "auto": "always",
+      "auto": "voice",
       "provider": "microsoft"
     }
   },
@@ -395,13 +395,6 @@
       "alphavantage": {
         "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}",
         "transport": "streamable-http"
-      },
-      "polymarket": {
-        "command": "smithery",
-        "args": [
-          "run",
-          "aryankeluskar/polymarket-mcp"
-        ]
       }
     }
   },
