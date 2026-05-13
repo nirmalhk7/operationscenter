@@ -261,7 +261,7 @@
               }
             }
           },
-          "streaming": "off",
+          "streaming": { "mode": "off" },
           "activity": "At your service",
           "autoPresence": {
             "enabled": true
@@ -288,7 +288,7 @@
               ]
             }
           },
-          "streaming": "off",
+          "streaming": { "mode": "off" },
           "activity": "Fullstack Dev in Koramangala",
           "activityType": 3,
           "status": "online",
@@ -306,7 +306,7 @@
       "threadBindings": {
         "enabled": true
       },
-      "streaming": "progress",
+      "streaming": { "mode": "progress" },
       "ui": {
         "components": {
           "accentColor": "#5865F2"
@@ -333,10 +333,10 @@
             "8163098638"
           ],
           "groupPolicy": "allowlist",
-          "streaming": "partial"
+          "streaming": { "mode": "partial" }
         }
       },
-      "streaming": "partial"
+      "streaming": { "mode": "partial" }
     }
   },
   "gateway": {
