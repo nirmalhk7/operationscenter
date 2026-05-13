@@ -104,7 +104,7 @@ ansible-run-one: ansible-install
 		if [ -f .env ]; then \
 			set -a; . .env; set +a; \
 		fi; \
-		ansible-playbook  -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade; \
+		ansible-playbook  -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade,skip,block; \
 	fi
 
 # --- Kubernetes ---
