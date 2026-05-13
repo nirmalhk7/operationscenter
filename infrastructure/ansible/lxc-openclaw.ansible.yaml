@@ -62,6 +62,15 @@
         force: yes
         tags: ["skip"]
 
+    - name: Remove conflicting Node.js packages if present
+      ansible.builtin.apt:
+        name:
+          - nodejs
+          - libnode72
+          - libnode-dev
+        state: absent
+        purge: yes
+
     - name: Setup NodeSource repository
       block:
         - name: Add NodeSource GPG key
@@ -150,7 +159,9 @@
 
     - name: Install OpenClaw globally (using pnpm)
       ansible.builtin.shell:
-        cmd: pnpm install -g openclaw@{{ openclaw_version }} 
+        cmd: |
+          pnpm setup
+          pnpm install -g openclaw@{{ openclaw_version }} promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
         executable: /bin/bash
       environment:
         PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
