@@ -10,9 +10,9 @@ spec:
   externalTrafficPolicy: Local
   ports:
     - name: mc-tcp
-      port: 25565
-      targetPort: 25565
-      nodePort: 30565
+      port: 6901
+      targetPort: 6901
+      nodePort: 30901
       protocol: TCP
   selector:
     milano.app: pterodactyl-wings

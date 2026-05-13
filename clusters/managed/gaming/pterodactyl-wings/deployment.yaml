@@ -27,7 +27,7 @@ spec:
             - name: sftp
               containerPort: 2022
             - name: mc
-              containerPort: 25565
+              containerPort: 6901
               protocol: TCP
           securityContext:
             privileged: true
