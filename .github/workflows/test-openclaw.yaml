@@ -35,7 +35,9 @@ jobs:
 
       - name: Install OpenClaw
         run: |
-          pnpm add -g openclaw@latest promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
+          OPENCLAW_VER=$(grep "openclaw_version:" infrastructure/ansible/vars/versions.yaml | cut -d '"' -f 2)
+          echo "Installing OpenClaw version $OPENCLAW_VER"
+          pnpm add -g openclaw@$OPENCLAW_VER promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
           # Add pnpm global bin to GITHUB_PATH
           echo "$(pnpm bin -g)" >> $GITHUB_PATH
 

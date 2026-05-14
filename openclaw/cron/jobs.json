@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "3b5042fa-185f-4aa4-85e2-3f29946683dc",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "Morning Greeting",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1774316383749,
+      "updatedAtMs": 1778421616733,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 8 * * *",
+        "tz": "America/Denver"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Fetch a random dad joke from https://icanhazdadjoke.com/ and return only the joke text. If successful, output just the joke. If not, dont output anything.\nAt the end wish me a good morning."
+      },
+      "delivery": {
+        "channel": "1487714739319603233",
+        "mode": "announce",
+        "to": "1220283451169837077"
+      },
+      "state": {
+        "nextRunAtMs": 1778508000000,
+        "lastRunAtMs": 1778421600001,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 16732,
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 17,
+        "lastError": "Channel is required when multiple channels are configured: telegram, discord Set delivery.channel explicitly or use a main session with a previous channel."
+      }
+    },
+    {
+      "id": "8fe69281-1d4d-44c3-ac6e-6f331dbd6b16",
+      "agentId": "main",
+      "sessionKey": "agent:main:discord:channel:1487714739319603233",
+      "name": "Boulder Weather Monitoring",
+      "enabled": true,
+      "createdAtMs": 1778479595579,
+      "updatedAtMs": 1778479595579,
+      "schedule": {
+        "everyMs": 1800000,
+        "kind": "every",
+        "anchorMs": 1778479595579
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Check Boulder weather conditions and compare with previous reading. If there's a significant change (temperature drop >15°F, severe weather alert, wind gusts >25mph, or precipitation onset), send an alert to Nirmal in the #general Discord channel. Include current conditions vs previous for comparison.",
+        "timeoutSeconds": 60
+      },
+      "delivery": {
+        "channel": "1487714739319603233",
+        "mode": "announce",
+        "to": "1220283451169837077"
+      },
+      "state": {
+        "nextRunAtMs": 1778481395579
+      }
+    }
+  ]
+}
