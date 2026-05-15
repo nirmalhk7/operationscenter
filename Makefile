@@ -58,7 +58,7 @@ nginx-logs:
 
 # --- Terraform ---
 terraform-clear:
-	cd infrastructure/terra && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup && \
+	cd infrastructure/terra/proxmox && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup && \
 	terraform init -upgrade && \
 	terraform import proxmox_virtual_environment_network_linux_bridge.wmnet milano:wmnet && \
 	terraform import proxmox_virtual_environment_group.ug-mgd ug-mgd && \
@@ -70,11 +70,17 @@ terraform-clear:
 	terraform import proxmox_virtual_environment_pool.pool-mgd pool-mgd
 
 terraform-reset:
-	cd infrastructure/terra && terraform state rm proxmox_lxc.testlxc || true
-	cd infrastructure/terra && terraform destroy -auto-approve
+	cd infrastructure/terra/proxmox && terraform state rm proxmox_lxc.testlxc || true
+	cd infrastructure/terra/proxmox && terraform destroy -auto-approve
+
+terraform-apply-proxmox:
+	cd infrastructure/terra/proxmox && terraform init -upgrade && terraform plan && terraform apply -auto-approve
+
+terraform-apply-discord:
+	cd infrastructure/terra/discord && terraform init -upgrade && terraform plan && terraform apply -auto-approve
 
 terraform-apply:
-	cd infrastructure/terra && terraform init -upgrade && terraform plan && terraform apply -auto-approve
+	$(MAKE) terraform-apply-proxmox; $(MAKE) terraform-apply-discord
 
 # --- Ansible ---
 ansible-install:
