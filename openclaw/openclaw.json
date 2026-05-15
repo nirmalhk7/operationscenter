@@ -127,10 +127,9 @@
       "subagents": {
         "maxConcurrent": 10,
         "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
           "fallbacks": [
-            "openrouter/free",
-            "openrouter/qwen/qwen3-coder:free"
+            "openrouter/free"
           ]
         }
       }
@@ -138,32 +137,25 @@
     "list": [
       {
         "id": "main",
-        "model": {
-          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
-          "fallbacks": [
-            "openrouter/free",
-            "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
-          ]
-        },
         "tools": {
           "profile": "full"
         }
       },
       {
         "id": "rahul",
+        "workspace": "/root/.openclaw/workspace-rahul",
         "model": {
-          "primary": "openrouter/stepfun/step-3.5-flash:free",
+          "primary": "openrouter/free",
           "fallbacks": [
-            "openrouter/qwen/qwen3-coder:free",
-            "openrouter/free"
           ]
         },
         "skills": [],
         "heartbeat": {
           "every": "5m",
-          "model": "openrouter/qwen/qwen3-coder:free",
+          "model": "openrouter/free",
           "lightContext": false,
-          "isolatedSession": true
+          "isolatedSession": true,
+          "target": "discord"
         },
         "tools": {
           "alsoAllow": [
@@ -199,7 +191,7 @@
   "messages": {
     "ackReactionScope": "group-mentions",
     "tts": {
-      "auto": "voice",
+      "auto": "inbound",
       "provider": "microsoft"
     }
   },
