@@ -23,12 +23,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.x'
-      - name: Install Ansible
-        run: pip install ansible
-      - name: Run Ansible syntax check
-        run: |
-          cd infrastructure/ansible
-          ansible-playbook --syntax-check main.ansible.yaml -i inventory.ini || true
-          for playbook in *.ansible.yaml; do
-            ansible-playbook --syntax-check $playbook -i inventory.ini
-          done
+      - name: Install ansible-lint
+        run: pip install ansible ansible-lint
+      - name: Run ansible-lint
+        run: ansible-lint infrastructure/ansible/
