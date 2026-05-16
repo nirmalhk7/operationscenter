@@ -44,3 +44,12 @@ jobs:
               --ignore-test container-image-tag \
               --ignore-test pod-networkpolicy \
               || true
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+      - name: Validate kustomize builds
+        run: |
+          for dir in clusters/managed/*/; do
+            kustomize build "$dir" > /dev/null
+          done
