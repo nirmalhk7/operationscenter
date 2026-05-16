@@ -11,14 +11,14 @@ resource "discord_text_channel" "manager_chat" {
   server_id                = local.discord_server_id
   name                     = "manager-chat"
   category                 = discord_category_channel.general.id
-  sync_perms_with_category = true
+  sync_perms_with_category = false
 }
 
 resource "discord_forum_channel" "manager_standup" {
   server_id                = local.discord_server_id
   name                     = "manager-standup"
   category                 = discord_category_channel.general.id
-  sync_perms_with_category = true
+  sync_perms_with_category = false
 }
 
 # ── Team Software ─────────────────────────────────────────────────────────────
