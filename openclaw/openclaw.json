@@ -229,7 +229,16 @@
     "ownerDisplay": "raw"
   },
   "session": {
-    "dmScope": "per-channel-peer"
+    "dmScope": "per-channel-peer",
+    "resetByChannel": {
+      "discord": { "mode": "idle", "idleMinutes": 10080 }
+    },
+    "maintenance": {
+      "mode": "warn",
+      "pruneAfter": "30d",
+      "maxEntries": 500,
+      "rotateBytes": "10mb"
+    }
   },
   "channels": {
     "discord": {
