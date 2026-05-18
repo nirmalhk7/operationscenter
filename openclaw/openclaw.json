@@ -289,13 +289,13 @@
             }
           },
           "streaming": {
-            "mode": "off"
+            "mode": "progress"
           },
           "activity": "At your service",
           "autoPresence": {
             "enabled": true
           },
-          "activityType": 0,
+          "activityType": 4,
           "ui": {
             "components": {
               "accentColor": "#7289DA"
@@ -335,7 +335,26 @@
       },
       "ackReaction": "👀",
       "threadBindings": {
-        "enabled": true
+        "enabled": true,
+        "spawnSubagentSessions": true,
+        "idleHours": 24,
+        "maxAgeHours": 72
+      },
+      "replyToMode": "first",
+      "execApprovals": {
+        "enabled": true,
+        "target": "dm",
+        "approvers": ["1220283451169837077"],
+        "cleanupAfterResolve": true
+      },
+      "chunkMode": "newline",
+      "draftChunk": {
+        "minChars": 200,
+        "maxChars": 800,
+        "breakPreference": "paragraph"
+      },
+      "actions": {
+        "presence": true
       },
       "streaming": {
         "mode": "progress"
