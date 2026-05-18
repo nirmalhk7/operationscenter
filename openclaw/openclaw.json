@@ -111,6 +111,7 @@
         "openrouter/qwen/qwen3.5-flash-02-23": {}
       },
       "workspace": "/root/.openclaw/workspace",
+      "userTimezone": "America/Denver",
       "compaction": {
         "mode": "safeguard",
         "model": "openrouter/free"
