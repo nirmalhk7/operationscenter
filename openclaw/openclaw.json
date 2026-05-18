@@ -184,6 +184,13 @@
       ]
     }
   },
+  "routing": {
+    "queue": {
+      "mode": "collect",
+      "debounceMs": 1000,
+      "byChannel": { "discord": "collect" }
+    }
+  },
   "bindings": [
     {
       "agentId": "main",
