@@ -124,6 +124,7 @@
         "lightContext": true,
         "isolatedSession": true
       },
+      "typingMode": "thinking",
       "maxConcurrent": 16,
       "subagents": {
         "maxConcurrent": 10,
@@ -461,7 +462,16 @@
     }
   },
   "skills": {
-    "install": {}
+    "install": {},
+    "triage": {},
+    "recall": {
+      "rerank": true
+    },
+    "dream_consolidation": {
+      "enabled": true,
+      "cron": "0 4 * * *",
+      "mode": "deep"
+    }
   },
   "plugins": {
     "entries": {
