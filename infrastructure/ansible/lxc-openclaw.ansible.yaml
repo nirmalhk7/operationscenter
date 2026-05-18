@@ -49,8 +49,7 @@
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0755'
-        force: no
-        tags: ["skip"]
+        force: yes
 
     - name: Copy main agent workspaces
       ansible.builtin.copy:
@@ -60,7 +59,14 @@
         group: "{{ openclaw_user }}"
         mode: '0755'
         force: yes
-        tags: ["skip"]
+
+    - name: Remove IDENTITY.md and BOOTSTRAP.md from mainAgent workspace
+      ansible.builtin.file:
+        path: "/root/.openclaw/workspace/{{ item }}"
+        state: absent
+      loop:
+        - IDENTITY.md
+        - BOOTSTRAP.md
 
     - name: Remove conflicting Node.js packages if present
       ansible.builtin.apt:
@@ -243,7 +249,28 @@
         mode: '0600'
         force: yes
 
+    - name: Validate OpenClaw configuration
+      ansible.builtin.shell:
+        cmd: |
+          export PNPM_HOME="{{ openclaw_home }}/.local/share/pnpm"
+          export PATH="{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:$PATH"
+          openclaw config validate
+        executable: /bin/bash
+      environment:
+        HOME: "{{ openclaw_home }}"
+      changed_when: false
 
+    - name: Run OpenClaw doctor check
+      ansible.builtin.shell:
+        cmd: |
+          export PNPM_HOME="{{ openclaw_home }}/.local/share/pnpm"
+          export PATH="{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:$PATH"
+          openclaw doctor
+        executable: /bin/bash
+      environment:
+        HOME: "{{ openclaw_home }}"
+        KUBECONFIG: "{{ openclaw_support_home }}/.kube/config"
+      changed_when: false
 
     - name: Deploy OpenClaw environment file
       ansible.builtin.copy:
