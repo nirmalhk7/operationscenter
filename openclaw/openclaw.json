@@ -140,6 +140,10 @@
         "id": "main",
         "tools": {
           "profile": "full"
+        },
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": []
         }
       },
       {
