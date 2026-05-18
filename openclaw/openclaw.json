@@ -198,6 +198,20 @@
         "channel": "telegram",
         "accountId": "main"
       }
+    },
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "discord",
+        "accountId": "main"
+      }
+    },
+    {
+      "agentId": "rahul",
+      "match": {
+        "channel": "discord",
+        "accountId": "rahul"
+      }
     }
   ],
   "messages": {
