@@ -32,7 +32,7 @@ containerd_version: "2.2.2-1~debian.13~trixie"
 openclaw_version: "2026.4.23"
 
 # renovate: datasource=npm depName=@nirmalhk7/equity-research registryUrl=https://npm.pkg.github.com versioning=semver
-equity_research_version: "0.1.0"
+equity_research_version: "latest"
 
 # renovate: datasource=node depName=node
 nodejs_version: "22.x"
