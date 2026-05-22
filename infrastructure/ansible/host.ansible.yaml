@@ -9,6 +9,7 @@
     homelab_path: /root/operationscenter
     tailscale_auth_key: "{{ lookup('env', 'TAILSCALE_AUTHKEY') | default('', true) }}"
     ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
+    tailscale_args: "{{ lookup('env', 'TAILSCALE_ARGS') if lookup('env', 'TAILSCALE_ARGS') else '--ssh' }}"
 
   tasks:
     - name: Routine package update/ basic setup
@@ -153,7 +154,7 @@
           when: (tailscale_status.rc != 0) and (tailscale_auth_key | length == 0)
 
         - name: Bring Tailscale up when not connected
-          ansible.builtin.command: tailscale up --auth-key={{ tailscale_auth_key }}
+          ansible.builtin.command: tailscale up --auth-key={{ tailscale_auth_key }} {{ tailscale_args }}
           when: tailscale_status.rc != 0
 
         - name: Configure Tailscale metrics systemd service
