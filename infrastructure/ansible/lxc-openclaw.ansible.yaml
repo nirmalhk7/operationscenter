@@ -240,6 +240,29 @@
         group: "{{ openclaw_user }}"
         mode: '0755'
 
+    - name: Require GitHub Packages token for equity research install
+      ansible.builtin.assert:
+        that:
+          - lookup('env', 'OPENCLAW_GITHUB_PACKAGES_TOKEN') | length > 0
+        fail_msg: "Set OPENCLAW_GITHUB_PACKAGES_TOKEN with GitHub Packages read access before deploying OpenClaw."
+
+    - name: Configure GitHub Packages npm scope for OpenClaw
+      ansible.builtin.copy:
+        dest: "{{ openclaw_home }}/.npmrc"
+        content: |
+          @nirmalhk7:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken={{ lookup('env', 'OPENCLAW_GITHUB_PACKAGES_TOKEN') }}
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0600'
+
+    - name: Install equity research CLI from GitHub Packages
+      ansible.builtin.command: pnpm install -g @nirmalhk7/equity-research@{{ equity_research_version }}
+      environment:
+        PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+        PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+        HOME: "{{ openclaw_home }}"
+
     - name: Deploy main OpenClaw configuration file
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../../openclaw/openclaw.json"
@@ -291,6 +314,7 @@
           KUBECONFIG="{{ openclaw_support_home }}/.kube/config"
           ALPACA_SECRET_KEY={{ lookup('env', 'ALPACA_SECRET_KEY') }}
           ALPACA_API_KEY={{ lookup('env', 'ALPACA_API_KEY') }}
+          OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID={{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('REPLACE_WITH_DISCORD_FORUM_CHANNEL_ID', true) }}
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
