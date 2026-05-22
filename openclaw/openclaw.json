@@ -186,9 +186,7 @@
         "tools": {
           "profile": "coding",
           "allow": [
-            "message"
-          ],
-          "alsoAllow": [
+            "message",
             "lobster"
           ],
           "deny": [
