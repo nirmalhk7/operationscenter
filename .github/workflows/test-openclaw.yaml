@@ -29,15 +29,11 @@ jobs:
           node-version: '22.22.2'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: latest
-
-      - name: Install OpenClaw
-        run: |
-          pnpm add -g openclaw@latest promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
-          # Add pnpm global bin to GITHUB_PATH
-          echo "$(pnpm bin -g)" >> $GITHUB_PATH
+          version: '10.33.2'
+          run_install: |
+            - args: [--global, 'openclaw@2026.4.23', promptfoo, '@buape/carbon', '@larksuiteoapi/node-sdk', grammy]
 
       - name: Validate OpenClaw Configuration
         run: |
