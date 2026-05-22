@@ -133,7 +133,7 @@
     - name: Install main software packages
       ansible.builtin.apt:
         name:
-          - nodejs
+          - "nodejs={{ nodejs_package_version }}"
           - gh
           - kubectl
           - python3-venv
