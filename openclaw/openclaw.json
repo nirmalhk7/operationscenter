@@ -140,7 +140,10 @@
       {
         "id": "main",
         "tools": {
-          "profile": "full"
+          "profile": "full",
+          "deny": [
+            "bundle-mcp"
+          ]
         },
         "model": {
           "primary": "openrouter/qwen/qwen3.5-flash-02-23",
@@ -171,6 +174,72 @@
             "sessions_send",
             "sessions_history",
             "sessions_list"
+          ]
+        }
+      },
+      {
+        "id": "oracle",
+        "workspace": "/root/.openclaw/workspace-oracle",
+        "model": {
+          "primary": "openrouter/deepseek/deepseek-r1"
+        },
+        "tools": {
+          "profile": "coding",
+          "allow": [
+            "message"
+          ],
+          "alsoAllow": [
+            "lobster"
+          ],
+          "deny": [
+            "bundle-mcp",
+            "group:runtime",
+            "group:fs",
+            "group:sessions"
+          ]
+        }
+      },
+      {
+        "id": "quantsieve",
+        "workspace": "/root/.openclaw/workspace-quantsieve",
+        "tools": {
+          "profile": "coding",
+          "deny": [
+            "bundle-mcp",
+            "group:runtime",
+            "group:fs",
+            "group:sessions",
+            "group:automation",
+            "group:messaging"
+          ]
+        }
+      },
+      {
+        "id": "eventhound",
+        "workspace": "/root/.openclaw/workspace-eventhound",
+        "tools": {
+          "profile": "coding",
+          "deny": [
+            "group:runtime",
+            "group:fs",
+            "group:sessions",
+            "group:automation",
+            "group:messaging"
+          ]
+        }
+      },
+      {
+        "id": "riskskeptic",
+        "workspace": "/root/.openclaw/workspace-riskskeptic",
+        "tools": {
+          "profile": "coding",
+          "deny": [
+            "bundle-mcp",
+            "group:runtime",
+            "group:fs",
+            "group:sessions",
+            "group:automation",
+            "group:messaging"
           ]
         }
       }
@@ -458,6 +527,9 @@
       "alphavantage": {
         "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}",
         "transport": "streamable-http"
+      },
+      "polymarket": {
+        "command": "/root/.local/bin/polymarket-mcp"
       }
     }
   },
