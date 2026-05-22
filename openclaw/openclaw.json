@@ -252,13 +252,6 @@
       ]
     }
   },
-  "routing": {
-    "queue": {
-      "mode": "collect",
-      "debounceMs": 1000,
-      "byChannel": { "discord": "collect" }
-    }
-  },
   "bindings": [
     {
       "agentId": "main",
@@ -532,16 +525,7 @@
     }
   },
   "skills": {
-    "install": {},
-    "triage": {},
-    "recall": {
-      "rerank": true
-    },
-    "dream_consolidation": {
-      "enabled": true,
-      "cron": "0 4 * * *",
-      "mode": "deep"
-    }
+    "install": {}
   },
   "plugins": {
     "entries": {
