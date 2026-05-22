@@ -336,11 +336,20 @@
 
     - name: Post-install tasks
       block:
-        - name: Install Polymarket MCP tool via uv
-          ansible.builtin.shell:
-            cmd: "{{ openclaw_home }}/.local/bin/uv tool install git+https://github.com/berlinbra/polymarket-mcp --force"
+        - name: Check if polymarket-mcp is installed
+          ansible.builtin.command: "{{ openclaw_home }}/.local/bin/uv tool list"
           environment:
             PATH: "{{ openclaw_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
+          register: uv_tool_list
+          changed_when: false
+          failed_when: false
+
+        - name: Install Polymarket MCP tool via uv
+          ansible.builtin.shell:
+            cmd: "{{ openclaw_home }}/.local/bin/uv tool install git+https://github.com/berlinbra/polymarket-mcp"
+          environment:
+            PATH: "{{ openclaw_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
+          when: "'polymarket-mcp' not in uv_tool_list.stdout"
           changed_when: true
 
 
