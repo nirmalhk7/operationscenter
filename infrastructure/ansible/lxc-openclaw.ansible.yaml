@@ -258,15 +258,15 @@
     - name: Require GitHub Packages token for equity research install
       ansible.builtin.assert:
         that:
-          - lookup('env', 'OPENCLAW_GITHUB_PACKAGES_TOKEN') | length > 0
-        fail_msg: "Set OPENCLAW_GITHUB_PACKAGES_TOKEN with GitHub Packages read access before deploying OpenClaw."
+          - lookup('env', 'OPENCLAW_GITHUB_TOKEN') | length > 0
+        fail_msg: "Set OPENCLAW_GITHUB_TOKEN with GitHub Packages read access before deploying OpenClaw."
 
     - name: Configure GitHub Packages npm scope for OpenClaw
       ansible.builtin.copy:
         dest: "{{ openclaw_home }}/.npmrc"
         content: |
           @nirmalhk7:registry=https://npm.pkg.github.com
-          //npm.pkg.github.com/:_authToken={{ lookup('env', 'OPENCLAW_GITHUB_PACKAGES_TOKEN') }}
+          //npm.pkg.github.com/:_authToken={{ lookup('env', 'OPENCLAW_GITHUB_TOKEN') }}
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'

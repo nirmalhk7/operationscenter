@@ -38,7 +38,7 @@ OpenClaw node:
 ```
 
 The Ansible OpenClaw deploy writes that config from
-`OPENCLAW_GITHUB_PACKAGES_TOKEN` and installs the version pinned by
+`OPENCLAW_GITHUB_TOKEN` and installs the version pinned by
 `equity_research_version`.
 
 For local package work:
