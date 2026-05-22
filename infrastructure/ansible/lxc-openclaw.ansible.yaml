@@ -287,6 +287,15 @@
         mode: '0600'
         force: yes
 
+    - name: Deploy Lobster pipeline file
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../openclaw/mountainvalue.lobster"
+        dest: /root/.openclaw/mountainvalue.lobster
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0600'
+        force: yes
+
     - name: Validate OpenClaw configuration
       ansible.builtin.shell:
         cmd: |
