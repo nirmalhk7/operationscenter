@@ -53,6 +53,8 @@ iptables -A OUTPUT -o "$LAN_IFACE" -p icmp -j ACCEPT
 # Port 80/443 -> Nginx
 iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80
 iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443
+# Port 6901 -> Nginx (Minecraft Wings Stream Proxy)
+iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
 # Port 6443 -> K8s
 iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 6443 -j DNAT --to-destination "$K8S_IP":6443
 
@@ -66,6 +68,7 @@ iptables -t nat -A PREROUTING -p udp --dport 111 -j DNAT --to-destination "$NFS_
 # Standard Forwarding Allows
 iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 80 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 6901 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -d "$K8S_IP" --dport 6443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -s "$NGINX_IP" -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -s "$K8S_IP" -m state --state ESTABLISHED,RELATED -j ACCEPT
@@ -76,6 +79,7 @@ iptables -A FORWARD -p tcp -s "$K8S_IP" -m state --state ESTABLISHED,RELATED -j 
 
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443
+iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 6443 -j DNAT --to-destination "$K8S_IP":6443
 
 # ==========================================
@@ -85,4 +89,5 @@ iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 6443 -j DNAT --to-d
 
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443
+iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 6443 -j DNAT --to-destination "$K8S_IP":6443
