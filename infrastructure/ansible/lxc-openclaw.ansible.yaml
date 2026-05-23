@@ -141,28 +141,6 @@
         state: present
         update_cache: true
 
-    - name: Install uv via official script
-      ansible.builtin.shell:
-        cmd: curl -LsSf https://astral.sh/uv/install.sh | UV_VERSION={{ uv_version }} sh
-        creates: "{{ openclaw_home }}/.local/bin/uv"
-      environment:
-        HOME: "{{ openclaw_home }}"
-
-    - name: Check if Polymarket MCP tool is installed
-      ansible.builtin.command: "{{ openclaw_home }}/.local/bin/uv tool list"
-      environment:
-        PATH: "{{ openclaw_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
-      register: uv_tool_list
-      changed_when: false
-      failed_when: false
-
-    - name: Install Polymarket MCP tool via uv
-      ansible.builtin.command: "{{ openclaw_home }}/.local/bin/uv tool install git+https://github.com/berlinbra/polymarket-mcp"
-      environment:
-        PATH: "{{ openclaw_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
-      when: "'polymarket-mcp' not in uv_tool_list.stdout"
-      changed_when: true
-
     - name: Check if pnpm is already installed
       ansible.builtin.command: pnpm --version
       register: pnpm_check

@@ -48,6 +48,3 @@ gh_cli_version: "2.90.0"
 
 # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
 kubectl_version: "1.35.3"
-
-# renovate: datasource=github-releases depName=astral-sh/uv versioning=semver
-uv_version: "0.6.2"
