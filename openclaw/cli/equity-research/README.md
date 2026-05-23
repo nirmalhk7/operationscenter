@@ -109,29 +109,17 @@ Other runtime controls:
 
 ## Schedule
 
-Create the weekday premarket job on the OpenClaw host after deployment:
-
-```sh
-openclaw cron add \
-  --name "MountainValue Daily Equity Research" \
-  --cron "0 6 * * 1-5" \
-  --tz "America/Denver" \
-  --session isolated \
-  --agent oracle \
-  --no-deliver \
-  --message "Run the Lobster workflow at /root/.openclaw/mountainvalue.lobster. Oracle must publish exactly one final Discord forum artifact or a docket."
-```
-
-`--no-deliver` avoids a second cron reply. Keep
+The weekday premarket job is provisioned by
+`infrastructure/ansible/lxc-openclaw.ansible.yaml`. Keep
 `OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID` at the placeholder value until a
 staging or production forum channel is chosen.
 
 ## Polymarket
 
-Ansible installs `berlinbra/polymarket-mcp` as a `uv` tool. OpenClaw registers
-its `/root/.local/bin/polymarket-mcp` command. EventHound is the only daily
-research role left with bundled MCP visibility and may use Polymarket only for
-read-only catalyst context.
+Ansible installs `polymarket-mcp` from npm. OpenClaw registers
+its `/root/.local/share/pnpm/polymarket-mcp` command. EventHound is the only daily
+research role with Polymarket MCP access, and `openclaw/openclaw.json` allows
+only the reviewed market discovery/detail tools for catalyst context.
 
 ## Validation
 

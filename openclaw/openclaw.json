@@ -140,10 +140,7 @@
       {
         "id": "main",
         "tools": {
-          "profile": "full",
-          "deny": [
-            "bundle-mcp"
-          ]
+          "profile": "full"
         },
         "model": {
           "primary": "openrouter/qwen/qwen3.5-flash-02-23",
@@ -167,6 +164,9 @@
           "target": "discord"
         },
         "tools": {
+          "deny": [
+            "bundle-mcp"
+          ],
           "alsoAllow": [
             "subagents",
             "sessions_yield",
@@ -217,6 +217,10 @@
         "workspace": "/root/.openclaw/workspace-eventhound",
         "tools": {
           "profile": "coding",
+          "allow": [
+            "polymarket__getAllMarkets",
+            "polymarket__getMarketDetails"
+          ],
           "deny": [
             "group:runtime",
             "group:fs",
