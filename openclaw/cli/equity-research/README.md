@@ -144,9 +144,15 @@ npm test
 Target-host checks after Ansible deployment:
 
 ```sh
+openclaw --version
 openclaw config validate
 openclaw doctor
-openclaw mcp show polymarket
+openclaw mcp list
+openclaw mcp show github --json
+openclaw mcp show kubernetes --json
+openclaw mcp show newsmcp --json
+openclaw mcp show nseindia --json
+openclaw mcp show polymarket --json
 printf '{"reviews":[]}' | equity-research validate-contract reviews
 openclaw cron list --agent oracle
 ```

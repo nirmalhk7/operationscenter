@@ -31,6 +31,21 @@ containerd_version: "2.2.2-1~debian.13~trixie"
 # renovate: datasource=npm depName=openclaw
 openclaw_version: "2026.4.23"
 
+# renovate: datasource=npm depName=polymarket-mcp
+polymarket_mcp_version: "1.0.0"
+
+# renovate: datasource=npm depName=stock-nse-india
+stock_nse_india_version: "1.3.0"
+
+# renovate: datasource=npm depName=@newsmcp/server
+newsmcp_server_version: "1.1.1"
+
+# renovate: datasource=npm depName=@cyanheads/secedgar-mcp-server
+secedgar_mcp_server_version: "0.4.0"
+
+# renovate: datasource=npm depName=kubectl-mcp-server
+kubectl_mcp_server_version: "1.24.0"
+
 # renovate: datasource=npm depName=@nirmalhk7/equity-research registryUrl=https://npm.pkg.github.com versioning=semver
 equity_research_version: "latest"
 
