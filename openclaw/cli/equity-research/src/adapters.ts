@@ -159,6 +159,9 @@ export class SECProvider {
 
   async seed(tickers: string[] = [], limit = 40): Promise<CandidatePayload> {
     const result = payload();
+    if (tickers.length === 0) {
+      return result;
+    }
     let rows: SecTickerRow[];
     try {
       rows = await secTickerRows(this.reader);
