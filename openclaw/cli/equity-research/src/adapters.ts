@@ -12,7 +12,7 @@ export const SEC_TICKER_INDEX_URL = "https://www.sec.gov/files/company_tickers.j
 export const SEC_COMPANY_FACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json";
 export const SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json";
 export const SEC_ARCHIVE_DOCUMENT_URL = "https://www.sec.gov/Archives/edgar/data/{cik}/{accession}/{document}";
-const FINVIZ_DEFAULT_SEED_URL = "https://finviz.com/screener.ashx?v=111&f=fa_debteq_u1,fa_pe_u20,fa_roe_pos,geo_usa,sh_avgvol_o300,sh_price_o5";
+const FINVIZ_DEFAULT_SEED_URL = "https://finviz.com/screener.ashx?v=111&f=fa_debteq_u1,fa_pb_u3,fa_pfcf_u20,fa_pe_u20,fa_roe_pos,geo_usa,sh_avgvol_o200,sh_price_o5";
 const FINVIZ_TECHNICAL_SEED_URL = "https://finviz.com/screener.ashx?v=111&f=geo_usa,sh_avgvol_o300,sh_price_o5,ta_sma20_pa,ta_sma50_pa,ta_sma200_pa";
 const DEFAULT_SEC_FILING_FORMS = new Set([
   "10-K",
@@ -32,9 +32,40 @@ const DEFAULT_SEC_FILING_FORMS = new Set([
 const SEC_FACTS = {
   revenue: ["Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax"],
   net_income: ["NetIncomeLoss"],
+  operating_income: ["OperatingIncomeLoss"],
+  operating_cash_flow: [
+    "NetCashProvidedByUsedInOperatingActivities",
+    "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+  ],
+  capital_expenditures: [
+    "PaymentsToAcquirePropertyPlantAndEquipment",
+    "PaymentsToAcquireProductiveAssets",
+  ],
+  stock_repurchases: [
+    "PaymentsForRepurchaseOfCommonStock",
+    "PaymentsForRepurchaseOfCommonStocks",
+  ],
+  dividends_paid: [
+    "PaymentsOfDividends",
+    "PaymentsOfDividendsCommonStock",
+  ],
   assets: ["Assets"],
+  current_assets: ["AssetsCurrent"],
   liabilities: ["Liabilities"],
+  current_liabilities: ["LiabilitiesCurrent"],
   stockholders_equity: ["StockholdersEquity"],
+  cash_and_equivalents: [
+    "CashAndCashEquivalentsAtCarryingValue",
+    "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+  ],
+  short_term_debt: ["ShortTermBorrowings", "ShortTermDebtCurrent"],
+  long_term_debt: ["LongTermDebtNoncurrent", "LongTermDebtAndFinanceLeaseObligationsNoncurrent"],
+  property_plant_equipment_net: ["PropertyPlantAndEquipmentNet"],
+  shares_outstanding: [
+    "EntityCommonStockSharesOutstanding",
+    "CommonStocksIncludingAdditionalPaidInCapitalSharesOutstanding",
+    "WeightedAverageNumberOfDilutedSharesOutstanding",
+  ],
 } as const;
 
 type Reader = (url: string) => Promise<unknown>;
@@ -210,13 +241,41 @@ export function extractSecFacts(companyFacts: unknown): {
   }
   const revenue = numeric(metrics.revenue);
   const netIncome = numeric(metrics.net_income);
+  const operatingCashFlow = numeric(metrics.operating_cash_flow);
+  const capitalExpenditures = numeric(metrics.capital_expenditures);
   const assets = numeric(metrics.assets);
+  const currentAssets = numeric(metrics.current_assets);
   const liabilities = numeric(metrics.liabilities);
+  const currentLiabilities = numeric(metrics.current_liabilities);
+  const equity = numeric(metrics.stockholders_equity);
+  const shortTermDebt = numeric(metrics.short_term_debt);
+  const longTermDebt = numeric(metrics.long_term_debt);
   if (revenue && netIncome !== null) {
     metrics.net_margin = round(netIncome / revenue);
   }
   if (assets && liabilities !== null) {
     metrics.liabilities_to_assets = round(liabilities / assets);
+  }
+  if (currentAssets !== null && currentLiabilities !== null) {
+    metrics.working_capital = round(currentAssets - currentLiabilities);
+    if (currentLiabilities !== 0) {
+      metrics.current_ratio = round(currentAssets / currentLiabilities);
+    }
+  }
+  if (shortTermDebt !== null || longTermDebt !== null) {
+    metrics.total_debt = round((shortTermDebt ?? 0) + (longTermDebt ?? 0));
+  }
+  if (equity && netIncome !== null) {
+    metrics.return_on_equity = round(netIncome / equity);
+  }
+  if (equity && liabilities !== null) {
+    metrics.liabilities_to_equity = round(liabilities / equity);
+  }
+  if (equity && numeric(metrics.total_debt) !== null) {
+    metrics.debt_to_equity = round(Number(metrics.total_debt) / equity);
+  }
+  if (operatingCashFlow !== null && capitalExpenditures !== null) {
+    metrics.owner_earnings_proxy = round(operatingCashFlow - Math.abs(capitalExpenditures));
   }
   return { metrics, filingRefs };
 }
@@ -320,7 +379,13 @@ async function seedFinvizCandidates(
   const result = payload();
   let tickers: string[];
   try {
-    tickers = parseFinvizTickers(await reader(seedUrl)).slice(0, limit);
+    const html = await reader(seedUrl);
+    const candidates = parseFinvizCandidates(html, provider, reason).slice(0, limit);
+    if (candidates.length > 0) {
+      result.candidates.push(...candidates);
+      return result;
+    }
+    tickers = parseFinvizTickers(html).slice(0, limit);
   } catch (error) {
     result.provider_errors.push(sourceError(provider, error));
     return result;
@@ -358,6 +423,7 @@ export class SECFilingSearchProvider {
       }
       try {
         const cik = cikForRow(row);
+        await this.enrichCompanyFacts(candidate, cik);
         const submissions = await this.reader(SEC_SUBMISSIONS_URL.replace("{cik}", cik));
         const filingRefs = extractSecFilingRefs(submissions, cik, limit);
         if (filingRefs.length === 0) {
@@ -369,6 +435,30 @@ export class SECFilingSearchProvider {
       }
     }
     return result;
+  }
+
+  private async enrichCompanyFacts(candidate: Candidate, cik: string): Promise<void> {
+    try {
+      const factsResponse = await this.reader(SEC_COMPANY_FACTS_URL.replace("{cik}", cik));
+      const { metrics, filingRefs } = extractSecFacts(factsResponse);
+      if (Object.keys(metrics).length === 0) {
+        candidate.evidence_gaps.push("SEC company facts returned no usable value metrics.");
+        return;
+      }
+      for (const [key, value] of Object.entries(metrics)) {
+        if (!(key in candidate.metrics)) {
+          candidate.metrics[key] = value;
+        }
+      }
+      candidate.metrics.sec_cik = cik;
+      appendUnique(candidate.sources, ["sec_xbrl"]);
+      appendUnique(candidate.filing_refs, filingRefs);
+      appendUnique(candidate.screen_reasons, secScreenReasons(metrics));
+    } catch (error) {
+      candidate.evidence_gaps.push(
+        `SEC company facts enrichment failed: ${error instanceof Error ? error.message : String(error)}.`,
+      );
+    }
   }
 }
 
@@ -447,6 +537,85 @@ export function parseFinvizTickers(html: string): string[] {
     throw new Error("Finviz screener response has no quote tickers");
   }
   return [...tickers];
+}
+
+export function parseFinvizCandidates(html: string, provider: string, reason: string): Candidate[] {
+  const candidates: Candidate[] = [];
+  const rows = html.matchAll(/<tr[^>]*>[\s\S]*?quote\.ashx\?t=([A-Z0-9.-]+)[\s\S]*?<\/tr>/gi);
+  for (const row of rows) {
+    const ticker = row[1].toUpperCase();
+    if (candidates.some((candidate) => candidate.ticker === ticker)) {
+      continue;
+    }
+    const cells = tableCells(row[0]);
+    const tickerIndex = cells.findIndex((cell) => cell.toUpperCase() === ticker);
+    const candidate = blankCandidate(ticker, tickerIndex >= 0 ? cells[tickerIndex + 1] ?? "" : "");
+    candidate.sources = [provider];
+    candidate.screen_reasons = [reason];
+    candidate.evidence_gaps = [
+      "Finviz seed values are discovery context and require primary-source checks.",
+    ];
+    if (tickerIndex >= 0) {
+      const marketCap = parseFinvizNumber(cells[tickerIndex + 5]);
+      const peRatio = parsePlainNumber(cells[tickerIndex + 6]);
+      const price = parsePlainNumber(cells[tickerIndex + 7]);
+      if (marketCap !== null) {
+        candidate.metrics.market_cap = marketCap;
+      }
+      if (peRatio !== null) {
+        candidate.metrics.pe_ratio = peRatio;
+      }
+      if (price !== null) {
+        candidate.metrics.price = price;
+      }
+    }
+    candidates.push(candidate);
+  }
+  return candidates;
+}
+
+function tableCells(rowHtml: string): string[] {
+  return [...rowHtml.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)]
+    .map((match) => stripHtml(match[1]))
+    .filter((cell) => cell.length > 0);
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseFinvizNumber(value: string | undefined): number | null {
+  if (!value || value === "-") {
+    return null;
+  }
+  const match = value.trim().match(/^(-?\d+(?:\.\d+)?)([KMBT])?$/i);
+  if (!match) {
+    return parsePlainNumber(value);
+  }
+  const number = Number.parseFloat(match[1]);
+  if (!Number.isFinite(number)) {
+    return null;
+  }
+  const suffix = match[2]?.toUpperCase();
+  const multiplier = suffix === "T" ? 1_000_000_000_000
+    : suffix === "B" ? 1_000_000_000
+      : suffix === "M" ? 1_000_000
+        : suffix === "K" ? 1_000
+          : 1;
+  return Math.round(number * multiplier);
+}
+
+function parsePlainNumber(value: string | undefined): number | null {
+  if (!value || value === "-") {
+    return null;
+  }
+  const parsed = Number.parseFloat(value.replace(/[$,%]/g, ""));
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 export function appendSeed(upstream: unknown, addition: unknown): CandidatePayload {

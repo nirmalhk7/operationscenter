@@ -24,6 +24,12 @@ import {
   validateFinalReport,
   validateReviewBatch,
 } from "./contracts.js";
+import {
+  scoreOwnerEarningsQuality,
+  scoreBalanceSheetSafety,
+  scoreEarningsYield,
+  rankOpportunities,
+} from "./value-engine.js";
 
 interface ParsedArgs {
   command: string;
