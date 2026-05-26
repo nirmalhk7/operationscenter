@@ -1,10 +1,16 @@
 {
-  "david": {
-    "last_approved_timestamp": 0,
-    "status": "IDLE"
-  },
-  "motabhai": {
-    "last_approved_timestamp": 0,
-    "status": "IDLE"
+  "mountainvalue_subagents": {
+    "eq_quantsieve": {
+      "status": "SUBAGENT_ROLE"
+    },
+    "eq_eventhound": {
+      "status": "SUBAGENT_ROLE"
+    },
+    "eq_thesis_depth_reviewer": {
+      "status": "SUBAGENT_ROLE"
+    },
+    "eq_riskskeptic": {
+      "status": "SUBAGENT_ROLE"
+    }
   }
 }

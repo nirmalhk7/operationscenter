@@ -1,7 +1,7 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.4.1",
-    "lastTouchedAt": "2026-05-13T06:33:40.103Z"
+    "lastTouchedVersion": "2024.4.23",
+    "lastTouchedAt": "2026-05-23T00:00:00.000Z"
   },
   "wizard": {
     "lastRunAt": "2026-03-21T05:51:14.376Z",
@@ -79,7 +79,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/qwen/qwen3-coder:free",
+        "primary": "openrouter/qwen/qwen3.5-flash-02-23",
         "fallbacks": [
           "openrouter/free",
           "local-ollama/qwen2.5-coder:3b",
@@ -118,7 +118,7 @@
       },
       "heartbeat": {
         "every": "30m",
-        "model": "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+        "model": "openrouter/qwen/qwen3.5-flash-02-23",
         "target": "discord",
         "directPolicy": "allow",
         "lightContext": true,
@@ -160,14 +160,14 @@
         "id": "rahul",
         "workspace": "/root/.openclaw/workspace-rahul",
         "model": {
-          "primary": "openrouter/free",
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
           "fallbacks": [
           ]
         },
         "skills": [],
         "heartbeat": {
           "every": "5m",
-          "model": "openrouter/free",
+          "model": "openrouter/qwen/qwen3.5-flash-02-23",
           "lightContext": false,
           "isolatedSession": true,
           "target": "discord"
@@ -326,6 +326,16 @@
   },
   "tools": {
     "profile": "minimal",
+    "subagents": {
+      "tools": {
+        "deny": [
+          "message",
+          "cron",
+          "gateway",
+          "sessions_send"
+        ]
+      }
+    },
     "agentToAgent": {
       "enabled": true,
       "allow": [
@@ -438,7 +448,13 @@
             }
           },
           "streaming": {
-            "mode": "progress"
+            "mode": "progress",
+            "progress": {
+              "label": "auto",
+              "maxLines": 8,
+              "toolProgress": true,
+              "commandText": "status"
+            }
           },
           "activity": "At your service",
           "autoPresence": {
@@ -460,7 +476,7 @@
           "groupPolicy": "allowlist",
           "guilds": {
             "1487714737964716084": {
-              "requireMention": true,
+              "requireMention": false,
               "users": [
                 "1220283451169837077"
               ]
