@@ -309,31 +309,6 @@
         mode: '0600'
         force: yes
 
-    - name: Ensure MountainValue daily equity research cron exists
-      ansible.builtin.shell:
-        cmd: |
-          set -euo pipefail
-          export PNPM_HOME="{{ openclaw_home }}/.local/share/pnpm"
-          export PATH="{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:$PATH"
-          if openclaw cron list --agent oracle | grep -Fq "MountainValue Daily Equity Research"; then
-            echo "MountainValue Daily Equity Research already configured"
-            exit 0
-          fi
-          echo "Creating MountainValue Daily Equity Research cron"
-          openclaw cron add \
-            --name "MountainValue Daily Equity Research" \
-            --cron "0 6 * * 1-5" \
-            --tz "America/Denver" \
-            --session isolated \
-            --agent oracle \
-            --no-deliver \
-            --message "Run the Lobster workflow at /root/.openclaw/mountainvalue.lobster. Oracle must publish exactly one final Discord forum artifact or a docket."
-        executable: /bin/bash
-      environment:
-        HOME: "{{ openclaw_home }}"
-      register: mountainvalue_cron_registration
-      changed_when: "'Creating MountainValue Daily Equity Research cron' in mountainvalue_cron_registration.stdout"
-
     - name: Validate OpenClaw configuration
       ansible.builtin.shell:
         cmd: |
