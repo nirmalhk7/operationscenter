@@ -12,37 +12,75 @@ import {
   validateReviewBatch,
 } from "./contracts.js";
 
-const AGENT_TASKS = {
-  quantsieve: `Review the supplied seed candidates. Return JSON only:
-{"reviews":[ReviewVerdict,...]}
-Score value, quality, balance-sheet strength, liquidity, margin-of-safety potential,
-and obvious value-trap risk. Do not promote Finviz or technical seeds to thesis evidence.`,
-  eventhound: `Review candidates and add event-driven US equity candidates.
-Return JSON only: {"reviews":[ReviewVerdict,...],"event_candidates":[Candidate,...]}.
-Look for Greenblatt-style spin-offs, separations, restructurings, tender offers,
-mergers, asset sales, recapitalizations, insider events, and material SEC/news
-catalysts. Polymarket is context only when a market maps to a catalyst; keep it out
-of valuation and primary evidence. Open primary SEC documents needed for claims;
-a filing ref alone is not evidence.`,
-  riskskeptic: `Challenge the bounded pool. Return JSON only:
-{"reviews":[ReviewVerdict,...]}. Use reject, caution, or proceed. Mark accounting,
-dilution, governance, litigation, debt/refinancing, regulatory, catalyst-resolution,
-and unsupported-primary-evidence gaps.`,
-  oracle: `Select the daily result and return FinalReport JSON only. Full memo
-mode requires primary-source support for the thesis, explicit source dates, valuation
-and balance-sheet checks, RiskSkeptic review, and unresolved gaps. Otherwise return
-a short docket. Post exactly one Discord forum artifact only when
-OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID is a real channel id; use the body_markdown
-from the FinalReport and the message tool. Do not post to a placeholder channel.
-A filing ref alone is not primary-source support; use primary SEC documents.`,
+const TASK_ENVELOPES = {
+  eq_quantsieve: {
+    task: "first_pass_review",
+    role_profile: "/root/.openclaw/subAgents/eq_quantsieve",
+    output_contract: "ReviewBatch",
+    review_focus: [
+      "deterministic_scorecard_audit",
+      "missing_market_data",
+      "missing_primary_evidence",
+      "value_trap_risk",
+    ],
+  },
+  eq_thesis_depth_reviewer: {
+    task: "review_thesis_depth",
+    role_profile: "/root/.openclaw/subAgents/eq_thesis_depth_reviewer",
+    output_contract: "ReviewBatch",
+    review_focus: [
+      "owner_earnings_or_normalized_fcf",
+      "intrinsic_value_and_margin_of_safety",
+      "capital_allocation_and_share_count",
+      "management_governance_quality",
+      "moat_durability",
+      "reinvestment_runway",
+    ],
+  },
+  eq_eventhound: {
+    task: "scan_catalysts",
+    role_profile: "/root/.openclaw/subAgents/eq_eventhound",
+    output_contract: "EventBatch",
+    review_focus: [
+      "spin_offs_and_separations",
+      "restructurings_and_asset_sales",
+      "tenders_mergers_and_recapitalizations",
+      "insider_events",
+      "material_sec_or_news_catalysts",
+    ],
+  },
+  eq_riskskeptic: {
+    task: "review_risks",
+    role_profile: "/root/.openclaw/subAgents/eq_riskskeptic",
+    output_contract: "ReviewBatch",
+    review_focus: [
+      "accounting_quality",
+      "dilution",
+      "governance",
+      "litigation_regulatory_debt_refinancing",
+      "catalyst_resolution",
+      "unsupported_primary_evidence",
+    ],
+  },
+  victor: {
+    task: "publish_final_report",
+    role_profile: "/root/.openclaw/workspace-victor",
+    output_contract: "FinalReport",
+    review_focus: [
+      "single_discord_forum_artifact",
+      "memo_or_docket_selection",
+      "publish_bar_enforcement",
+    ],
+  },
 } as const;
 
-type Agent = keyof typeof AGENT_TASKS;
+type Agent = keyof typeof TASK_ENVELOPES;
 
 export interface ReviewedPayload extends CandidatePayload {
-  quantsieve_reviews?: ReviewVerdict[];
-  eventhound_reviews?: ReviewVerdict[];
-  riskskeptic_reviews?: ReviewVerdict[];
+  first_pass_reviews?: ReviewVerdict[];
+  thesis_depth_reviews?: ReviewVerdict[];
+  catalyst_reviews?: ReviewVerdict[];
+  risk_reviews?: ReviewVerdict[];
   excluded_after_narrowing?: string[];
 }
 
@@ -68,29 +106,66 @@ export function configuredAgentTurn(
   inputPayload: unknown,
   runner: AgentRunner = runAgent,
 ): Record<string, unknown> {
-  let prompt = [
-    AGENT_TASKS[agent],
-    "Candidate contract keys are ticker, company, sources, screen_reasons, metrics, filing_refs, news_refs, polymarket_context, and evidence_gaps.",
-    "ReviewVerdict keys are ticker, verdict, bull_case, bear_case, disqualifiers, required_checks, and confidence.",
-    `Input JSON:\n${JSON.stringify(inputPayload)}`,
-  ].join("\n\n");
-  if (agent === "oracle") {
+  const envelope: Record<string, unknown> = {
+    workflow: "mountainvalue-daily-equity-research",
+    contract_version: 1,
+    role: agent,
+    ...TASK_ENVELOPES[agent],
+    instructions: [
+      "Use the role rules loaded from AGENTS.md and TOOLS.md in role_profile.",
+      "Return the output_contract JSON object only.",
+      "Do not wrap the JSON in prose or Markdown.",
+    ],
+    contracts: {
+      Candidate: [
+        "ticker",
+        "company",
+        "sources",
+        "screen_reasons",
+        "metrics",
+        "filing_refs",
+        "news_refs",
+        "polymarket_context",
+        "evidence_gaps",
+      ],
+      ReviewVerdict: [
+        "ticker",
+        "verdict",
+        "bull_case",
+        "bear_case",
+        "disqualifiers",
+        "required_checks",
+        "confidence",
+      ],
+      FinalReport: [
+        "mode",
+        "title",
+        "selected_ticker",
+        "body_markdown",
+        "reviewed_candidates",
+        "rejected_candidates",
+        "missing_evidence",
+      ],
+    },
+    input: inputPayload,
+  };
+  if (agent === "victor") {
     const channel = process.env.OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID
       ?? "REPLACE_WITH_DISCORD_FORUM_CHANNEL_ID";
-    prompt = `${prompt}\n\nDiscord forum channel target: ${channel}`;
+    envelope.discord_forum_channel_id = channel;
   }
   const completed = runner([
     "agent",
     "--agent",
     agent,
     "--message",
-    prompt,
+    JSON.stringify(envelope),
     "--timeout",
     process.env.OPENCLAW_EQUITY_AGENT_TIMEOUT_SECONDS ?? "900",
     "--json",
   ]);
   if (completed.status !== 0) {
-    throw new Error(`openclaw agent ${agent} failed: ${completed.stderr.trim() || "no stderr"}`);
+    throw new Error(`openclaw MountainValue role ${agent} failed: ${completed.stderr.trim() || "no stderr"}`);
   }
   return parseAgentJson(JSON.parse(completed.stdout) as unknown);
 }
@@ -143,25 +218,34 @@ function parseJsonText(text: string): unknown {
   }
 }
 
-export function quantsieveReview(seedPool: ReviewedPayload): ReviewedPayload {
-  const workerOutput = configuredAgentTurn("quantsieve", seedPool);
-  return { ...seedPool, quantsieve_reviews: validateReviewBatch(workerOutput) };
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-export function eventhoundScan(reviewedPool: ReviewedPayload): ReviewedPayload {
-  const workerOutput = configuredAgentTurn("eventhound", reviewedPool);
+export function firstPassReview(seedPool: ReviewedPayload): ReviewedPayload {
+  const workerOutput = configuredAgentTurn("eq_quantsieve", seedPool);
+  return { ...seedPool, first_pass_reviews: validateReviewBatch(workerOutput) };
+}
+
+export function reviewThesisDepth(narrowedPool: ReviewedPayload): ReviewedPayload {
+  const workerOutput = configuredAgentTurn("eq_thesis_depth_reviewer", narrowedPool);
+  return { ...narrowedPool, thesis_depth_reviews: validateReviewBatch(workerOutput) };
+}
+
+export function scanCatalysts(reviewedPool: ReviewedPayload): ReviewedPayload {
+  const workerOutput = configuredAgentTurn("eq_eventhound", reviewedPool);
   const { reviews, eventCandidates } = validateEventBatch(workerOutput);
   const merged = mergeSeedPayloads(reviewedPool, { candidates: eventCandidates });
   return {
     ...merged,
-    quantsieve_reviews: reviewedPool.quantsieve_reviews ?? [],
-    eventhound_reviews: reviews,
+    first_pass_reviews: reviewedPool.first_pass_reviews ?? [],
+    catalyst_reviews: reviews,
   };
 }
 
-export function narrowPool(reviewedPool: ReviewedPayload, limit: number): ReviewedPayload {
+export function narrowReviewPool(reviewedPool: ReviewedPayload, limit: number): ReviewedPayload {
   const rejected = new Set(
-    (reviewedPool.quantsieve_reviews ?? [])
+    (reviewedPool.first_pass_reviews ?? [])
       .filter((review) => review.verdict === "reject")
       .map((review) => review.ticker),
   );
@@ -171,8 +255,8 @@ export function narrowPool(reviewedPool: ReviewedPayload, limit: number): Review
     .sort((left, right) => compareRank(candidateRank(right), candidateRank(left)));
   const narrowed = payload(candidates.slice(0, limit)) as ReviewedPayload;
   narrowed.provider_errors = [...reviewedPool.provider_errors];
-  narrowed.quantsieve_reviews = reviewedPool.quantsieve_reviews ?? [];
-  narrowed.eventhound_reviews = reviewedPool.eventhound_reviews ?? [];
+  narrowed.first_pass_reviews = reviewedPool.first_pass_reviews ?? [];
+  narrowed.catalyst_reviews = reviewedPool.catalyst_reviews ?? [];
   narrowed.excluded_after_narrowing = candidates.slice(limit).map((candidate) => candidate.ticker);
   return narrowed;
 }
@@ -194,11 +278,76 @@ function compareRank(left: [number, number, number], right: [number, number, num
   return 0;
 }
 
-export function riskskepticReview(narrowedPool: ReviewedPayload): ReviewedPayload {
-  const workerOutput = configuredAgentTurn("riskskeptic", narrowedPool);
-  return { ...narrowedPool, riskskeptic_reviews: validateReviewBatch(workerOutput) };
+export function reviewRisks(narrowedPool: ReviewedPayload): ReviewedPayload {
+  const workerOutput = configuredAgentTurn("eq_riskskeptic", narrowedPool);
+  return { ...narrowedPool, risk_reviews: validateReviewBatch(workerOutput) };
 }
 
-export function oracleFinalize(reviewedPool: ReviewedPayload): FinalReport {
-  return validateFinalReport(configuredAgentTurn("oracle", reviewedPool));
+export function publishFinalReport(reviewedPool: ReviewedPayload): FinalReport {
+  const blockers = finalizationBlockers(reviewedPool);
+  if (blockers.length > 0) {
+    return blockedFinalReport(reviewedPool, blockers);
+  }
+  return validateFinalReport(configuredAgentTurn("victor", reviewedPool));
+}
+
+function finalizationBlockers(reviewedPool: ReviewedPayload): string[] {
+  const blockers: string[] = [];
+  if (!Array.isArray(reviewedPool.candidates)) {
+    return ["Pipeline did not provide a candidate array to Victor."];
+  }
+  if (reviewedPool.candidates.length === 0) {
+    blockers.push("No candidates reached final review.");
+  }
+  for (const field of [
+    "first_pass_reviews",
+    "catalyst_reviews",
+    "thesis_depth_reviews",
+    "risk_reviews",
+  ] as const) {
+    if (!Array.isArray(reviewedPool[field])) {
+      blockers.push(`${field} missing; an upstream review step did not complete.`);
+    }
+  }
+  const missingScorecards = reviewedPool.candidates
+    .map(normalizeCandidate)
+    .filter((candidate) => !hasRequiredScorecards(candidate))
+    .map((candidate) => candidate.ticker);
+  if (missingScorecards.length > 0) {
+    blockers.push(
+      `Missing deterministic earnings-yield/balance-sheet-safety/owner-earnings-quality/opportunity/value_composite scorecards for: ${missingScorecards.join(", ")}.`,
+    );
+  }
+  return blockers;
+}
+
+function hasRequiredScorecards(candidate: Candidate): boolean {
+  return [
+    "earnings_yield_scorecard",
+    "balance_sheet_safety",
+    "owner_earnings_quality",
+    "opportunity_scorecard",
+    "value_composite",
+  ]
+    .every((field) => isRecord(candidate.metrics[field]));
+}
+
+function blockedFinalReport(reviewedPool: ReviewedPayload, blockers: string[]): FinalReport {
+  const tickers = Array.isArray(reviewedPool.candidates)
+    ? reviewedPool.candidates.map((candidate) => normalizeCandidate(candidate).ticker)
+    : [];
+  return {
+    mode: "docket",
+    title: "Daily Equity Docket - Pipeline Incomplete",
+    selected_ticker: null,
+    body_markdown: [
+      "No publishable equity memo was produced because the MountainValue pipeline did not complete all required gates.",
+      "",
+      "Missing gates:",
+      ...blockers.map((blocker) => `- ${blocker}`),
+    ].join("\n"),
+    reviewed_candidates: tickers,
+    rejected_candidates: [],
+    missing_evidence: blockers,
+  };
 }

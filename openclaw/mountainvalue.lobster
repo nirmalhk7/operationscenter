@@ -2,53 +2,73 @@
   "name": "mountainvalue-daily-equity-research",
   "steps": [
     {
-      "id": "sec_seed",
-      "command": "equity-research sec-seed"
+      "id": "seed_configured_universe",
+      "command": "equity-research seed-configured-universe"
     },
     {
-      "id": "finviz_seed",
-      "command": "equity-research finviz-seed",
-      "stdin": "$sec_seed.stdout"
+      "id": "discover_value_candidates",
+      "command": "equity-research discover-value-candidates",
+      "stdin": "$seed_configured_universe.stdout"
     },
     {
-      "id": "finviz_technical_seed",
-      "command": "equity-research finviz-technical-seed",
-      "stdin": "$finviz_seed.stdout"
+      "id": "discover_technical_candidates",
+      "command": "equity-research discover-technical-candidates",
+      "stdin": "$discover_value_candidates.stdout"
     },
     {
-      "id": "merge_seed_pool",
-      "command": "equity-research merge-seed-pool",
-      "stdin": "$finviz_technical_seed.stdout"
+      "id": "merge_candidates",
+      "command": "equity-research merge-candidates",
+      "stdin": "$discover_technical_candidates.stdout"
     },
     {
-      "id": "sec_filing_search",
-      "command": "equity-research sec-filing-search",
-      "stdin": "$merge_seed_pool.stdout"
+      "id": "enrich_primary_filings",
+      "command": "equity-research enrich-primary-filings",
+      "stdin": "$merge_candidates.stdout"
     },
     {
-      "id": "quantsieve_review",
-      "command": "equity-research quantsieve-review",
-      "stdin": "$sec_filing_search.stdout"
+      "id": "score_earnings_yield",
+      "command": "equity-research score-earnings-yield",
+      "stdin": "$enrich_primary_filings.stdout"
     },
     {
-      "id": "eventhound_scan",
-      "command": "equity-research eventhound-scan",
-      "stdin": "$quantsieve_review.stdout"
+      "id": "score_balance_sheet_safety",
+      "command": "equity-research score-balance-sheet-safety",
+      "stdin": "$score_earnings_yield.stdout"
     },
     {
-      "id": "narrow_pool",
-      "command": "equity-research narrow-pool",
-      "stdin": "$eventhound_scan.stdout"
+      "id": "score_owner_earnings_quality",
+      "command": "equity-research score-owner-earnings-quality",
+      "stdin": "$score_balance_sheet_safety.stdout"
     },
     {
-      "id": "riskskeptic_review",
-      "command": "equity-research riskskeptic-review",
-      "stdin": "$narrow_pool.stdout"
+      "id": "first_pass_review",
+      "command": "equity-research first-pass-review",
+      "stdin": "$score_owner_earnings_quality.stdout"
     },
     {
-      "id": "oracle_finalize",
-      "command": "equity-research oracle-finalize",
-      "stdin": "$riskskeptic_review.stdout"
+      "id": "scan_catalysts",
+      "command": "equity-research scan-catalysts",
+      "stdin": "$first_pass_review.stdout"
+    },
+    {
+      "id": "rank_opportunities",
+      "command": "equity-research rank-opportunities",
+      "stdin": "$scan_catalysts.stdout"
+    },
+    {
+      "id": "review_thesis_depth",
+      "command": "equity-research review-thesis-depth",
+      "stdin": "$rank_opportunities.stdout"
+    },
+    {
+      "id": "review_risks",
+      "command": "equity-research review-risks",
+      "stdin": "$review_thesis_depth.stdout"
+    },
+    {
+      "id": "publish_final_report",
+      "command": "equity-research publish-final-report",
+      "stdin": "$review_risks.stdout"
     }
   ]
 }

@@ -128,6 +128,15 @@
       "maxConcurrent": 16,
       "subagents": {
         "maxConcurrent": 10,
+        "allowAgents": [
+          "eq_quantsieve",
+          "eq_eventhound",
+          "eq_riskskeptic",
+          "eq_thesis_depth_reviewer"
+        ],
+        "requireAgentId": true,
+        "runTimeoutSeconds": 900,
+        "archiveAfterMinutes": 60,
         "model": {
           "primary": "openrouter/qwen/qwen3.5-flash-02-23",
           "fallbacks": [
@@ -178,70 +187,138 @@
         }
       },
       {
-        "id": "oracle",
-        "workspace": "/root/.openclaw/workspace-oracle",
+        "id": "victor",
+        "workspace": "/root/.openclaw/workspace-victor",
         "model": {
-          "primary": "openrouter/deepseek/deepseek-r1"
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23"
+        },
+        "subagents": {
+          "allowAgents": [
+            "eq_quantsieve",
+            "eq_eventhound",
+            "eq_riskskeptic",
+            "eq_thesis_depth_reviewer"
+          ],
+          "requireAgentId": true,
+          "runTimeoutSeconds": 900,
+          "archiveAfterMinutes": 60
         },
         "tools": {
           "profile": "coding",
           "allow": [
             "message",
-            "lobster"
-          ],
-          "deny": [
-            "bundle-mcp",
-            "group:runtime",
-            "group:fs",
-            "group:sessions"
-          ]
-        }
-      },
-      {
-        "id": "quantsieve",
-        "workspace": "/root/.openclaw/workspace-quantsieve",
-        "tools": {
-          "profile": "coding",
-          "deny": [
-            "bundle-mcp",
-            "group:runtime",
-            "group:fs",
-            "group:sessions",
-            "group:automation",
-            "group:messaging"
-          ]
-        }
-      },
-      {
-        "id": "eventhound",
-        "workspace": "/root/.openclaw/workspace-eventhound",
-        "tools": {
-          "profile": "coding",
-          "allow": [
+            "lobster",
+            "subagents",
+            "sessions_spawn",
+            "sessions_list",
+            "sessions_history",
+            "agents_list",
             "polymarket__getAllMarkets",
             "polymarket__getMarketDetails"
           ],
           "deny": [
+            "bundle-mcp",
             "group:runtime",
             "group:fs",
-            "group:sessions",
-            "group:automation",
-            "group:messaging"
+            "sessions_send",
+            "sessions_yield"
           ]
         }
       },
       {
-        "id": "riskskeptic",
-        "workspace": "/root/.openclaw/workspace-riskskeptic",
+        "id": "eq_quantsieve",
+        "workspace": "/root/.openclaw/subAgents/eq_quantsieve",
+        "agentDir": "/root/.openclaw/subAgents/eq_quantsieve",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
         "tools": {
-          "profile": "coding",
+          "profile": "minimal",
           "deny": [
             "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
             "group:runtime",
             "group:fs",
+            "group:automation"
+          ]
+        }
+      },
+      {
+        "id": "eq_eventhound",
+        "workspace": "/root/.openclaw/subAgents/eq_eventhound",
+        "agentDir": "/root/.openclaw/subAgents/eq_eventhound",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "allow": [
+            "session_status",
+            "polymarket__getAllMarkets",
+            "polymarket__getMarketDetails"
+          ],
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
             "group:sessions",
-            "group:automation",
-            "group:messaging"
+            "group:runtime",
+            "group:fs",
+            "group:automation"
+          ]
+        }
+      },
+      {
+        "id": "eq_riskskeptic",
+        "workspace": "/root/.openclaw/subAgents/eq_riskskeptic",
+        "agentDir": "/root/.openclaw/subAgents/eq_riskskeptic",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
+            "group:runtime",
+            "group:fs",
+            "group:automation"
+          ]
+        }
+      },
+      {
+        "id": "eq_thesis_depth_reviewer",
+        "workspace": "/root/.openclaw/subAgents/eq_thesis_depth_reviewer",
+        "agentDir": "/root/.openclaw/subAgents/eq_thesis_depth_reviewer",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
+            "group:runtime",
+            "group:fs",
+            "group:automation"
           ]
         }
       }
@@ -276,6 +353,13 @@
       "match": {
         "channel": "discord",
         "accountId": "rahul"
+      }
+    },
+    {
+      "agentId": "victor",
+      "match": {
+        "channel": "discord",
+        "accountId": "victor"
       }
     }
   ],
@@ -393,10 +477,44 @@
               "accentColor": "#43B581"
             }
           }
+        },
+        "victor": {
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_VICTOR"
+          },
+          "groupPolicy": "allowlist",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": false,
+              "users": [
+                "1220283451169837077"
+              ]
+            }
+          },
+          "streaming": {
+            "mode": "progress",
+            "progress": {
+              "label": "auto",
+              "maxLines": 8,
+              "toolProgress": true,
+              "commandText": "status"
+            }
+          },
+          "activity": "Final value analyst",
+          "activityType": 3,
+          "status": "online",
+          "ui": {
+            "components": {
+              "accentColor": "#B91C1C"
+            }
+          }
         }
       },
       "agentComponents": {
-        "enabled": true
+        "enabled": true,
+        "ttlMs": 3600000
       },
       "ackReaction": "👀",
       "threadBindings": {

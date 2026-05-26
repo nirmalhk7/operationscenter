@@ -141,8 +141,8 @@ test("duplicate candidates preserve sources and conflicting metrics", () => {
 });
 
 test("empty pool narrows cleanly", () => {
-  const result = narrowPool(
-    { ...mergeSeedPayloads({ candidates: [] }), quantsieve_reviews: [] },
+  const result = narrowReviewPool(
+    { ...mergeSeedPayloads({ candidates: [] }), first_pass_reviews: [] },
     3,
   );
 

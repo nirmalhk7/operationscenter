@@ -51,6 +51,29 @@
         mode: '0755'
         force: yes
 
+    - name: Copy MountainValue subagent role docs
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../openclaw/subAgents/"
+        dest: /root/.openclaw/subAgents/
+        owner: "{{ openclaw_user }}"
+        group: "{{ openclaw_user }}"
+        mode: '0755'
+        force: yes
+
+    - name: Remove stale MountainValue worker full-agent workspaces
+      ansible.builtin.file:
+        path: "/root/.openclaw/workspace-{{ item }}"
+        state: absent
+      loop:
+        - quantsieve
+        - eventhound
+        - riskskeptic
+        - david
+        - eq_quantsieve
+        - eq_eventhound
+        - eq_riskskeptic
+        - eq_thesis_depth_reviewer
+
     - name: Copy main agent workspaces
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../../openclaw/mainAgent/"

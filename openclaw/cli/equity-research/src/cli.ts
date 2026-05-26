@@ -10,11 +10,12 @@ import {
 } from "./adapters.js";
 import {
   ReviewedPayload,
-  eventhoundScan,
-  narrowPool,
-  oracleFinalize,
-  quantsieveReview,
-  riskskepticReview,
+  reviewThesisDepth,
+  scanCatalysts,
+  narrowReviewPool,
+  firstPassReview,
+  reviewRisks,
+  publishFinalReport,
 } from "./agent-turns.js";
 import {
   ContractError,
@@ -47,22 +48,22 @@ async function main(): Promise<number> {
 
 async function commandOutput(args: ParsedArgs): Promise<unknown> {
   switch (args.command) {
-    case "sec-seed":
+    case "seed-configured-universe":
       return new SECProvider().seed(
         tickerList(option(args, "tickers") ?? process.env.OPENCLAW_SEC_SEED_TICKERS ?? ""),
         intOption(args, "limit", process.env.OPENCLAW_SEC_SEED_LIMIT ?? "40"),
       );
-    case "finviz-seed": {
+    case "discover-value-candidates": {
       const upstream = await readStdinPayload(false);
       const disabled = args.options.has("disabled") || process.env.OPENCLAW_FINVIZ_DISABLED === "1";
       const addition = disabled
         ? { candidates: [], provider_errors: [{ provider: "finviz", message: "disabled" }] }
         : await new FinvizProvider().seed(
           intOption(args, "limit", process.env.OPENCLAW_FINVIZ_SEED_LIMIT ?? "40"),
-        );
+      );
       return appendSeed(upstream ?? { candidates: [] }, addition);
     }
-    case "finviz-technical-seed": {
+    case "discover-technical-candidates": {
       const upstream = await readRequiredStdinPayload();
       const disabled = args.options.has("disabled")
         || process.env.OPENCLAW_FINVIZ_TECHNICAL_DISABLED === "1";
@@ -70,29 +71,42 @@ async function commandOutput(args: ParsedArgs): Promise<unknown> {
         ? { candidates: [], provider_errors: [{ provider: "finviz_technical", message: "disabled" }] }
         : await new FinvizTechnicalProvider().seed(
           intOption(args, "limit", process.env.OPENCLAW_FINVIZ_TECHNICAL_SEED_LIMIT ?? "40"),
-        );
+      );
       return appendSeed(upstream, addition);
     }
-    case "merge-seed-pool":
+    case "merge-candidates":
       return mergeSeedPayloads(await readRequiredStdinPayload());
-    case "sec-filing-search":
+    case "enrich-primary-filings":
       return new SECFilingSearchProvider().enrich(
         await readRequiredStdinPayload(),
         intOption(args, "limit", process.env.OPENCLAW_SEC_FILING_SEARCH_LIMIT ?? "6"),
       );
-    case "quantsieve-review":
-      return quantsieveReview(await reviewedPayload());
-    case "eventhound-scan":
-      return eventhoundScan(await reviewedPayload());
-    case "narrow-pool":
-      return narrowPool(
+    case "score-earnings-yield":
+      return scoreEarningsYield(await reviewedPayload());
+    case "score-balance-sheet-safety":
+      return scoreBalanceSheetSafety(await reviewedPayload());
+    case "score-owner-earnings-quality":
+      return scoreOwnerEarningsQuality(await reviewedPayload());
+    case "first-pass-review":
+      return firstPassReview(await reviewedPayload());
+    case "scan-catalysts":
+      return scanCatalysts(await reviewedPayload());
+    case "rank-opportunities":
+      return rankOpportunities(
         await reviewedPayload(),
         intOption(args, "limit", process.env.OPENCLAW_EQUITY_DEEP_REVIEW_LIMIT ?? "8"),
       );
-    case "riskskeptic-review":
-      return riskskepticReview(await reviewedPayload());
-    case "oracle-finalize":
-      return oracleFinalize(await reviewedPayload());
+    case "narrow-review-pool":
+      return narrowReviewPool(
+        await reviewedPayload(),
+        intOption(args, "limit", process.env.OPENCLAW_EQUITY_DEEP_REVIEW_LIMIT ?? "8"),
+      );
+    case "review-thesis-depth":
+      return reviewThesisDepth(await reviewedPayload());
+    case "review-risks":
+      return reviewRisks(await reviewedPayload());
+    case "publish-final-report":
+      return publishFinalReport(await reviewedPayload());
     case "validate-contract":
       return validateContract(args.positionals[0], await readRequiredStdinPayload());
     default:
@@ -186,7 +200,7 @@ function validateContract(contract: string | undefined, document: Record<string,
 
 function usage(command: string): string {
   const suffix = command ? `unknown command ${command}` : "command required";
-  return `${suffix}; use sec-seed, finviz-seed, finviz-technical-seed, merge-seed-pool, sec-filing-search, quantsieve-review, eventhound-scan, narrow-pool, riskskeptic-review, oracle-finalize, or validate-contract`;
+  return `${suffix}; use seed-configured-universe, discover-value-candidates, discover-technical-candidates, merge-candidates, enrich-primary-filings, score-earnings-yield, score-balance-sheet-safety, score-owner-earnings-quality, first-pass-review, scan-catalysts, rank-opportunities, narrow-review-pool, review-thesis-depth, review-risks, publish-final-report, or validate-contract`;
 }
 
 main().then((code) => {
