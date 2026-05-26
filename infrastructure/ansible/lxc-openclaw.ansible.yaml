@@ -247,8 +247,8 @@
     - name: Require GitHub MCP PAT
       ansible.builtin.assert:
         that:
-          - lookup('env', 'OPENCLAW_GITHUB_MCP_PAT') | length > 0
-        fail_msg: "Set OPENCLAW_GITHUB_MCP_PAT before deploying OpenClaw with the GitHub MCP server enabled."
+          - lookup('env', 'OPENCLAW_GITHUB_TOKEN') | length > 0
+        fail_msg: "Set OPENCLAW_GITHUB_TOKEN before deploying OpenClaw with the GitHub MCP server enabled."
 
     - name: Require Todoist MCP API key
       ansible.builtin.assert:
@@ -261,6 +261,12 @@
         that:
           - lookup('env', 'OPENCLAW_ALPHAVANTAGE_API_KEY') | length > 0
         fail_msg: "Set OPENCLAW_ALPHAVANTAGE_API_KEY before deploying OpenClaw with the Alpha Vantage MCP server enabled."
+
+    - name: Require Victor Discord bot token
+      ansible.builtin.assert:
+        that:
+          - lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_VICTOR') | length > 0
+        fail_msg: "Set OPENCLAW_DISCORD_BOT_TOKEN_VICTOR before deploying OpenClaw with Victor's Discord account enabled."
 
     - name: Require SEC EDGAR user agent
       ansible.builtin.assert:
@@ -370,7 +376,7 @@
           KUBECONFIG="{{ openclaw_support_home }}/.kube/config"
           ALPACA_SECRET_KEY={{ lookup('env', 'ALPACA_SECRET_KEY') }}
           ALPACA_API_KEY={{ lookup('env', 'ALPACA_API_KEY') }}
-          OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID={{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('REPLACE_WITH_DISCORD_FORUM_CHANNEL_ID', true) }}
+          OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID={{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504282224789295134', true) }}
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'

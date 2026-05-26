@@ -534,7 +534,7 @@
       "github": {
         "url": "https://api.githubcopilot.com/mcp/",
         "headers": {
-          "Authorization": "Bearer ${OPENCLAW_GITHUB_MCP_PAT}"
+          "Authorization": "Bearer ${OPENCLAW_GITHUB_TOKEN}"
         },
         "transport": "streamable-http"
       },

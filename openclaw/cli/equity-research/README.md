@@ -98,6 +98,7 @@ or replace them with:
 Other runtime controls:
 
 - `OPENCLAW_SEC_SEED_TICKERS`: optional comma-separated SEC ticker subset.
+  When unset, SEC seeding stays empty and Finviz discovery drives the universe.
 - `OPENCLAW_SEC_SEED_LIMIT`: default `40`.
 - `OPENCLAW_SEC_FILING_SEARCH_LIMIT`: recent filing refs per candidate, default `6`.
 - `OPENCLAW_SEC_FILING_FORMS`: optional comma-separated SEC forms to retain.

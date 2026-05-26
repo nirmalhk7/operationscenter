@@ -85,7 +85,8 @@ export function payload(candidates: Candidate[] = []): CandidatePayload {
 }
 
 async function fetchJson(url: string): Promise<unknown> {
-  const userAgent = process.env.SEC_USER_AGENT
+  const userAgent = process.env.OPENCLAW_EDGAR_USER_AGENT
+    ?? process.env.SEC_USER_AGENT
     ?? "operationscenter-equity-research/1.0 admin@example.invalid";
   const response = await fetch(url, {
     headers: { accept: "application/json", "user-agent": userAgent },
