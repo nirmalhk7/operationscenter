@@ -12,11 +12,12 @@ scorecard stages, JSON contract validation, value ranking, and configured OpenCl
 Victor is the only Discord-facing MountainValue configured agent.
 `eq_quantsieve`, `eq_eventhound`, `eq_riskskeptic`, and
 `eq_thesis_depth_reviewer` are MountainValue OpenClaw profiles with no Discord
-bindings. Their runtime workspaces live under `/root/.openclaw/subAgents`, and
-their injected runtime instructions are `AGENTS.md` and `TOOLS.md`. Victor can
-spawn only those profiles as subagents for interactive work; the Lobster CLI
-calls the same profiles directly for synchronous JSON review steps so each stage
-has a concrete stdout contract.
+bindings. `newswire` is a reusable NewsMCP-backed news profile, currently
+allowlisted only for Victor. Their runtime workspaces live under
+`/root/.openclaw/subAgents`, and their injected runtime instructions are
+`AGENTS.md` and `TOOLS.md`. Victor can spawn only those profiles as subagents
+for interactive work; the Lobster CLI calls the same profiles directly for
+synchronous JSON review steps so each stage has a concrete stdout contract.
 Deterministic scorecards calculate available earnings-yield,
 balance-sheet-safety, and owner-earnings-quality checks first, then
 `eq_thesis_depth_reviewer` reviews intrinsic value, owner earnings or
@@ -74,6 +75,7 @@ equity-research score-earnings-yield
 equity-research score-balance-sheet-safety
 equity-research score-owner-earnings-quality
 equity-research first-pass-review
+equity-research scan-news
 equity-research scan-catalysts
 equity-research rank-opportunities [--limit N]
 equity-research narrow-review-pool [--limit N]
@@ -164,6 +166,15 @@ its `/root/.local/share/pnpm/polymarket-mcp` command. `eq_eventhound` is the
 only MountainValue review profile expected to use Polymarket context, and
 `openclaw/openclaw.json` allows only the reviewed market discovery/detail tools
 for catalyst context.
+
+## News
+
+Ansible installs `@newsmcp/server` from npm. OpenClaw registers
+its `/root/.local/share/pnpm/newsmcp` command. `newswire` is the only profile
+in this package expected to use NewsMCP context. It is general-purpose, but
+MountainValue currently calls it in the `scan-news` lane before
+`scan-catalysts`; it can support timing, risk, or repricing context, but it is
+not valuation evidence.
 
 ## Validation
 

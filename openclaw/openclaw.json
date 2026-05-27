@@ -195,13 +195,12 @@
         "subagents": {
           "allowAgents": [
             "eq_quantsieve",
+            "newswire",
             "eq_eventhound",
             "eq_riskskeptic",
             "eq_thesis_depth_reviewer"
           ],
-          "requireAgentId": true,
-          "runTimeoutSeconds": 900,
-          "archiveAfterMinutes": 60
+          "requireAgentId": true
         },
         "tools": {
           "profile": "coding",
@@ -238,6 +237,35 @@
         "skills": [],
         "tools": {
           "profile": "minimal",
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
+            "group:runtime",
+            "group:fs",
+            "group:automation"
+          ]
+        }
+      },
+      {
+        "id": "newswire",
+        "workspace": "/root/.openclaw/subAgents/newswire",
+        "agentDir": "/root/.openclaw/subAgents/newswire",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "allow": [
+            "newsmcp__get_news",
+            "newsmcp__get_news_detail",
+            "newsmcp__get_topics",
+            "newsmcp__get_regions"
+          ],
           "deny": [
             "bundle-mcp",
             "group:messaging",

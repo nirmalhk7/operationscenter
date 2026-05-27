@@ -93,6 +93,7 @@ test("workflow stays JSON command steps", () => {
       "score_balance_sheet_safety",
       "score_owner_earnings_quality",
       "first_pass_review",
+      "scan_news",
       "scan_catalysts",
       "rank_opportunities",
       "review_thesis_depth",
@@ -113,6 +114,7 @@ test("workflow stays JSON command steps", () => {
   assert.ok(bindings.includes("victor"));
   for (const worker of [
     "eq_quantsieve",
+    "newswire",
     "eq_eventhound",
     "eq_riskskeptic",
     "eq_thesis_depth_reviewer",
@@ -128,11 +130,23 @@ test("workflow stays JSON command steps", () => {
   const victor = agents.find((agent) => agent.id === "victor") as Record<string, unknown>;
   const victorSubagents = (victor.subagents as Record<string, unknown> | undefined)
     ?? (((config.agents as Record<string, unknown>).defaults as Record<string, unknown>).subagents as Record<string, unknown>);
+  const defaultSubagents = (((config.agents as Record<string, unknown>).defaults as Record<string, unknown>)
+    .subagents as Record<string, unknown>);
+  assert.equal((defaultSubagents.allowAgents as string[]).includes("newswire"), false);
   assert.deepEqual(victorSubagents.allowAgents, [
     "eq_quantsieve",
+    "newswire",
     "eq_eventhound",
     "eq_riskskeptic",
     "eq_thesis_depth_reviewer",
+  ]);
+  const newswire = agents.find((agent) => agent.id === "newswire") as Record<string, unknown>;
+  const newswireTools = newswire.tools as Record<string, unknown>;
+  assert.deepEqual(newswireTools.allow, [
+    "newsmcp__get_news",
+    "newsmcp__get_news_detail",
+    "newsmcp__get_topics",
+    "newsmcp__get_regions",
   ]);
 });
 

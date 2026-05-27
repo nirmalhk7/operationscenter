@@ -37,6 +37,17 @@ const TASK_ENVELOPES = {
       "reinvestment_runway",
     ],
   },
+  newswire: {
+    task: "scan_news",
+    role_profile: "/root/.openclaw/subAgents/newswire",
+    output_contract: "EventBatch",
+    review_focus: [
+      "company_specific_news",
+      "dated_source_attribution",
+      "forced_selling_or_repricing_context",
+      "separate_news_context_from_primary_evidence",
+    ],
+  },
   eq_eventhound: {
     task: "scan_catalysts",
     role_profile: "/root/.openclaw/subAgents/eq_eventhound",
@@ -46,7 +57,7 @@ const TASK_ENVELOPES = {
       "restructurings_and_asset_sales",
       "tenders_mergers_and_recapitalizations",
       "insider_events",
-      "material_sec_or_news_catalysts",
+      "material_sec_filing_catalysts",
     ],
   },
   eq_riskskeptic: {
@@ -78,6 +89,7 @@ type Agent = keyof typeof TASK_ENVELOPES;
 
 export interface ReviewedPayload extends CandidatePayload {
   first_pass_reviews?: ReviewVerdict[];
+  news_reviews?: ReviewVerdict[];
   thesis_depth_reviews?: ReviewVerdict[];
   catalyst_reviews?: ReviewVerdict[];
   risk_reviews?: ReviewVerdict[];
@@ -232,6 +244,17 @@ export function reviewThesisDepth(narrowedPool: ReviewedPayload): ReviewedPayloa
   return { ...narrowedPool, thesis_depth_reviews: validateReviewBatch(workerOutput) };
 }
 
+export function scanNews(reviewedPool: ReviewedPayload): ReviewedPayload {
+  const workerOutput = configuredAgentTurn("newswire", reviewedPool);
+  const { reviews, eventCandidates } = validateEventBatch(workerOutput);
+  const merged = mergeSeedPayloads(reviewedPool, { candidates: eventCandidates });
+  return {
+    ...merged,
+    first_pass_reviews: reviewedPool.first_pass_reviews ?? [],
+    news_reviews: reviews,
+  };
+}
+
 export function scanCatalysts(reviewedPool: ReviewedPayload): ReviewedPayload {
   const workerOutput = configuredAgentTurn("eq_eventhound", reviewedPool);
   const { reviews, eventCandidates } = validateEventBatch(workerOutput);
@@ -239,6 +262,7 @@ export function scanCatalysts(reviewedPool: ReviewedPayload): ReviewedPayload {
   return {
     ...merged,
     first_pass_reviews: reviewedPool.first_pass_reviews ?? [],
+    news_reviews: reviewedPool.news_reviews ?? [],
     catalyst_reviews: reviews,
   };
 }
@@ -256,6 +280,7 @@ export function narrowReviewPool(reviewedPool: ReviewedPayload, limit: number): 
   const narrowed = payload(candidates.slice(0, limit)) as ReviewedPayload;
   narrowed.provider_errors = [...reviewedPool.provider_errors];
   narrowed.first_pass_reviews = reviewedPool.first_pass_reviews ?? [];
+  narrowed.news_reviews = reviewedPool.news_reviews ?? [];
   narrowed.catalyst_reviews = reviewedPool.catalyst_reviews ?? [];
   narrowed.excluded_after_narrowing = candidates.slice(limit).map((candidate) => candidate.ticker);
   return narrowed;
@@ -301,6 +326,7 @@ function finalizationBlockers(reviewedPool: ReviewedPayload): string[] {
   }
   for (const field of [
     "first_pass_reviews",
+    "news_reviews",
     "catalyst_reviews",
     "thesis_depth_reviews",
     "risk_reviews",

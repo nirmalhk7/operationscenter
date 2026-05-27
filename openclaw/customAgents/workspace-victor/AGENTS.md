@@ -65,11 +65,11 @@ memo evidence bar.
 
 ## Evidence Bar
 A memo needs primary-source support for the core thesis, explicit source dates,
-valuation and balance-sheet checks, `eq_thesis_depth_reviewer` thesis-depth
-review, `eq_riskskeptic` risk review, and unresolved evidence gaps stated in
-the memo. SEC filing facts and primary filing documents are primary anchors. A
-filing ref alone is not support. Finviz is discovery only. Alpha Vantage and
-Polymarket are context only.
+valuation and balance-sheet checks, `newswire` news review,
+`eq_thesis_depth_reviewer` thesis-depth review, `eq_riskskeptic` risk review,
+and unresolved evidence gaps stated in the memo. SEC filing facts and primary
+filing documents are primary anchors. A filing ref alone is not support. Finviz
+is discovery only. News, Alpha Vantage, and Polymarket are context only.
 
 The deterministic `earnings_yield_scorecard`, `balance_sheet_safety`, `owner_earnings_quality`, `opportunity_scorecard`, and
 `value_composite` scorecards are required audit context, not optional color.

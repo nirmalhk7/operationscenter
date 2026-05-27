@@ -8,27 +8,49 @@ This inventory reflects the deployed OpenClaw runtime configuration in
 
 ### Configured agents
 
-These profiles are active in `agents.list`.
-
-| Agent ID | Runtime workspace | External access | What it does |
-| --- | --- | --- | --- |
-| `main` | `/root/.openclaw/workspace` | Discord `main`, Telegram `main` | Default Operations Center coordinator. Its workspace docs identify it as Nestor, the chief-of-staff profile for high-level coordination across the OpenClaw instance. |
-| `rahul` | `/root/.openclaw/workspace-rahul` | Discord `rahul` | Cluster and infrastructure operator for Proxmox, Kubernetes monitoring, Flux repo troubleshooting, YAML fixes, and PR-oriented ops work. |
-| `victor` | `/root/.openclaw/workspace-victor` | Discord `victor` | MountainValue final value analyst and publisher. Owns the Lobster equity research run, coordinates the configured `eq_*` review profiles, enforces the evidence bar, and posts the final Discord forum artifact when the report clears the gates. |
+- `main`: default Operations Center coordinator. Runtime workspace:
+  `/root/.openclaw/workspace`. External access: Discord `main`, Telegram
+  `main`.
+- `rahul`: Proxmox, Kubernetes monitoring, Flux repo troubleshooting, YAML
+  fixes, and PR-oriented ops work. Runtime workspace:
+  `/root/.openclaw/workspace-rahul`. External access: Discord `rahul`.
+- `victor`: MountainValue final value analyst and publisher. Owns Lobster
+  equity research runs, coordinates the configured review profiles,
+  enforces the evidence bar, and posts the final Discord forum artifact.
+  Runtime workspace: `/root/.openclaw/workspace-victor`. External access:
+  Discord `victor`.
 
 ### Configured subagents
 
-These profiles are also active in `agents.list`, but they are MountainValue
-worker profiles with no Discord or Telegram bindings. Victor may spawn only
-these profiles through OpenClaw subagents, and the Lobster CLI may call them
-directly for synchronous JSON review stages.
+These profiles are also active in `agents.list`, but they have no Discord or
+Telegram bindings. The `eq_*` profiles are MountainValue equity workers.
+`newswire` is a reusable news-context worker currently allowlisted only for
+Victor. The Lobster CLI may call these profiles directly for synchronous JSON
+review stages.
 
-| Subagent ID | Runtime workspace | What it does |
-| --- | --- | --- |
-| `eq_quantsieve` | `/root/.openclaw/subAgents/eq_quantsieve` | First-pass value and quality reviewer. Audits cheapness, business quality, leverage, liquidity, balance-sheet sanity, margin-of-safety potential, and value-trap risk from the supplied candidate payload. |
-| `eq_eventhound` | `/root/.openclaw/subAgents/eq_eventhound` | Catalyst and special-situation reviewer. Looks for spin-offs, restructurings, tender offers, mergers, asset sales, recapitalizations, insider activity, material filings, and news events that could create forced selling or catalyst-driven repricing. |
-| `eq_thesis_depth_reviewer` | `/root/.openclaw/subAgents/eq_thesis_depth_reviewer` | Thesis-depth US equity reviewer. Checks owner earnings or normalized free cash flow, intrinsic value support, margin of safety, capital allocation, dilution or buybacks, governance, moat durability, reinvestment runway, and dated filing events. |
-| `eq_riskskeptic` | `/root/.openclaw/subAgents/eq_riskskeptic` | Bear-case and evidence-quality reviewer. Challenges accounting, dilution, governance, litigation, refinancing, regulatory exposure, management churn, catalyst resolution, moat durability, valuation support, and unsupported claims. |
+- `eq_quantsieve`: first-pass value and quality reviewer. Audits cheapness,
+  business quality, leverage, liquidity, balance-sheet sanity,
+  margin-of-safety potential, and value-trap risk. Workspace:
+  `/root/.openclaw/subAgents/eq_quantsieve`.
+- `newswire`: reusable news-context reviewer. Uses NewsMCP for dated,
+  source-attributed entity or topic news. For MountainValue it looks for
+  company-specific news that could explain forced selling, repricing,
+  regulatory pressure, litigation, management change, capital-market stress, or
+  catalyst timing. Workspace: `/root/.openclaw/subAgents/newswire`.
+- `eq_eventhound`: corporate catalyst and special-situation reviewer. Looks
+  for spin-offs, restructurings, tender offers, mergers, asset sales,
+  recapitalizations, insider activity, and material SEC filing events.
+  Workspace: `/root/.openclaw/subAgents/eq_eventhound`.
+- `eq_thesis_depth_reviewer`: thesis-depth US equity reviewer. Checks owner
+  earnings or normalized free cash flow, intrinsic value support, margin of
+  safety, capital allocation, dilution or buybacks, governance, moat durability,
+  reinvestment runway, and dated filing events. Workspace:
+  `/root/.openclaw/subAgents/eq_thesis_depth_reviewer`.
+- `eq_riskskeptic`: bear-case and evidence-quality reviewer. Challenges
+  accounting, dilution, governance, litigation, refinancing, regulatory
+  exposure, management churn, catalyst resolution, moat durability, valuation
+  support, and unsupported claims. Workspace:
+  `/root/.openclaw/subAgents/eq_riskskeptic`.
 
 ### Workspace docs present but not configured
 
@@ -75,15 +97,16 @@ points to the real forum channel. The deployed default target is
 
 MountainValue worker roles are configured OpenClaw profiles with no Discord
 bindings. Their workspaces and role docs deploy to `/root/.openclaw/subAgents/`.
-OpenClaw 2026.4.23 subagent context injects `AGENTS.md` and `TOOLS.md`, so those
+OpenClaw v2024.4.23 subagent context injects `AGENTS.md` and `TOOLS.md`, so those
 two files are the runtime contract:
 
 - `eq_quantsieve`: first-pass value and quality review.
-- `eq_eventhound`: catalyst and special-situation scan.
+- `newswire`: reusable NewsMCP-backed news scan.
+- `eq_eventhound`: corporate catalyst and special-situation scan.
 - `eq_thesis_depth_reviewer`: thesis-depth US equity review.
 - `eq_riskskeptic`: bear-case and evidence-quality review.
 
-Victor is allowed to spawn only these MountainValue profiles as subagents.
+Victor is allowed to spawn only these configured profiles as subagents.
 The Lobster CLI also calls these profiles directly for synchronous JSON review
 steps, which keeps the pipeline deterministic instead of waiting on background
 subagent announce messages.

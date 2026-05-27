@@ -46,9 +46,14 @@
       "stdin": "$score_owner_earnings_quality.stdout"
     },
     {
+      "id": "scan_news",
+      "command": "equity-research scan-news",
+      "stdin": "$first_pass_review.stdout"
+    },
+    {
       "id": "scan_catalysts",
       "command": "equity-research scan-catalysts",
-      "stdin": "$first_pass_review.stdout"
+      "stdin": "$scan_news.stdout"
     },
     {
       "id": "rank_opportunities",

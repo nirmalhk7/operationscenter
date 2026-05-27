@@ -12,6 +12,7 @@ import {
   ReviewedPayload,
   reviewThesisDepth,
   scanCatalysts,
+  scanNews,
   narrowReviewPool,
   firstPassReview,
   reviewRisks,
@@ -95,6 +96,8 @@ async function commandOutput(args: ParsedArgs): Promise<unknown> {
       return scoreOwnerEarningsQuality(await reviewedPayload());
     case "first-pass-review":
       return firstPassReview(await reviewedPayload());
+    case "scan-news":
+      return scanNews(await reviewedPayload());
     case "scan-catalysts":
       return scanCatalysts(await reviewedPayload());
     case "rank-opportunities":
@@ -206,7 +209,7 @@ function validateContract(contract: string | undefined, document: Record<string,
 
 function usage(command: string): string {
   const suffix = command ? `unknown command ${command}` : "command required";
-  return `${suffix}; use seed-configured-universe, discover-value-candidates, discover-technical-candidates, merge-candidates, enrich-primary-filings, score-earnings-yield, score-balance-sheet-safety, score-owner-earnings-quality, first-pass-review, scan-catalysts, rank-opportunities, narrow-review-pool, review-thesis-depth, review-risks, publish-final-report, or validate-contract`;
+  return `${suffix}; use seed-configured-universe, discover-value-candidates, discover-technical-candidates, merge-candidates, enrich-primary-filings, score-earnings-yield, score-balance-sheet-safety, score-owner-earnings-quality, first-pass-review, scan-news, scan-catalysts, rank-opportunities, narrow-review-pool, review-thesis-depth, review-risks, publish-final-report, or validate-contract`;
 }
 
 main().then((code) => {

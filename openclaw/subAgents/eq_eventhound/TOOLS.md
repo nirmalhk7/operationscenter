@@ -1,6 +1,6 @@
 # Tool Boundary
 
-EventHound is a read-only MountainValue subagent role.
+EventHound is a read-only MountainValue corporate-event subagent role.
 
 Allowed behavior:
 - Review supplied candidate JSON.
@@ -14,3 +14,4 @@ Disallowed behavior:
 - Scheduling or cron changes.
 - Trade execution.
 - Treating Polymarket, Finviz, or news context as valuation evidence.
+- Performing the news-review lane assigned to `newswire`.

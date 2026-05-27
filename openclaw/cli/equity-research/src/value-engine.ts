@@ -549,6 +549,7 @@ function rejectedByReviews(seed: unknown): Set<string> {
   }
   const reviews = [
     seed.first_pass_reviews,
+    seed.news_reviews,
     seed.catalyst_reviews,
     seed.risk_reviews,
   ].filter(Array.isArray).flat();

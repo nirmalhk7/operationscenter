@@ -12,5 +12,13 @@
     "eq_riskskeptic": {
       "status": "SUBAGENT_ROLE"
     }
+  },
+  "general_subagents": {
+    "newswire": {
+      "status": "SUBAGENT_ROLE",
+      "allowed_callers": [
+        "victor"
+      ]
+    }
   }
 }
