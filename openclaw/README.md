@@ -58,11 +58,12 @@ The LXC playbook copies every directory under `openclaw/customAgents/` to
 `/root/.openclaw/`, but a copied workspace is not an active OpenClaw agent unless
 it is also listed in `openclaw/openclaw.json`.
 
-| Workspace | Configured now? | What the docs describe |
-| --- | --- | --- |
-| `workspace-max` | No | Startup opportunity advocate. Generates high-asymmetry tech startup ideas, designs defensible business models, evaluates distribution economics, and synthesizes execution plans. |
-| `workspace-marie` | No | Startup flaw finder. Challenges Max-style startup ideas through market realism, competition analysis, economics audits, and failure-mode reviews. |
-| `workspace-motabhai` | No | Senior Indian equity analyst. Produces Dhandho-style NSE/BSE research focused on filings, promoter governance, industrial cycles, intrinsic value, and Greenblatt/Graham-inspired checks. |
+- `workspace-max`: not configured as an active agent. Docs describe a startup
+  opportunity advocate.
+- `workspace-marie`: not configured as an active agent. Docs describe a startup
+  flaw finder.
+- `workspace-motabhai`: not configured as an active agent. Docs describe a
+  senior Indian equity analyst for Dhandho-style NSE/BSE research.
 
 ## MountainValue Manual Run
 
@@ -154,3 +155,6 @@ openclaw cron remove <job-id>
 ```
 
 After the stale job is gone, add only the Victor-owned cron shown above.
+
+
+# codex resume 019e537a-5065-7fd1-b08c-99e1667ba4d7

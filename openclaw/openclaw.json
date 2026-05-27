@@ -50,29 +50,6 @@
             "api": "anthropic-messages"
           }
         ]
-      },
-      "groq": {
-        "baseUrl": "https://api.groq.com/openai/v1",
-        "api": "openai-responses",
-        "models": [
-          {
-            "id": "qwen/qwen3-32b",
-            "name": "Qwen 3 32B (Groq)",
-            "reasoning": false,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 8192,
-            "api": "openai-responses"
-          }
-        ]
       }
     }
   },
@@ -135,8 +112,6 @@
           "eq_thesis_depth_reviewer"
         ],
         "requireAgentId": true,
-        "runTimeoutSeconds": 900,
-        "archiveAfterMinutes": 60,
         "model": {
           "primary": "openrouter/qwen/qwen3.5-flash-02-23",
           "fallbacks": [
@@ -438,6 +413,12 @@
       "dm": {
         "enabled": true
       },
+      "streaming": {
+        "mode": "progress",
+        "preview": {
+          "toolProgress": true
+        }
+      },
       "accounts": {
         "main": {
           "token": {
@@ -475,15 +456,6 @@
               }
             }
           },
-          "streaming": {
-            "mode": "progress",
-            "progress": {
-              "label": "auto",
-              "maxLines": 8,
-              "toolProgress": true,
-              "commandText": "status"
-            }
-          },
           "activity": "At your service",
           "autoPresence": {
             "enabled": true
@@ -510,9 +482,6 @@
               ]
             }
           },
-          "streaming": {
-            "mode": "off"
-          },
           "activity": "Fullstack Dev in Koramangala",
           "activityType": 3,
           "status": "online",
@@ -537,15 +506,6 @@
               ]
             }
           },
-          "streaming": {
-            "mode": "progress",
-            "progress": {
-              "label": "auto",
-              "maxLines": 8,
-              "toolProgress": true,
-              "commandText": "status"
-            }
-          },
           "activity": "Final value analyst",
           "activityType": 3,
           "status": "online",
@@ -557,8 +517,7 @@
         }
       },
       "agentComponents": {
-        "enabled": true,
-        "ttlMs": 3600000
+        "enabled": true
       },
       "ackReaction": "👀",
       "threadBindings": {
