@@ -178,7 +178,7 @@
           "requireAgentId": true
         },
         "tools": {
-          "profile": "coding",
+          "profile": "minimal",
           "allow": [
             "message",
             "lobster",

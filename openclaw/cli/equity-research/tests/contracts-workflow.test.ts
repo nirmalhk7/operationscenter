@@ -128,6 +128,22 @@ test("workflow stays JSON command steps", () => {
     assert.equal(existsSync(resolve(process.cwd(), "../../..", "openclaw", "subAgents", worker, "SOUL.md")), false);
   }
   const victor = agents.find((agent) => agent.id === "victor") as Record<string, unknown>;
+  const victorTools = victor.tools as Record<string, unknown>;
+  assert.equal(victorTools.profile, "minimal");
+  assert.deepEqual(victorTools.allow, [
+    "message",
+    "lobster",
+    "subagents",
+    "sessions_spawn",
+    "sessions_list",
+    "sessions_history",
+    "agents_list",
+    "polymarket__getAllMarkets",
+    "polymarket__getMarketDetails",
+  ]);
+  assert.equal((victorTools.allow as string[]).includes("exec"), false);
+  assert.ok((victorTools.deny as string[]).includes("group:runtime"));
+  assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "TOOLS.md")), /Lobster tool unavailable/u);
   const victorSubagents = (victor.subagents as Record<string, unknown> | undefined)
     ?? (((config.agents as Record<string, unknown>).defaults as Record<string, unknown>).subagents as Record<string, unknown>);
   const defaultSubagents = (((config.agents as Record<string, unknown>).defaults as Record<string, unknown>)
