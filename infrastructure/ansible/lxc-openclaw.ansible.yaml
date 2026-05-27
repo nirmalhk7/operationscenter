@@ -234,61 +234,106 @@
             content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubectl_version.split('.')[0] }}.{{ kubectl_version.split('.')[1] }}/deb/ /\n"
             mode: '0644'
 
-    - name: Install main software packages
-      ansible.builtin.apt:
-        name:
-          - "nodejs={{ nodejs_package_version }}"
-          - gh
-          - kubectl
-          - python3-venv
-          - python3-pip
-        state: present
-        update_cache: true
-
-    - name: Check if pnpm is already installed
-      ansible.builtin.command: pnpm --version
-      register: pnpm_check
-      failed_when: false
-      changed_when: false
-
-    - name: Install pnpm globally
-      ansible.builtin.command: npm install -g pnpm@{{ pnpm_version }}
-      when: pnpm_check.rc != 0 or (pnpm_check.stdout is defined and pnpm_check.stdout != pnpm_version)
-
-    - name: Remove conflicting global OpenClaw if exists
-      ansible.builtin.file:
-        path: /usr/bin/openclaw
-        state: absent
-
-    - name: Remove legacy uv-installed Polymarket MCP shim if present
-      ansible.builtin.file:
-        path: "{{ openclaw_home }}/.local/bin/polymarket-mcp"
-        state: absent
-
-    - name: Install OpenClaw globally (using pnpm)
-      ansible.builtin.shell:
-        cmd: |
-          pnpm setup
-          pnpm install -g openclaw@{{ openclaw_version }} polymarket-mcp@{{ polymarket_mcp_version }} stock-nse-india@{{ stock_nse_india_version }} @newsmcp/server@{{ newsmcp_server_version }} @cyanheads/secedgar-mcp-server@{{ secedgar_mcp_server_version }} kubectl-mcp-server@{{ kubectl_mcp_server_version }} promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
-        executable: /bin/bash
-      environment:
-        PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
-        PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
-        HOME: "{{ openclaw_home }}"
-      register: openclaw_install
-      changed_when: "'Already up to date' not in openclaw_install.stdout"
-
-    - name: Set permanent env vars
-      lineinfile:
-        path: /etc/environment
-        regexp: "^KUBECONFIG="
-        line: "KUBECONFIG={{ openclaw_support_home }}/.kube/config"
-        create: yes
-        state: present
-
-    - name: Configure Kubernetes credentials
+    - name: Install OpenClaw runtime packages
+      tags:
+        - openclaw-runtime
       block:
-        - name: Ensure .kube directory exists
+        - name: Install main software packages
+          ansible.builtin.apt:
+            name:
+              - "nodejs={{ nodejs_package_version }}"
+              - gh
+              - kubectl
+              - python3-venv
+              - python3-pip
+            state: present
+            update_cache: true
+
+        - name: Check if pnpm is already installed
+          ansible.builtin.command: pnpm --version
+          register: pnpm_check
+          failed_when: false
+          changed_when: false
+
+        - name: Install pnpm globally
+          ansible.builtin.command: npm install -g pnpm@{{ pnpm_version }}
+          when: pnpm_check.rc != 0 or (pnpm_check.stdout is defined and pnpm_check.stdout != pnpm_version)
+
+        - name: Remove conflicting global OpenClaw if exists
+          ansible.builtin.file:
+            path: /usr/bin/openclaw
+            state: absent
+
+        - name: Remove legacy uv-installed Polymarket MCP shim if present
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.local/bin/polymarket-mcp"
+            state: absent
+
+        - name: Install OpenClaw globally using pnpm
+          ansible.builtin.shell:
+            cmd: |
+              pnpm setup
+              pnpm install -g openclaw@{{ openclaw_version }} polymarket-mcp@{{ polymarket_mcp_version }} stock-nse-india@{{ stock_nse_india_version }} @newsmcp/server@{{ newsmcp_server_version }} @cyanheads/secedgar-mcp-server@{{ secedgar_mcp_server_version }} kubectl-mcp-server@{{ kubectl_mcp_server_version }} promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
+            executable: /bin/bash
+          environment:
+            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+            HOME: "{{ openclaw_home }}"
+          register: openclaw_install
+          changed_when: "'Already up to date' not in openclaw_install.stdout"
+
+    - name: Install MountainValue equity research CLI
+      tags:
+        - openclaw-equity-cli
+      block:
+        - name: Require GitHub Packages token for equity research install
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_GITHUB_TOKEN') | length > 0
+            fail_msg: "Set OPENCLAW_GITHUB_TOKEN with GitHub Packages read access before deploying OpenClaw."
+
+        - name: Configure GitHub Packages npm scope for OpenClaw
+          ansible.builtin.copy:
+            dest: "{{ openclaw_home }}/.npmrc"
+            content: |
+              @nirmalhk7:registry=https://npm.pkg.github.com
+              //npm.pkg.github.com/:_authToken={{ lookup('env', 'OPENCLAW_GITHUB_TOKEN') }}
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0600'
+
+        - name: Install equity research CLI from GitHub Packages
+          ansible.builtin.command: pnpm install -g @nirmalhk7/equity-research@{{ equity_research_version }}
+          environment:
+            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+            HOME: "{{ openclaw_home }}"
+
+    # - name: Run OpenClaw doctor check
+    #   ansible.builtin.shell:
+    #     cmd: |
+    #       export PNPM_HOME="{{ openclaw_home }}/.local/share/pnpm"
+    #       export PATH="{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:$PATH"
+    #       openclaw doctor
+    #     executable: /bin/bash
+    #   environment:
+    #     HOME: "{{ openclaw_home }}"
+    #     KUBECONFIG: "{{ openclaw_support_home }}/.kube/config"
+    #   changed_when: false
+
+    - name: Configure OpenClaw Kubernetes access
+      tags:
+        - openclaw-kube
+      block:
+        - name: Set permanent kubeconfig env var
+          lineinfile:
+            path: /etc/environment
+            regexp: "^KUBECONFIG="
+            line: "KUBECONFIG={{ openclaw_support_home }}/.kube/config"
+            create: yes
+            state: present
+
+        - name: Ensure OpenClaw support kube directory exists
           ansible.builtin.file:
             path: "{{ openclaw_support_home }}/.kube"
             state: directory
