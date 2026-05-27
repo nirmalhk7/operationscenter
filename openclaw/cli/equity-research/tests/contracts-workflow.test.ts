@@ -79,7 +79,7 @@ test("workflow stays JSON command steps", () => {
   const workflow = repoJson(join("openclaw", "mountainvalue.lobster"));
   const steps = workflow.steps as Array<Record<string, unknown>>;
 
-  assert.equal((config.meta as Record<string, unknown>).lastTouchedVersion, "2024.4.23");
+  assert.equal((config.meta as Record<string, unknown>).lastTouchedVersion, "2026.4.23");
   assert.equal(workflow.name, "mountainvalue-daily-equity-research");
   assert.deepEqual(
     steps.map((step) => step.id),
