@@ -156,5 +156,16 @@ openclaw cron remove <job-id>
 
 After the stale job is gone, add only the Victor-owned cron shown above.
 
+## Deployment Validation
+
+The LXC Ansible playbook validates the candidate `openclaw/openclaw.json`
+before promoting it into `/root/.openclaw/openclaw.json`. Validation runs with
+the pinned OpenClaw CLI version from `infrastructure/ansible/vars/versions.yaml`
+and a temporary staged HOME on the OpenClaw host.
+
+If the config is invalid, the notebook fails during validation and leaves the
+live OpenClaw config untouched. The currently running service continues to use
+the previous deployed config until a valid candidate passes validation.
+
 
 # codex resume 019e537a-5065-7fd1-b08c-99e1667ba4d7
