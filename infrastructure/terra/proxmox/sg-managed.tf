@@ -21,7 +21,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     dest    = local.proxmoxMachines.k8mgd.ip
     proto   = "tcp"
     dport   = "443"
-    log     = "info"
   }
 
   rule {
@@ -33,7 +32,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     dest    = local.proxmoxBridgeIp
     proto   = "tcp"
     dport   = "8006"
-    log     = "info"
   }
 
   rule {
@@ -45,7 +43,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     dest    = local.proxmoxMachines.k8mgd.ip
     proto   = "tcp"
     dport   = "31216"
-    log     = "info"
   }
 
   rule {
@@ -57,7 +54,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     dest    = local.proxmoxMachines.openclaw.ip
     proto   = "tcp"
     dport   = "18789"
-    log     = "info"
   }
 
   rule {
@@ -86,7 +82,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     comment = "Allow outbound DNS over UDP"
     proto   = "udp"
     dport   = "53"
-    log     = "info"
   }
 
   rule {
@@ -96,7 +91,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     comment = "Allow outbound DNS over TCP"
     proto   = "tcp"
     dport   = "53"
-    log     = "info"
   }
 
   rule {
@@ -106,7 +100,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     comment = "Allow outbound HTTP"
     proto   = "tcp"
     dport   = "80"
-    log     = "info"
   }
 
   rule {
@@ -116,7 +109,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     comment = "Allow outbound HTTPS"
     proto   = "tcp"
     dport   = "443"
-    log     = "info"
   }
 
   rule {

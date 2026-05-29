@@ -8,7 +8,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     proto   = "tcp"
     dport   = "22"
     comment = "Allow inbound SSH"
-    log     = "nolog"
     enabled = true
   }
 
@@ -17,7 +16,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     type    = "in"
     dest    = "+dc/ipset-dev"
     comment = "Allow traffic from anywhere"
-    log     = "nolog"
     enabled = true
   }
 
@@ -37,7 +35,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     comment = "Allow outbound DNS over UDP"
     proto   = "udp"
     dport   = "53"
-    log     = "info"
     enabled = true
   }
 
@@ -47,7 +44,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     comment = "Allow outbound DNS over TCP"
     proto   = "tcp"
     dport   = "53"
-    log     = "info"
     enabled = true
   }
 
@@ -57,7 +53,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     comment = "Allow outbound HTTP"
     proto   = "tcp"
     dport   = "80"
-    log     = "info"
     enabled = true
   }
 
@@ -67,7 +62,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     comment = "Allow outbound HTTPS"
     proto   = "tcp"
     dport   = "443"
-    log     = "info"
     enabled = true
   }
 }
