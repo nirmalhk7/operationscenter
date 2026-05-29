@@ -16,6 +16,10 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
       }
     }
 
+    dns {
+      servers = ["1.1.1.1", "1.0.0.1"]
+    }
+
     user_account {
       keys     = [local.sshKeys.mgd]
       password = "${var.vm_password}${local.proxmoxMachines.openclaw.vm_id}"
