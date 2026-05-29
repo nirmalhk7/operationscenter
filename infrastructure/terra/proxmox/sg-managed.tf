@@ -35,6 +35,26 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     enabled = true
     action  = "ACCEPT"
     type    = "out"
+    comment = "Allow outbound DNS over UDP"
+    proto   = "udp"
+    dport   = "53"
+    log     = "info"
+  }
+
+  rule {
+    enabled = true
+    action  = "ACCEPT"
+    type    = "out"
+    comment = "Allow outbound DNS over TCP"
+    proto   = "tcp"
+    dport   = "53"
+    log     = "info"
+  }
+
+  rule {
+    enabled = true
+    action  = "ACCEPT"
+    type    = "out"
     comment = "Allow outbound HTTP"
     proto   = "tcp"
     dport   = "80"
