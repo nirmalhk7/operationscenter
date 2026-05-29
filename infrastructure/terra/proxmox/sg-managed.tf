@@ -49,6 +49,18 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     enabled = true
     action  = "ACCEPT"
     type    = "out"
+    comment = "Allow Nginx to reach home frontend"
+    source  = "172.16.0.101"
+    dest    = "172.16.0.105"
+    proto   = "tcp"
+    dport   = "31216"
+    log     = "info"
+  }
+
+  rule {
+    enabled = true
+    action  = "ACCEPT"
+    type    = "out"
     comment = "Allow Nginx to reach OpenClaw robot service"
     source  = "172.16.0.101"
     dest    = "172.16.0.104"
