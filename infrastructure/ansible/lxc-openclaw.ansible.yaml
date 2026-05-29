@@ -1,51 +1,101 @@
 ---
+- name: Fetch OpenClaw Token from K8s
+  hosts: vm_k8mgd
+  become: yes
+  any_errors_fatal: true
+  tags:
+    - openclaw-kube
+    - openclaw-env
+  tasks:
+    - name: Get openclaw-bot token
+      ansible.builtin.shell:
+        cmd: "kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get secret openclaw-bot-token -n kube-system -o jsonpath='{.data.token}' | base64 --decode"
+      register: openclaw_k8s_token_result
+      changed_when: false
+      failed_when: openclaw_k8s_token_result.rc != 0 or openclaw_k8s_token_result.stdout == ''
+
+    - name: Set dynamic token fact
+      ansible.builtin.set_fact:
+        openclaw_dynamic_token: "{{ openclaw_k8s_token_result.stdout }}"
+
 - name: Deploy OpenClaw
   hosts: vm_openclaw
   become: yes
   vars_files:
     - vars/versions.yaml
+    - vars/network.yaml
 
   vars:
     openclaw_user: root
     openclaw_home: /root
     openclaw_support_home: /root/openclaw_support
-    nodejs_version: "22.x"
-
+    openclaw_validate_home: /root/openclaw_validate_home
+  handlers:
+    - name: Restart OpenClaw service
+      tags:
+        - always
+      ansible.builtin.systemd:
+        name: openclaw
+        enabled: true
+        state: restarted
+        daemon_reload: yes
   tasks:
-    - name: Clean up old NodeSource list files to prevent conflicts
-      ansible.builtin.shell: rm -f /etc/apt/sources.list.d/nodesource*
-      changed_when: false
+    - name: Bootstrap OpenClaw filesystem
+      tags:
+        - openclaw-bootstrap
+        - openclaw-assets
+        - openclaw-config
+        - openclaw-agent-workspaces
+        - openclaw-pipelines
+        - openclaw-env
+      block:
+        - name: Ensure OpenClaw configuration directory exists
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.openclaw"
+            state: directory
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0755'
 
-    - name: Ensure base packages are installed
-      ansible.builtin.apt:
-        name:
-          - ca-certificates
-          - curl
-          - gnupg
-          - python3-pip
-          - git
-        state: present
-        update_cache: true
+        - name: Ensure OpenClaw compile cache directory exists
+          ansible.builtin.file:
+            path: /var/tmp/openclaw-compile-cache
+            state: directory
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0755'
 
-    # - name: Install Todoist CLI
-    #   ansible.builtin.pip:
-    #     name: todoist-cli
-    #     state: present
-    #     executable: pip3
-    #     extra_args: --break-system-packages
+    - name: Install OpenClaw OS prerequisites
+      tags:
+        - openclaw-bootstrap
+      block:
+        - name: Clean up old NodeSource list files to prevent conflicts
+          ansible.builtin.shell: rm -f /etc/apt/sources.list.d/nodesource*
+          changed_when: false
 
-    - name: Create support directories
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0755'
-      loop:
-        - "{{ openclaw_support_home }}"
-        - "{{ openclaw_support_home }}/obsidian"
+        - name: Ensure base packages are installed
+          ansible.builtin.apt:
+            name:
+              - ca-certificates
+              - curl
+              - gnupg
+              - python3-pip
+              - git
+            state: present
+            update_cache: true
 
-    - name: Setup NodeSource repository
+        - name: Remove conflicting Node.js packages if present
+          ansible.builtin.apt:
+            name:
+              - nodejs
+              - libnode72
+              - libnode-dev
+            state: absent
+            purge: yes
+
+    - name: Configure package repositories
+      tags:
+        - openclaw-bootstrap
       block:
         - name: Add NodeSource GPG key
           ansible.builtin.shell:
@@ -63,8 +113,6 @@
             content: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_version }} nodistro main\n"
             mode: '0644'
 
-    - name: Setup GitHub CLI repository
-      block:
         - name: Add GitHub CLI GPG key
           ansible.builtin.shell:
             cmd: |
@@ -80,13 +128,11 @@
             content: "deb [arch=amd64 signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n"
             mode: '0644'
 
-    - name: Setup Kubernetes repository
-      block:
         - name: Add Kubernetes GPG key
           ansible.builtin.shell:
             cmd: |
               set -o pipefail
-              curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | \
+              curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ kubectl_version.split('.')[0] }}.{{ kubectl_version.split('.')[1] }}/deb/Release.key | \
                 gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
               chmod a+r /etc/apt/keyrings/kubernetes-apt-keyring.gpg
             creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
@@ -95,50 +141,109 @@
         - name: Add Kubernetes repository file
           ansible.builtin.copy:
             dest: /etc/apt/sources.list.d/kubernetes.list
-            content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /\n"
+            content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubectl_version.split('.')[0] }}.{{ kubectl_version.split('.')[1] }}/deb/ /\n"
             mode: '0644'
 
-    - name: Install main software packages
-      ansible.builtin.apt:
-        name:
-          - nodejs
-          - gh
-          - kubectl
-        state: present
-        update_cache: true
-
-    - name: Check if pnpm is already installed
-      ansible.builtin.command: pnpm --version
-      register: pnpm_check
-      failed_when: false
-      changed_when: false
-
-    - name: Install pnpm globally
-      ansible.builtin.command: npm install -g pnpm
-      when: pnpm_check.rc != 0
-
-    - name: Install OpenClaw globally (using pnpm)
-      ansible.builtin.shell:
-        cmd: pnpm install -g openclaw@{{ openclaw_version | default('latest') }}
-        executable: /bin/bash
-      environment:
-        PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
-        PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
-        HOME: "{{ openclaw_home }}"
-      register: openclaw_install
-      changed_when: "'Already up to date' not in openclaw_install.stdout"
-
-    - name: Set permanent env vars
-      lineinfile:
-        path: /etc/environment
-        regexp: "^KUBECONFIG="
-        line: "KUBECONFIG={{ openclaw_support_home }}/.kube/config"
-        create: yes
-        state: present
-
-    - name: Configure Kubernetes credentials
+    - name: Install OpenClaw runtime packages
+      tags:
+        - openclaw-runtime
       block:
-        - name: Ensure .kube directory exists
+        - name: Install main software packages
+          ansible.builtin.apt:
+            name:
+              - "nodejs={{ nodejs_package_version }}"
+              - gh
+              - kubectl
+              - python3-venv
+              - python3-pip
+            state: present
+            update_cache: true
+
+        - name: Check if pnpm is already installed
+          ansible.builtin.command: pnpm --version
+          register: pnpm_check
+          failed_when: false
+          changed_when: false
+
+        - name: Install pnpm globally
+          ansible.builtin.command: npm install -g pnpm@{{ pnpm_version }}
+          when: pnpm_check.rc != 0 or (pnpm_check.stdout is defined and pnpm_check.stdout != pnpm_version)
+
+        - name: Remove conflicting global OpenClaw if exists
+          ansible.builtin.file:
+            path: /usr/bin/openclaw
+            state: absent
+
+        - name: Remove legacy uv-installed Polymarket MCP shim if present
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.local/bin/polymarket-mcp"
+            state: absent
+
+        - name: Install OpenClaw globally using pnpm
+          ansible.builtin.shell:
+            cmd: |
+              pnpm setup
+              pnpm install -g openclaw@{{ openclaw_version }} polymarket-mcp@{{ polymarket_mcp_version }} stock-nse-india@{{ stock_nse_india_version }} @newsmcp/server@{{ newsmcp_server_version }} @cyanheads/secedgar-mcp-server@{{ secedgar_mcp_server_version }} kubectl-mcp-server@{{ kubectl_mcp_server_version }} promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
+            executable: /bin/bash
+          environment:
+            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+            HOME: "{{ openclaw_home }}"
+          register: openclaw_install
+          changed_when: "'Already up to date' not in openclaw_install.stdout"
+
+    - name: Install MountainValue equity research CLI
+      tags:
+        - openclaw-equity-cli
+      block:
+        - name: Require GitHub Packages token for equity research install
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_GITHUB_TOKEN') | length > 0
+            fail_msg: "Set OPENCLAW_GITHUB_TOKEN with GitHub Packages read access before deploying OpenClaw."
+
+        - name: Configure GitHub Packages npm scope for OpenClaw
+          ansible.builtin.copy:
+            dest: "{{ openclaw_home }}/.npmrc"
+            content: |
+              @nirmalhk7:registry=https://npm.pkg.github.com
+              //npm.pkg.github.com/:_authToken={{ lookup('env', 'OPENCLAW_GITHUB_TOKEN') }}
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0600'
+
+        - name: Install equity research CLI from GitHub Packages
+          ansible.builtin.command: pnpm install -g @nirmalhk7/equity-research@{{ equity_research_version }}
+          environment:
+            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+            HOME: "{{ openclaw_home }}"
+
+    # - name: Run OpenClaw doctor check
+    #   ansible.builtin.shell:
+    #     cmd: |
+    #       export PNPM_HOME="{{ openclaw_home }}/.local/share/pnpm"
+    #       export PATH="{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:$PATH"
+    #       openclaw doctor
+    #     executable: /bin/bash
+    #   environment:
+    #     HOME: "{{ openclaw_home }}"
+    #     KUBECONFIG: "{{ openclaw_support_home }}/.kube/config"
+    #   changed_when: false
+
+    - name: Configure OpenClaw Kubernetes access
+      tags:
+        - openclaw-kube
+      block:
+        - name: Set permanent kubeconfig env var
+          lineinfile:
+            path: /etc/environment
+            regexp: "^KUBECONFIG="
+            line: "KUBECONFIG={{ openclaw_support_home }}/.kube/config"
+            create: yes
+            state: present
+
+        - name: Ensure OpenClaw support kube directory exists
           ansible.builtin.file:
             path: "{{ openclaw_support_home }}/.kube"
             state: directory
@@ -155,7 +260,7 @@
               clusters:
               - cluster:
                   certificate-authority-data: {{ openclaw_k8s_ca }}
-                  server: https://172.16.0.105:6443
+                  server: "{{ k8s_api_endpoint }}"
                 name: homelab
               contexts:
               - context:
@@ -171,87 +276,206 @@
             group: "{{ openclaw_user }}"
             mode: '0600'
           vars:
-            openclaw_k8s_ca: "{{ lookup('env', 'CLUSTER_CA') }}"
-            openclaw_k8s_token: "{{ lookup('env', 'CLUSTER_TOKEN') }}"
-            openclaw_client_cert: "{{ lookup('env', 'CLIENT_CERT') }}"
-            openclaw_client_key: "{{ lookup('env', 'CLIENT_KEY') }}"
+            openclaw_k8s_ca: "{{ lookup('env', 'OPENCLAW_CLUSTER_CA') }}"
+            openclaw_k8s_token: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_token'] }}"
+            openclaw_client_cert: "{{ lookup('env', 'OPENCLAW_CLIENT_CERT') }}"
+            openclaw_client_key: "{{ lookup('env', 'OPENCLAW_CLIENT_KEY') }}"
 
-    - name: Ensure OpenClaw configuration directory exists
-      ansible.builtin.file:
-        path: "{{ openclaw_home }}/.openclaw"
-        state: directory
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0755'
+    - name: Validate required OpenClaw integration secrets
+      tags:
+        - openclaw-env
+        - openclaw-validate
+      block:
+        - name: Require GitHub MCP PAT
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_GITHUB_TOKEN') | length > 0
+            fail_msg: "Set OPENCLAW_GITHUB_TOKEN before deploying OpenClaw with the GitHub MCP server enabled."
 
-    - name: Ensure OpenClaw compile cache directory exists
-      ansible.builtin.file:
-        path: /var/tmp/openclaw-compile-cache
-        state: directory
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0755'
+        - name: Require Todoist MCP API key
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_TODOIST_API_KEY') | length > 0
+            fail_msg: "Set OPENCLAW_TODOIST_API_KEY before deploying OpenClaw with the Todoist MCP server enabled."
 
-    - name: Deploy main OpenClaw configuration file
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/openclaw.json"
-        dest: /root/.openclaw/openclaw.json
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0600'
-        force: yes
+        - name: Require Alpha Vantage MCP API key
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_ALPHAVANTAGE_API_KEY') | length > 0
+            fail_msg: "Set OPENCLAW_ALPHAVANTAGE_API_KEY before deploying OpenClaw with the Alpha Vantage MCP server enabled."
 
-    - name: Ensure specific agent directories exist
-      ansible.builtin.file:
-        path: "/root/.openclaw/agents/{{ item.id }}/agent"
-        state: directory
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0755'
-      loop:
-        - { id: 'main', name: 'Nestor' }
-        - { id: 'rahul', name: 'Rahul' }
-        - { id: 'borat', name: 'Borat' }
-        - { id: 'sam', name: 'Sam' }
+        - name: Require Victor Discord bot token
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_VICTOR') | length > 0
+            fail_msg: "Set OPENCLAW_DISCORD_BOT_TOKEN_VICTOR before deploying OpenClaw with Victor's Discord account enabled."
 
-    - name: Deploy Agent Instruction markdown files
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../assets/agents/{{ item.name }}.md"
-        dest: "/root/.openclaw/agents/{{ item.id }}/agent/{{ item.name }}.md"
-        owner: "{{ openclaw_user }}"
-        group: "{{ openclaw_user }}"
-        mode: '0644'
-        force: no
-      loop:
-        - { id: 'main', name: 'Nestor' }
-        - { id: 'rahul', name: 'Rahul' }
-        - { id: 'borat', name: 'Borat' }
-        - { id: 'sam', name: 'Sam' }
+        - name: Require SEC EDGAR user agent
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_EDGAR_USER_AGENT') | length > 0
+            fail_msg: "Set OPENCLAW_EDGAR_USER_AGENT before deploying OpenClaw with the SEC EDGAR MCP server enabled."
+
+    - name: Validate candidate OpenClaw configuration before live deployment
+      tags:
+        - openclaw-assets
+        - openclaw-config
+        - openclaw-agent-workspaces
+        - openclaw-pipelines
+        - openclaw-env
+        - openclaw-validate
+      block:
+        - name: Reset staged OpenClaw validation home
+          ansible.builtin.file:
+            path: "{{ openclaw_validate_home }}"
+            state: absent
+
+        - name: Ensure staged OpenClaw configuration directory exists
+          ansible.builtin.file:
+            path: "{{ openclaw_validate_home }}/.openclaw"
+            state: directory
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0700'
+
+        - name: Stage candidate OpenClaw configuration file
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/openclaw.json"
+            dest: "{{ openclaw_validate_home }}/.openclaw/openclaw.json"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0600'
+            force: yes
+
+        - name: Stage candidate OpenClaw environment file
+          ansible.builtin.template:
+            src: openclaw.env.j2
+            dest: "{{ openclaw_validate_home }}/.openclaw/.env"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0600'
+
+        - name: Validate staged OpenClaw configuration
+          ansible.builtin.shell:
+            cmd: |
+              export PNPM_HOME="{{ openclaw_home }}/.local/share/pnpm"
+              export PATH="{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:$PATH"
+              openclaw config validate --json
+            executable: /bin/bash
+          environment:
+            HOME: "{{ openclaw_validate_home }}"
+          changed_when: false
+      always:
+        - name: Remove staged OpenClaw validation home
+          ansible.builtin.file:
+            path: "{{ openclaw_validate_home }}"
+            state: absent
 
     - name: Deploy OpenClaw environment file
-      ansible.builtin.copy:
+      tags:
+        - openclaw-env
+      ansible.builtin.template:
+        src: openclaw.env.j2
         dest: "{{ openclaw_home }}/.openclaw/.env"
-        content: |
-          OPENCLAW_TELEGRAM_BOT_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_TELEGRAM_TOKEN') | default(lookup('env', 'OPENCLAW_TELEGRAM_BOT_TOKEN')) }}"
-          OPENCLAW_GATEWAY_AUTH_TOKEN="{{ lookup('env', 'OPENCLAW_GATEWAY_AUTH_TOKEN') }}"
-          GEMINI_API_KEY="{{ lookup('env', 'GEMINI_API_KEY') }}"
-          OPENROUTER_API_KEY="{{ lookup('env', 'OPENROUTER_API_KEY') }}"
-          TODOIST_TOKEN="{{ lookup('env', 'TODOIST_TOKEN') }}"
-          NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
-          OPENCLAW_NO_RESPAWN=1
-          KUBECONFIG="{{ openclaw_support_home }}/.kube/config"
         owner: "{{ openclaw_user }}"
         group: "{{ openclaw_user }}"
         mode: '0600'
+      notify: Restart OpenClaw service
 
-    - name: Run OpenClaw onboarding non-interactively
-      ansible.builtin.shell: |
-        export PATH=$PATH:/usr/local/bin:{{ openclaw_home }}/.local/bin
-        openclaw onboard --non-interactive --accept-risk --skip-health
-      register: onboard_output
-      changed_when: onboard_output.rc == 0
+    - name: Deploy OpenClaw main configuration
+      tags:
+        - openclaw-assets
+        - openclaw-config
+      block:
+        - name: Deploy main OpenClaw configuration file
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/openclaw.json"
+            dest: "{{ openclaw_home }}/.openclaw/openclaw.json"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0600'
+            force: yes
+          notify: Restart OpenClaw service
 
-    - name: Create OpenClaw systemd service
+    - name: Deploy OpenClaw agent workspaces
+      tags:
+        - openclaw-assets
+        - openclaw-agent-workspaces
+      block:
+        - name: Copy custom agent workspaces
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/customAgents/"
+            dest: "{{ openclaw_home }}/.openclaw/"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0755'
+            force: yes
+          notify: Restart OpenClaw service
+
+        - name: Copy MountainValue subagent role docs
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/subAgents/"
+            dest: "{{ openclaw_home }}/.openclaw/subAgents/"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0755'
+            force: yes
+          notify: Restart OpenClaw service
+
+        - name: Remove stale MountainValue worker full-agent workspaces
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.openclaw/workspace-{{ item }}"
+            state: absent
+          loop:
+            - quantsieve
+            - eventhound
+            - riskskeptic
+            - david
+            - eq_quantsieve
+            - eq_newswire
+            - newswire
+            - eq_eventhound
+            - eq_riskskeptic
+            - eq_thesis_depth_reviewer
+          notify: Restart OpenClaw service
+
+        - name: Copy main agent workspaces
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/mainAgent/"
+            dest: "{{ openclaw_home }}/.openclaw/workspace/"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0755'
+            force: yes
+          notify: Restart OpenClaw service
+
+        - name: Remove IDENTITY.md and BOOTSTRAP.md from mainAgent workspace
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.openclaw/workspace/{{ item }}"
+            state: absent
+          loop:
+            - IDENTITY.md
+            - BOOTSTRAP.md
+          notify: Restart OpenClaw service
+
+    - name: Deploy OpenClaw Lobster pipelines
+      tags:
+        - openclaw-assets
+        - openclaw-pipelines
+      block:
+        - name: Deploy Lobster pipeline file
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/mountainvalue.lobster"
+            dest: "{{ openclaw_home }}/.openclaw/mountainvalue.lobster"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0600'
+            force: yes
+          notify: Restart OpenClaw service
+
+    - name: Install OpenClaw systemd service
+      tags:
+        - openclaw-service
       ansible.builtin.copy:
         dest: /etc/systemd/system/openclaw.service
         content: |
@@ -261,56 +485,33 @@
 
           [Service]
           Type=simple
+
           User={{ openclaw_user }}
           EnvironmentFile={{ openclaw_home }}/.openclaw/.env
           Environment="PATH={{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
           Environment="PNPM_HOME={{ openclaw_home }}/.local/share/pnpm"
           Environment="HOME={{ openclaw_home }}"
-          ExecStart=/bin/bash -c "openclaw gateway run"
+          ExecStart={{ openclaw_home }}/.local/share/pnpm/openclaw gateway run --bind lan
           Restart=always
           RestartSec=10
+
+          # Prod limits
+          LimitNOFILE=65536
+          LimitNPROC=1024
+          # Logging
+          StandardOutput=journal
+          StandardError=journal
 
           [Install]
           WantedBy=multi-user.target
         mode: '0644'
+      notify: Restart OpenClaw service
 
     - name: Enable and restart OpenClaw service
+      tags:
+        - openclaw-service
       ansible.builtin.systemd:
         name: openclaw
         enabled: true
         state: restarted
         daemon_reload: yes
-
-    - name: Post-install tasks
-      block:
-        - name: Authenticate GitHub CLI
-          ansible.builtin.shell:
-            cmd: |
-              if ! gh auth status >/dev/null 2>&1; then
-                echo "{{ github_token }}" | gh auth login --with-token
-              fi
-          vars:
-            github_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
-          when: github_token != ""
-          register: gh_auth
-          changed_when: false
-
-        - name: Clone operationscenter repository
-          ansible.builtin.shell:
-            cmd: "gh repo clone nirmalhk7/operationscenter {{ openclaw_support_home }}/operationscenter"
-            creates: "{{ openclaw_support_home }}/operationscenter"
-          when: 
-            - lookup('env', 'GITHUB_TOKEN') != ""
-            - gh_auth is succeeded
-
-        - name: Clone Obsidian repository
-          ansible.builtin.shell:
-            cmd: "gh repo clone {{ obsidian_repo }} {{ openclaw_support_home }}/obsidian"
-            creates: "{{ openclaw_support_home }}/obsidian"
-          vars:
-            obsidian_repo: "{{ lookup('env', 'OBSIDIAN_REPO') }}"
-          when: 
-            - obsidian_repo != ""
-            - gh_auth is succeeded
-
-

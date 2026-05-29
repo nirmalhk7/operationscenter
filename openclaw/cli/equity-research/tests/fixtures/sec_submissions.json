@@ -1,0 +1,36 @@
+{
+  "filings": {
+    "recent": {
+      "accessionNumber": [
+        "0000001234-26-000003",
+        "0000001234-26-000002",
+        "0000001234-26-000001"
+      ],
+      "filingDate": [
+        "2026-05-10",
+        "2026-03-01",
+        "2026-02-10"
+      ],
+      "form": [
+        "8-K",
+        "4",
+        "10-K"
+      ],
+      "primaryDocument": [
+        "abc-20260510x8k.htm",
+        "xslF345X05/wk-form4_1770000000.xml",
+        "abc-20251231.htm"
+      ],
+      "primaryDocDescription": [
+        "Current report",
+        "Statement of changes in beneficial ownership",
+        "Annual report"
+      ],
+      "reportDate": [
+        "2026-05-10",
+        "2026-03-01",
+        "2025-12-31"
+      ]
+    }
+  }
+}

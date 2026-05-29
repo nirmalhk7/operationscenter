@@ -1,0 +1,696 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.4.23",
+    "lastTouchedAt": "2026-05-28T04:29:47.000Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-21T05:51:14.376Z",
+    "lastRunVersion": "2026.3.13",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local"
+  },
+  "auth": {
+    "profiles": {
+      "google:default": {
+        "provider": "google",
+        "mode": "api_key"
+      },
+      "openrouter:default": {
+        "provider": "openrouter",
+        "mode": "api_key"
+      },
+      "groq:default": {
+        "provider": "groq",
+        "mode": "api_key"
+      }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "local-ollama": {
+        "baseUrl": "http://172.16.0.105:32363",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "qwen2.5-coder:3b",
+            "name": "qwen2.5-coder:3b (Custom Provider)",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32000,
+            "maxTokens": 4096,
+            "api": "anthropic-messages"
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+        "fallbacks": [
+          "openrouter/free",
+          "local-ollama/qwen2.5-coder:3b",
+          "groq/qwen/qwen3-32b"
+        ]
+      },
+      "models": {
+        "local-ollama/qwen2.5-coder:3b": {
+          "alias": "qwen2.5-coder:3b"
+        },
+        "google/gemini-3.1-flash-lite-preview": {
+          "alias": "gemini-flash-lite"
+        },
+        "openrouter/auto": {},
+        "openrouter/free": {},
+        "openrouter/nvidia/nemotron-3-super-120b-a12b:free": {},
+        "openrouter/nvidia/nemotron-3-nano-30b-a3b:free": {},
+        "openrouter/qwen/qwen3-coder:free": {},
+        "openrouter/qwen/qwen3-next-80b-a3b-instruct:free": {},
+        "openrouter/openai/gpt-oss-120b:free": {},
+        "openrouter/z-ai/glm-4.5-air:free": {},
+        "openrouter/google/gemma-4-26b-a4b-it:free": {},
+        "openrouter/google/gemma-4-31b-it:free": {},
+        "openrouter/minimax/minimax-m2.5:free": {},
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free": {},
+        "google/gemma-3-27b-it": {},
+        "nvidia-nim/gpt-oss-120b": {},
+        "groq/qwen/qwen3-32b": {},
+        "openrouter/qwen/qwen3.5-flash-02-23": {}
+      },
+      "workspace": "/root/.openclaw/workspace",
+      "userTimezone": "America/Denver",
+      "compaction": {
+        "mode": "safeguard",
+        "model": "openrouter/free"
+      },
+      "heartbeat": {
+        "every": "30m",
+        "model": "openrouter/qwen/qwen3.5-flash-02-23",
+        "target": "discord",
+        "directPolicy": "allow",
+        "lightContext": true,
+        "isolatedSession": true
+      },
+      "typingMode": "thinking",
+      "maxConcurrent": 16,
+      "subagents": {
+        "maxConcurrent": 10,
+        "allowAgents": [
+          "eq_quantsieve",
+          "eq_eventhound",
+          "eq_riskskeptic",
+          "eq_thesis_depth_reviewer"
+        ],
+        "requireAgentId": true,
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        }
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "tools": {
+          "profile": "full"
+        },
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": []
+        }
+      },
+      {
+        "id": "rahul",
+        "workspace": "/root/.openclaw/workspace-rahul",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+          ]
+        },
+        "skills": [],
+        "heartbeat": {
+          "every": "5m",
+          "model": "openrouter/qwen/qwen3.5-flash-02-23",
+          "lightContext": false,
+          "isolatedSession": true,
+          "target": "discord"
+        },
+        "tools": {
+          "deny": [
+            "bundle-mcp"
+          ],
+          "alsoAllow": [
+            "subagents",
+            "sessions_yield",
+            "sessions_spawn",
+            "sessions_send",
+            "sessions_history",
+            "sessions_list"
+          ]
+        }
+      },
+      {
+        "id": "victor",
+        "workspace": "/root/.openclaw/workspace-victor",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23"
+        },
+        "subagents": {
+          "allowAgents": [
+            "eq_quantsieve",
+            "newswire",
+            "eq_eventhound",
+            "eq_riskskeptic",
+            "eq_thesis_depth_reviewer"
+          ],
+          "requireAgentId": true
+        },
+        "tools": {
+          "profile": "minimal",
+          "allow": [
+            "message",
+            "lobster",
+            "subagents",
+            "sessions_spawn",
+            "sessions_list",
+            "sessions_history",
+            "agents_list",
+            "polymarket__getAllMarkets",
+            "polymarket__getMarketDetails"
+          ],
+          "deny": [
+            "bundle-mcp",
+            "group:runtime",
+            "group:fs",
+            "sessions_send",
+            "sessions_yield"
+          ]
+        }
+      },
+      {
+        "id": "eq_quantsieve",
+        "workspace": "/root/.openclaw/subAgents/eq_quantsieve",
+        "agentDir": "/root/.openclaw/subAgents/eq_quantsieve",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
+            "group:runtime",
+            "group:fs",
+            "group:automation"
+          ]
+        }
+      },
+      {
+        "id": "newswire",
+        "workspace": "/root/.openclaw/subAgents/newswire",
+        "agentDir": "/root/.openclaw/subAgents/newswire",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "allow": [
+            "newsmcp__get_news",
+            "newsmcp__get_news_detail",
+            "newsmcp__get_topics",
+            "newsmcp__get_regions"
+          ],
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
+            "group:runtime",
+            "group:fs",
+            "group:automation"
+          ]
+        }
+      },
+      {
+        "id": "eq_eventhound",
+        "workspace": "/root/.openclaw/subAgents/eq_eventhound",
+        "agentDir": "/root/.openclaw/subAgents/eq_eventhound",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "allow": [
+            "session_status",
+            "polymarket__getAllMarkets",
+            "polymarket__getMarketDetails"
+          ],
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
+            "group:runtime",
+            "group:fs",
+            "group:automation"
+          ]
+        }
+      },
+      {
+        "id": "eq_riskskeptic",
+        "workspace": "/root/.openclaw/subAgents/eq_riskskeptic",
+        "agentDir": "/root/.openclaw/subAgents/eq_riskskeptic",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
+            "group:runtime",
+            "group:fs",
+            "group:automation"
+          ]
+        }
+      },
+      {
+        "id": "eq_thesis_depth_reviewer",
+        "workspace": "/root/.openclaw/subAgents/eq_thesis_depth_reviewer",
+        "agentDir": "/root/.openclaw/subAgents/eq_thesis_depth_reviewer",
+        "model": {
+          "primary": "openrouter/qwen/qwen3.5-flash-02-23",
+          "fallbacks": [
+            "openrouter/free"
+          ]
+        },
+        "skills": [],
+        "tools": {
+          "profile": "minimal",
+          "deny": [
+            "bundle-mcp",
+            "group:messaging",
+            "group:sessions",
+            "group:runtime",
+            "group:fs",
+            "group:automation"
+          ]
+        }
+      }
+    ]
+  },
+  "tools": {
+    "profile": "minimal",
+    "subagents": {
+      "tools": {
+        "deny": [
+          "message",
+          "cron",
+          "gateway",
+          "sessions_send"
+        ]
+      }
+    },
+    "agentToAgent": {
+      "enabled": true,
+      "allow": [
+        "*"
+      ]
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "accountId": "main"
+      }
+    },
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "discord",
+        "accountId": "main"
+      }
+    },
+    {
+      "agentId": "rahul",
+      "match": {
+        "channel": "discord",
+        "accountId": "rahul"
+      }
+    },
+    {
+      "agentId": "victor",
+      "match": {
+        "channel": "discord",
+        "accountId": "victor"
+      }
+    }
+  ],
+  "messages": {
+    "ackReactionScope": "group-mentions",
+    "tts": {
+      "auto": "inbound",
+      "provider": "microsoft"
+    }
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "mcp": true,
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-channel-peer",
+    "resetByChannel": {
+      "discord": { "mode": "idle", "idleMinutes": 10080 }
+    },
+    "maintenance": {
+      "mode": "warn",
+      "pruneAfter": "30d",
+      "maxEntries": 500,
+      "rotateBytes": "10mb"
+    }
+  },
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "groupPolicy": "allowlist",
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "1220283451169837077"
+      ],
+      "dm": {
+        "enabled": true
+      },
+      "streaming": {
+        "mode": "progress",
+        "preview": {
+          "toolProgress": true
+        }
+      },
+      "accounts": {
+        "main": {
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_MAIN"
+          },
+          "groupPolicy": "allowlist",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": false,
+              "users": [
+                "1220283451169837077"
+              ]
+            }
+          },
+          "voice": {
+            "enabled": true,
+            "autoJoin": [
+              {
+                "guildId": "1487714737964716084",
+                "channelId": "1487714739319603234"
+              }
+            ],
+            "daveEncryption": false,
+            "decryptionFailureTolerance": 24,
+            "tts": {
+              "provider": "microsoft",
+              "providers": {
+                "microsoft": {
+                  "voice": "en-US-JennyNeural",
+                  "lang": "en-US",
+                  "outputFormat": "audio-24khz-48kbitrate-mono-mp3"
+                }
+              }
+            }
+          },
+          "activity": "At your service",
+          "autoPresence": {
+            "enabled": true
+          },
+          "activityType": 4,
+          "ui": {
+            "components": {
+              "accentColor": "#7289DA"
+            }
+          }
+        },
+        "rahul": {
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_RAHUL"
+          },
+          "groupPolicy": "allowlist",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": false,
+              "users": [
+                "1220283451169837077"
+              ]
+            }
+          },
+          "activity": "Fullstack Dev in Koramangala",
+          "activityType": 3,
+          "status": "online",
+          "ui": {
+            "components": {
+              "accentColor": "#43B581"
+            }
+          }
+        },
+        "victor": {
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_VICTOR"
+          },
+          "groupPolicy": "allowlist",
+          "guilds": {
+            "1487714737964716084": {
+              "requireMention": false,
+              "users": [
+                "1220283451169837077"
+              ]
+            }
+          },
+          "activity": "Final value analyst",
+          "activityType": 3,
+          "status": "online",
+          "ui": {
+            "components": {
+              "accentColor": "#B91C1C"
+            }
+          }
+        }
+      },
+      "agentComponents": {
+        "enabled": true
+      },
+      "ackReaction": "👀",
+      "threadBindings": {
+        "enabled": true,
+        "spawnSubagentSessions": true,
+        "idleHours": 24,
+        "maxAgeHours": 72
+      },
+      "replyToMode": "first",
+      "execApprovals": {
+        "enabled": true,
+        "target": "dm",
+        "approvers": ["1220283451169837077"],
+        "cleanupAfterResolve": true
+      },
+      "chunkMode": "newline",
+      "draftChunk": {
+        "minChars": 200,
+        "maxChars": 800,
+        "breakPreference": "paragraph"
+      },
+      "actions": {
+        "presence": true
+      },
+      "streaming": {
+        "mode": "progress"
+      },
+      "ui": {
+        "components": {
+          "accentColor": "#5865F2"
+        }
+      }
+    },
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "groups": {
+        "-1003812665515": {
+          "requireMention": false,
+          "allowFrom": [
+            "8163098638"
+          ]
+        }
+      },
+      "groupPolicy": "allowlist",
+      "accounts": {
+        "main": {
+          "dmPolicy": "allowlist",
+          "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
+          "allowFrom": [
+            "8163098638"
+          ],
+          "groupPolicy": "allowlist",
+          "streaming": {
+            "mode": "partial"
+          }
+        }
+      },
+      "streaming": {
+        "mode": "partial"
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "lan",
+    "controlUi": {
+      "allowedOrigins": [
+        "https://robot.trusted.nirmalhk7.com",
+        "http://172.16.0.104:18789",
+        "http://172.16.0.101:18789",
+        "http://localhost:18789",
+        "http://127.0.0.1:18789"
+      ]
+    },
+    "auth": {
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_AUTH_TOKEN}",
+      "password": "${OPENCLAW_GATEWAY_PASSWORD}"
+    },
+    "trustedProxies": [
+      "127.0.0.1",
+      "::1",
+      "172.16.0.101",
+      "172.16.0.1"
+    ],
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "nodes": {
+      "denyCommands": [
+        "camera.snap",
+        "camera.clip",
+        "screen.record",
+        "contacts.add",
+        "calendar.add",
+        "reminders.add",
+        "sms.send"
+      ]
+    }
+  },
+  "cron": {
+    "enabled": true,
+    "store": "/root/.openclaw/cron/cron.json",
+    "maxConcurrentRuns": 2,
+    "sessionRetention": "24h"
+  },
+  "mcp": {
+    "servers": {
+      "kite": {
+        "url": "https://mcp.kite.trade/mcp",
+        "transport": "streamable-http"
+      },
+      "todoist": {
+        "url": "https://ai.todoist.net/mcp",
+        "headers": {
+          "Authorization": "Bearer ${OPENCLAW_TODOIST_API_KEY}"
+        },
+        "transport": "streamable-http"
+      },
+      "alphavantage": {
+        "url": "https://mcp.alphavantage.co/mcp?apikey=${OPENCLAW_ALPHAVANTAGE_API_KEY}",
+        "transport": "streamable-http"
+      },
+      "secedgar": {
+        "command": "/root/.local/share/pnpm/secedgar-mcp-server",
+        "env": {
+          "EDGAR_USER_AGENT": "${OPENCLAW_EDGAR_USER_AGENT}",
+          "MCP_TRANSPORT_TYPE": "stdio",
+          "EDGAR_DATAFRAME_DROP_ENABLED": "false"
+        }
+      },
+      "github": {
+        "url": "https://api.githubcopilot.com/mcp/",
+        "headers": {
+          "Authorization": "Bearer ${OPENCLAW_GITHUB_TOKEN}"
+        },
+        "transport": "streamable-http"
+      },
+      "kubernetes": {
+        "command": "/root/.local/share/pnpm/kubectl-mcp-server",
+        "env": {
+          "KUBECONFIG": "/root/openclaw_support/.kube/config"
+        }
+      },
+      "newsmcp": {
+        "command": "/root/.local/share/pnpm/newsmcp"
+      },
+      "nseindia": {
+        "command": "/root/.local/share/pnpm/nseindia",
+        "args": [
+          "mcp"
+        ],
+        "env": {
+          "NODE_ENV": "production"
+        }
+      },
+      "polymarket": {
+        "command": "/root/.local/share/pnpm/polymarket-mcp"
+      }
+    }
+  },
+  "skills": {
+    "install": {}
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true,
+        "config": {}
+      }
+    }
+  }
+}

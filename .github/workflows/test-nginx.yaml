@@ -17,6 +17,9 @@ on:
 jobs:
   test-nginx:
     runs-on: ubuntu-latest
+    env:
+      # Keep aligned with nginx_package_version in infrastructure/ansible/vars/versions.yaml.
+      NGINX_IMAGE: nginx:1.28.3
     steps:
       - uses: actions/checkout@v6
       - name: Generate dummy SSL certs
@@ -25,5 +28,9 @@ jobs:
           sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/letsencrypt/live/trusted.nirmalhk7.com/privkey.pem -out /etc/letsencrypt/live/trusted.nirmalhk7.com/fullchain.pem -subj "/CN=trusted.nirmalhk7.com"
       - name: Test Nginx config
         run: |
-          cd nginx
-          sudo nginx -t -c $(pwd)/nginx.conf -p $(pwd)
+          docker run --rm \
+            --mount type=bind,src="$PWD/nginx",dst=/etc/nginx,readonly \
+            --mount type=bind,src=/etc/letsencrypt,dst=/etc/letsencrypt,readonly \
+            --entrypoint nginx \
+            "$NGINX_IMAGE" \
+            -t -c /etc/nginx/nginx.conf

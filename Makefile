@@ -1,6 +1,19 @@
 # Makefile for operationscenter
 
-.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply
+.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply init onboard-agents-discord sync kubernetes-init kubernetes-clean ansible-run ansible-run-one
+
+# --- Initialization ---
+init:
+	@./install.sh
+	@echo "=== Part 1: Terraform ==="
+	$(MAKE) terraform-apply
+	@echo "=== Part 2: Ansible ==="
+	$(MAKE) ansible-run
+	@echo "=== Part 3: Kubernetes ==="
+	$(MAKE) kubernetes-init
+	@echo "=== Part 4: Docker & Nginx ==="
+	$(MAKE) nginx-build
+	@echo "=== Initialization Complete ==="
 
 # --- Sealed Secrets ---
 encrypt:
@@ -9,7 +22,7 @@ encrypt:
 	else \
 		DIR=$$(dirname $(FILE)); \
 		BASE=$$(basename $(FILE) .px.yaml); \
-		kubeseal --format=yaml --cert=pub-sealed-secrets.pem < $(FILE) > $$DIR/$$BASE.yaml; \
+		kubeseal --format=yaml --cert=pub-sealed-secrets.pem < $(FILE) | grep -v 'creationTimestamp: null' > $$DIR/$$BASE.yaml; \
 	fi
 
 encrypt_all:
@@ -45,7 +58,7 @@ nginx-logs:
 
 # --- Terraform ---
 terraform-clear:
-	cd infrastructure/terra && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup && \
+	cd infrastructure/terra/proxmox && rm -rf .terraform .terraform.lock.hcl terraform.tfstate .terraform.tfstate.backup terraform.tfstate.backup && \
 	terraform init -upgrade && \
 	terraform import proxmox_virtual_environment_network_linux_bridge.wmnet milano:wmnet && \
 	terraform import proxmox_virtual_environment_group.ug-mgd ug-mgd && \
@@ -57,11 +70,17 @@ terraform-clear:
 	terraform import proxmox_virtual_environment_pool.pool-mgd pool-mgd
 
 terraform-reset:
-	cd infrastructure/terra && terraform state rm proxmox_lxc.testlxc || true
-	cd infrastructure/terra && terraform destroy -auto-approve
+	cd infrastructure/terra/proxmox && terraform state rm proxmox_lxc.testlxc || true
+	cd infrastructure/terra/proxmox && terraform destroy -auto-approve
+
+terraform-apply-proxmox:
+	cd infrastructure/terra/proxmox && terraform init -upgrade && terraform plan && terraform apply -auto-approve
+
+terraform-apply-discord:
+	cd infrastructure/terra/discord && terraform init -upgrade && terraform plan && terraform apply -auto-approve
 
 terraform-apply:
-	cd infrastructure/terra && terraform init -upgrade && terraform plan && terraform apply -auto-approve
+	$(MAKE) terraform-apply-proxmox; $(MAKE) terraform-apply-discord
 
 # --- Ansible ---
 ansible-install:
@@ -70,6 +89,7 @@ ansible-install:
 	else \
 	  pip install --user ansible; \
 	fi
+	ansible-galaxy collection install -r infrastructure/ansible/requirements.yaml
 
 ansible-run: ansible-install
 	@eval "$$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_homelab && \
@@ -90,7 +110,7 @@ ansible-run-one: ansible-install
 		if [ -f .env ]; then \
 			set -a; . .env; set +a; \
 		fi; \
-		ansible-playbook  -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade; \
+		ansible-playbook  -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade,skip,block; \
 	fi
 
 # --- Kubernetes ---
@@ -110,7 +130,35 @@ kubernetes-clean:
 	  kubectl get namespace $$ns -o json | jq 'del(.spec.finalizers)' | kubectl replace --raw "/api/v1/namespaces/$$ns/finalize" -f -; \
 	done
 
+
+# --- Discord ---
+onboard-agents-discord:
+	@if [ -z "$(CLIENT_IDS)" ]; then \
+		echo "Usage: make onboard-agents CLIENT_IDS=\"id1 id2 id3\""; \
+	else \
+		for id in $(CLIENT_IDS); do \
+			echo "Onboarding agent with Client ID: $$id"; \
+			open "https://discord.com/oauth2/authorize?client_id=$$id&permissions=0&integration_type=0&scope=bot"; \
+			sleep 10; \
+		done; \
+	fi
+
+# --- Flux ---
+flux-suspend:
+	@if [ -z "$(NS)" ]; then \
+		echo "Usage: make flux-suspend NS=namespace (e.g., default, monitoring)"; \
+	else \
+		flux suspend kustomization mgd-$(NS); \
+	fi
+
+flux-resume:
+	@if [ -z "$(NS)" ]; then \
+		echo "Usage: make flux-resume NS=namespace"; \
+	else \
+		flux resume kustomization mgd-$(NS); \
+	fi
+
 sync:
 	git add .
-	git commit --amend --no-edit
-	git push --force
+	git commit -m "chore: sync"
+	git push

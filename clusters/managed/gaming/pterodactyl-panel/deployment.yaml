@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app pterodactyl
+  namespace: mgd-gaming
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      milano.app: *app
+  template:
+    metadata:
+      labels:
+        milano.app: *app
+    spec:
+      containers:
+        - name: *app
+          # renovate: depName=ghcr.io/pterodactyl/panel
+          image: ghcr.io/pterodactyl/panel:latest
+          ports:
+            - containerPort: 80
+              name: web
+          envFrom:
+            - secretRef:
+                name: pterodactyl-secrets
+          env:
+            - name: APP_URL
+              value: "https://gaming.trusted.nirmalhk7.com"
+            - name: TRUSTED_PROXIES
+              value: "*"
+            - name: RECAPTCHA_ENABLED
+              value: "false"
+            - name: APP_ENV
+              value: "production"
+            - name: APP_ENVIRONMENT_ONLY
+              value: "false"
+            - name: CACHE_DRIVER
+              value: "redis"
+            - name: SESSION_DRIVER
+              value: "redis"
+            - name: QUEUE_CONNECTION
+              value: "redis"
+            - name: REDIS_HOST
+              value: "pterodactyl-redis"
+            - name: DB_HOST
+              value: "172.16.0.106"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_DATABASE
+              value: *app
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: pterodactyl-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pterodactyl-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /app/var/
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pterodactyl-data

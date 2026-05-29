@@ -16,20 +16,31 @@ spec:
   releaseName: *app
   values:
     grafana:
-      defaultDashboardsEnabled: false
+      adminUser: admin
+      # adminPassword: strongpassword
+
+      # Use an existing secret for the admin user.
+      admin:
+        ## Name of the secret. Can be templated.
+        existingSecret: "grafana-secret"
+        userKey: GRAFANA-USER
+        passwordKey: GRAFANA-PASSWORD
+
+      defaultDashboardsEnabled: "false"
       env:
         GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+        
       grafana.ini:
         server:
           domain: grafana.trusted.nirmalhk7.com
           root_url: https://grafana.trusted.nirmalhk7.com
         auth.generic_oauth:
-          enabled: true
+          enabled: "true"
           name: Authelia
           icon: signin
-          allow_sign_up: true
+          allow_sign_up: "true"
           scopes: openid profile email groups
-          empty_scopes: false
+          empty_scopes: "false"
           auth_url: https://secure.trusted.nirmalhk7.com/api/oidc/authorization
           token_url: https://secure.trusted.nirmalhk7.com/api/oidc/token
           api_url: https://secure.trusted.nirmalhk7.com/api/oidc/userinfo
@@ -37,10 +48,10 @@ spec:
           groups_attribute_path: groups
           name_attribute_path: name
           role_attribute_path: contains(groups, 'grafana_admin') && 'Admin' || 'Viewer'
-          use_pkce: true
+          use_pkce: "true"
       sidecar:
         dashboards:
-          enabled: true
+          enabled: "true"
           label: milano_grafana_dashboard
           labelValue: "true"
           searchNamespace: ALL
@@ -63,6 +74,7 @@ spec:
                   settings:
                     bottoken: $TELEGRAM_TOKEN
                     chatid: "-1003812665515"
+                    message_thread_id: "204"
         policies.yaml:
           apiVersion: 1
           policies:
@@ -120,5 +132,31 @@ spec:
         serviceMonitorSelector:
           matchLabels:
             prometheus: prometheus_servicemonitor
+        resources:
+          requests:
+            cpu: 200m
+            memory: 2Gi
+          limits:
+            cpu: 1000m
+            memory: 4Gi
+        env:
+          - name: GOMEMLIMIT
+            value: 3600MiB
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 10
+        readinessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 10
+        retention: 2d
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
     commonLabels:
       milano.level: managed

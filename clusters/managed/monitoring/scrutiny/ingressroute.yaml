@@ -3,14 +3,14 @@ kind: IngressRoute
 metadata:
   name: &app scrutiny-api
   annotations:
-    gethomepage.dev/href: "https://scrutiny.trusted.nirmalhk7.com"
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://scrutiny.trusted.nirmalhk7.com"
     gethomepage.dev/group: Observability
     gethomepage.dev/icon: scrutiny-light
     gethomepage.dev/app: scrutiny # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Scrutiny
-    gethomepage.dev/widget.type: "scrutiny"
-    gethomepage.dev/widget.url: "https://scrutiny.trusted.nirmalhk7.com"
+    # gethomepage.dev/widget.type: "scrutiny"
+    # gethomepage.dev/widget.url: "https://scrutiny.trusted.nirmalhk7.com"
     
 spec:
   entryPoints:

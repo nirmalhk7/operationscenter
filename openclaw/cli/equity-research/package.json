@@ -1,0 +1,63 @@
+{
+  "name": "@nirmalhk7/equity-research",
+  "version": "0.1.0",
+  "description": "OpenClaw daily US equity research adapters and Lobster CLI steps.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "bin": {
+    "equity-research": "./dist/src/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "files": [
+    "dist/src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "prepack": "npm run build",
+    "release": "semantic-release",
+    "version:patch": "npm version patch --tag-version-prefix=equity-research-v",
+    "version:minor": "npm version minor --tag-version-prefix=equity-research-v",
+    "version:major": "npm version major --tag-version-prefix=equity-research-v"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nirmalhk7/operationscenter.git",
+    "directory": "openclaw/cli/equity-research"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "engines": {
+    "node": ">=22.22.2 <23"
+  },
+  "devDependencies": {
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/github": "^11.0.6",
+    "@semantic-release/npm": "^12.0.2",
+    "@semantic-release/release-notes-generator": "^14.1.1",
+    "@types/node": "^22.19.0",
+    "semantic-release": "^24.2.9",
+    "semantic-release-monorepo": "^8.0.2",
+    "typescript": "^5.9.3"
+  },
+  "release": {
+    "extends": "semantic-release-monorepo",
+    "branches": [
+      "main"
+    ],
+    "tagFormat": "equity-research-v${version}",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
+  }
+}

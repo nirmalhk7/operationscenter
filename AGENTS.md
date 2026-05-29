@@ -1,0 +1,63 @@
+# Project: Operations Center - Repository Agent Instructions
+
+## Scope
+- This file guides agents developing this repository. It does not define the identity, persona, or delegation structure of the agent editing the repo.
+- `openclaw/` contains deployment assets for the OpenClaw instance. Runtime workspaces such as `openclaw/mainAgent/` and `openclaw/customAgents/*/` may contain their own `AGENTS.md`, `SOUL.md`, `TOOLS.md`, or skill files; treat those as OpenClaw runtime instructions and configuration data unless the task is specifically to change that runtime behavior.
+- When working on OpenClaw assets, read the local files that define the runtime contract before editing. Do not project OpenClaw runtime personas onto repo-development work.
+
+## Repository Map
+- `clusters/managed/` is the Flux-managed Kubernetes tree. Namespace directories aggregate feature directories with Kustomize.
+- `infrastructure/terra/` holds Terraform for Proxmox and Discord resources.
+- `infrastructure/ansible/` holds inventory, vars, roles, and `.ansible.yaml` playbooks for configured hosts.
+- `nginx/` is the source of truth for reverse-proxy configuration copied to the Nginx host by `make nginx-build`.
+- `charts/` contains local chart assets; third-party Kubernetes charts in the managed cluster are normally declared through Flux `HelmRelease` resources.
+- Generated Flux manifests in `clusters/managed/flux-system/fluxcd/gotk-*.yaml` say `DO NOT EDIT`; change them only through the Flux generation/bootstrap workflow.
+
+## Coding Standards
+### Kubernetes and Flux
+- Use Kustomize for managed manifests and Flux `HelmRelease` resources for third-party charts.
+- Keep resources in `clusters/managed/<namespace>/<feature>/`. Feature directories should have a local `kustomization.yaml`.
+- Keep managed resources reachable from `clusters/managed/kustomization.yaml`. Its label transformer supplies `milano.level: managed` to the managed tree; preserve that label when a resource, template, or generated output needs an explicit label.
+- Namespace kustomizations set the `mgd-*` namespace for most features and aggregate their `_repositories`, middleware, namespace, Flux Kustomization, and feature resources. Follow the nearest namespace pattern before adding new top-level wiring.
+- Prefer persistent storage via CSI drivers such as Longhorn for stateful services.
+- Add Prometheus discovery such as `ServiceMonitor` when the service actually exposes metrics and nearby monitoring patterns support it.
+
+### Infrastructure
+- New VM and LXC names should reflect their tier where the nearby Terraform/Ansible pattern supports it, for example `vm-mgd-*` or `lxc-dev-*`.
+- Do not rename existing Terraform resource addresses or inventory identifiers only to normalize naming; that can create state moves and host churn. Match the local resource, pool, tag, and firewall conventions around the resource being changed.
+- Ansible playbooks use the `.ansible.yaml` suffix.
+- Keep sensitive host data in vars or environment-backed lookups instead of hardcoding it. Keep base playbooks generic and reusable.
+
+### Nginx
+- The `nginx/` directory is the reverse-proxy source of truth.
+- Test proxy rule changes against the existing Nginx version before deploying them.
+
+### OpenClaw
+- Follow the OpenClaw JSON schema used by the repo and runtime validation output. Do not invent configuration keys.
+- Diagnostics for the deployed OpenClaw host must come from user-provided logs or local workspace files unless the task explicitly provides another authorized path.
+- Do not remove security-critical settings such as `allowFrom` without verification against the current schema or explicit user direction.
+
+## Workflows
+### Sealed Secrets
+1. Never commit plaintext secret payloads.
+2. Create or update a local `<name>.px.yaml` raw Kubernetes `Secret` only as the input to encryption. `.gitignore` excludes `*.px.yaml`.
+3. Run `make encrypt FILE=<path/to/file.px.yaml>`.
+4. Commit the generated sealed `.yaml` output and the Kustomize references that consume it. Do not add the `.px.yaml` input unless the repository policy changes explicitly.
+
+### Adding a Kubernetes Service
+1. Create `clusters/managed/<namespace>/<service>/`.
+2. Add a service-local `kustomization.yaml` that references its manifests, sealed secret output if needed, and any service-specific labels used by nearby features.
+3. For third-party charts, add or reuse the namespace-local repository manifest under `_repositories` and define the service with a `HelmRelease`.
+4. Add the service directory to `clusters/managed/<namespace>/kustomization.yaml`.
+5. Add a new namespace directory to `clusters/managed/kustomization.yaml` only when the namespace itself is new.
+
+### Provisioning Infrastructure
+1. Update the relevant Terraform directory under `infrastructure/terra/`.
+2. Update `infrastructure/ansible/inventory.ini` and the matching playbook or vars under `infrastructure/ansible/`.
+3. Update `nginx/` if external proxying is required.
+4. Treat apply and deployment commands as explicit operational steps, not routine validation.
+
+## Validation and Safety
+- Prefer non-mutating validation first: render affected Kustomize paths, run `terraform fmt` and validation for Terraform changes where provider setup permits it, run Ansible syntax checks for changed playbooks, and run an Nginx config test on the Nginx version that will receive the files.
+- The `Makefile` contains live operational targets. Do not run `make init`, `make terraform-apply*`, `make terraform-clear`, `make terraform-reset`, `make ansible-run*`, `make kubernetes-init`, `make kubernetes-clean`, `make nginx-build`, or `make sync` unless the user asked for that operation and the target environment is understood.
+- Do not assume local access to Proxmox, Kubernetes, Nginx, or the OpenClaw host from repository files alone. State which validation was local and which live validation still requires the target environment.

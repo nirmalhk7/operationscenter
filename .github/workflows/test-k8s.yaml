@@ -19,16 +19,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Install yamllint and kubeconform
+      - name: Install yamllint, kubeconform, and kube-score
         run: |
           sudo apt-get update && sudo apt-get install -y yamllint
           KUBECONFORM_VERSION=v0.6.7
           curl -L -o kubeconform.tar.gz https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
           tar xf kubeconform.tar.gz
           sudo mv kubeconform /usr/local/bin/
+          KUBESCORE_VERSION=1.19.0
+          curl -L -o kube-score.tar.gz https://github.com/zegl/kube-score/releases/download/v${KUBESCORE_VERSION}/kube-score_${KUBESCORE_VERSION}_linux_amd64.tar.gz
+          tar xf kube-score.tar.gz
+          sudo mv kube-score /usr/local/bin/
       - name: Run yamllint
         run: |
           yamllint -d "{extends: relaxed, rules: {line-length: disable, document-start: disable, truthy: disable, empty-lines: disable, comments: disable, trailing-spaces: disable, indentation: disable, new-line-at-end-of-file: disable, key-duplicates: enable}}" clusters/managed/
       - name: Run kubeconform
         run: |
           find clusters/managed/ -name "*.yaml" | xargs kubeconform -summary -ignore-missing-schemas -schema-location default -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
+      - name: Run kube-score
+        run: |
+          find clusters/managed/ -name "deployment.yaml" -o -name "statefulset.yaml" | \
+            xargs kube-score score \
+              --ignore-test container-image-pull-policy \
+              --ignore-test container-image-tag \
+              --ignore-test pod-networkpolicy \
+              || true

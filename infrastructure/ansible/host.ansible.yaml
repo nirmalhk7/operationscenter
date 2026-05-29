@@ -4,24 +4,16 @@
   become: true
   vars_files:
     - vars/versions.yaml
+    - vars/network.yaml
   vars:
     homelab_path: /root/operationscenter
-    # Network Configuration
-    host_ip: "10.0.0.10"
-    int_subnet: "172.16.0.0/24"
-    nginx_ip: "172.16.0.101"
-    k8s_ip: "172.16.0.105"
-    nfs_ip: "172.16.0.108"
-    vpn_ip: "100.87.0.43"
-    wan_iface: "wlp4s0"
-    lan_iface: "wmnet"
-    vpn_iface: "tailscale0"
     tailscale_auth_key: "{{ lookup('env', 'TAILSCALE_AUTHKEY') | default('', true) }}"
-    # SSH Key for passwordless auth (ed25519)
     ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
+    tailscale_args: "{{ lookup('env', 'TAILSCALE_ARGS') if lookup('env', 'TAILSCALE_ARGS') else '--ssh' }}"
 
   tasks:
     - name: Routine package update/ basic setup
+      tags: [packages]
       block:
       - name: Update apt cache and upgrade packages
         ansible.builtin.apt:
@@ -29,35 +21,9 @@
           cache_valid_time: 3600
           upgrade: safe
       - name: SSH hardening for Proxmox host
-        tags: ssh
-        block:
-          - name: Update apt cache and upgrade packages
-            ansible.builtin.apt:
-              update_cache: true
-              cache_valid_time: 3600
-              upgrade: safe
-
-          - name: Deploy ed25519 public key to Proxmox host
-            ansible.posix.authorized_key:
-              user: root
-              key: "{{ ssh_pubkey_ed25519 }}"
-              state: present
-              exclusive: false
-
-          - name: Harden SSH configuration on Proxmox host
-            ansible.builtin.lineinfile:
-              path: /etc/ssh/sshd_config
-              regexp: "{{ item.regexp }}"
-              line: "{{ item.line }}"
-              state: present
-              backup: true
-            loop:
-              - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin prohibit-password' }
-              - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
-              - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
-              - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding yes' }
-              - { regexp: '^#?ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
-            notify: Restart SSH
+        ansible.builtin.include_role:
+          name: ssh-hardening
+        tags: [ssh]
 
     - name: Networking configuration
       tags: hostconf
@@ -68,17 +34,14 @@
             state: directory
             mode: '0755'
 
-        - name: Download iptables-up.sh script
-          ansible.builtin.get_url:
-            url: "https://raw.githubusercontent.com/nirmalhk7/operationscenter/refs/heads/main/infrastructure/assets/iptables-up.sh"
-            dest: "{{ homelab_path }}/networking/iptables-up.sh"
+        - name: Deploy iptables scripts to networking directory
+          ansible.builtin.copy:
+            src: "../assets/{{ item }}"
+            dest: "{{ homelab_path }}/networking/{{ item }}"
             mode: '0755'
-
-        - name: Download iptables-down.sh script
-          ansible.builtin.get_url:
-            url: "https://raw.githubusercontent.com/nirmalhk7/operationscenter/refs/heads/main/infrastructure/assets/iptables-down.sh"
-            dest: "{{ homelab_path }}/networking/iptables-down.sh"
-            mode: '0755'
+          loop:
+            - iptables-up.sh
+            - iptables-down.sh
 
         - name: Enable IPv4 forwarding for Tailscale
           ansible.posix.sysctl:
@@ -95,7 +58,7 @@
 
               auto wlp4s0
               iface wlp4s0 inet static
-                      address 10.0.0.10/24
+                      address {{ host_ip }}/24
                       gateway 10.0.0.1
               #Machine to Wifi interface. CRITICAL DO NOT REMOVE
               
@@ -105,8 +68,8 @@
                   bridge-ports none
                   bridge-stp off
                   bridge-fd 0
-                  post-up {{ homelab_path }}/networking/iptables-up.sh
-                  post-down {{ homelab_path }}/networking/iptables-down.sh
+                  post-up HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-up.sh
+                  post-down HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-down.sh
 
         - name: Reload network configuration
           ansible.builtin.command: ifreload -a
@@ -145,8 +108,8 @@
         - name: Remove subscription popup from Proxmox web UI
           ansible.builtin.replace:
             path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
-            regexp: "res === null \\|\\| res === undefined \\|\\| \\!res \\|\\| res"
-            replace: "false"
+            regexp: "Ext\\.Msg\\.show\\(\\{\\s+title: gettext\\('No valid subscription'\\),"
+            replace: "void({ //title: gettext('No valid subscription'),"
           notify: Restart pveproxy
 
     - name: Tailscale setup on Proxmox host
@@ -191,7 +154,7 @@
           when: (tailscale_status.rc != 0) and (tailscale_auth_key | length == 0)
 
         - name: Bring Tailscale up when not connected
-          ansible.builtin.command: tailscale up --auth-key={{ tailscale_auth_key }}
+          ansible.builtin.command: tailscale up --auth-key={{ tailscale_auth_key }} {{ tailscale_args }}
           when: tailscale_status.rc != 0
 
         - name: Configure Tailscale metrics systemd service
@@ -235,11 +198,6 @@
             pct exec 104 -- sed -i 's/^#PermitRootLogin.*/PermitRootLogin prohibit-password/g' /etc/ssh/sshd_config && pct exec 104 -- systemctl restart ssh
             
   handlers:
-    - name: Restart SSH
-      ansible.builtin.systemd:
-        name: sshd
-        state: restarted
-
     - name: Restart Tailscale metrics
       ansible.builtin.systemd:
         name: tailscale-metrics.service

@@ -1,0 +1,24 @@
+{
+  "mountainvalue_subagents": {
+    "eq_quantsieve": {
+      "status": "SUBAGENT_ROLE"
+    },
+    "eq_eventhound": {
+      "status": "SUBAGENT_ROLE"
+    },
+    "eq_thesis_depth_reviewer": {
+      "status": "SUBAGENT_ROLE"
+    },
+    "eq_riskskeptic": {
+      "status": "SUBAGENT_ROLE"
+    }
+  },
+  "general_subagents": {
+    "newswire": {
+      "status": "SUBAGENT_ROLE",
+      "allowed_callers": [
+        "victor"
+      ]
+    }
+  }
+}

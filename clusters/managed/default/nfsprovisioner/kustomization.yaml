@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - helmrelease.yaml
+  - servicemonitor.yaml
 
 labels:
   - pairs:
