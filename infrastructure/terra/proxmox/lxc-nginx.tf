@@ -79,5 +79,9 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
-  enabled = true
+  enabled   = true
+  ipfilter  = true
+  macfilter = true
+  ndp       = false
+  radv      = false
 }

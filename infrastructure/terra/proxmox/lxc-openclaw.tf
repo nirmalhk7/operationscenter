@@ -84,17 +84,17 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     type    = "in"
     proto   = "tcp"
     dport   = "18789"
-    source  = "172.16.0.101"
+    source  = local.proxmoxMachines.nginx.ip
     comment = "Allow Nginx to reach OpenClaw robot service"
     iface   = "net0"
     enabled = true
   }
 
-  # TODO: Verify kubectl still works if this is tightened to tcp/32363 on 172.16.0.105 only.
+  # TODO: Verify kubectl still works if this is tightened to tcp/32363 on k8mgd only.
   rule {
     action  = "ACCEPT"
     type    = "out"
-    dest    = "172.16.0.105"
+    dest    = local.proxmoxMachines.k8mgd.ip
     comment = "Allow OpenClaw to reach k8mgd"
     iface   = "net0"
     enabled = true
@@ -103,7 +103,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   rule {
     action  = "ACCEPT"
     type    = "out"
-    dest    = "172.16.0.101"
+    dest    = local.proxmoxMachines.nginx.ip
     comment = "Allow OpenClaw to reach nginx"
     iface   = "net0"
     enabled = true
@@ -163,5 +163,10 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_container.lxc-openclaw.vm_id
 
-  enabled = true
+  enabled       = true
+  ipfilter      = true
+  macfilter     = true
+  ndp           = false
+  radv          = false
+  log_level_out = "info"
 }

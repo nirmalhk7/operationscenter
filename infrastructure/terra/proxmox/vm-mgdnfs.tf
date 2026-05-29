@@ -108,3 +108,15 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
     enabled        = true
   }
 }
+
+resource "proxmox_virtual_environment_firewall_options" "vm-mgdnfs1-config" {
+  depends_on = [proxmox_virtual_environment_vm.vm-mgdnfs1]
+  node_name  = local.nodeName
+  vm_id      = proxmox_virtual_environment_vm.vm-mgdnfs1.vm_id
+
+  enabled   = true
+  ipfilter  = true
+  macfilter = true
+  ndp       = false
+  radv      = false
+}

@@ -14,20 +14,11 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
 
   rule {
     enabled = true
-    action  = "DROP"
-    type    = "out"
-    comment = "Drop connections to managed group members"
-    dest    = "+dc/ipset-mgd"
-    log     = "info"
-  }
-
-  rule {
-    enabled = true
     action  = "ACCEPT"
     type    = "out"
     comment = "Allow Nginx to reach k8mgd for trusted subdomains"
-    source  = "172.16.0.101"
-    dest    = "172.16.0.105"
+    source  = local.proxmoxMachines.nginx.ip
+    dest    = local.proxmoxMachines.k8mgd.ip
     proto   = "tcp"
     dport   = "443"
     log     = "info"
@@ -38,8 +29,8 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     action  = "ACCEPT"
     type    = "out"
     comment = "Allow Nginx to reach Proxmox dashboard"
-    source  = "172.16.0.101"
-    dest    = "172.16.0.1"
+    source  = local.proxmoxMachines.nginx.ip
+    dest    = local.proxmoxBridgeIp
     proto   = "tcp"
     dport   = "8006"
     log     = "info"
@@ -50,8 +41,8 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     action  = "ACCEPT"
     type    = "out"
     comment = "Allow Nginx to reach home frontend"
-    source  = "172.16.0.101"
-    dest    = "172.16.0.105"
+    source  = local.proxmoxMachines.nginx.ip
+    dest    = local.proxmoxMachines.k8mgd.ip
     proto   = "tcp"
     dport   = "31216"
     log     = "info"
@@ -62,10 +53,19 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     action  = "ACCEPT"
     type    = "out"
     comment = "Allow Nginx to reach OpenClaw robot service"
-    source  = "172.16.0.101"
-    dest    = "172.16.0.104"
+    source  = local.proxmoxMachines.nginx.ip
+    dest    = local.proxmoxMachines.openclaw.ip
     proto   = "tcp"
     dport   = "18789"
+    log     = "info"
+  }
+
+  rule {
+    enabled = true
+    action  = "DROP"
+    type    = "out"
+    comment = "Drop connections to managed group members"
+    dest    = "+dc/ipset-mgd"
     log     = "info"
   }
 

@@ -90,3 +90,15 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
     enabled        = true
   }
 }
+
+resource "proxmox_virtual_environment_firewall_options" "vm-k8docker-config" {
+  depends_on = [proxmox_virtual_environment_vm.vm-k8docker]
+  node_name  = local.nodeName
+  vm_id      = proxmox_virtual_environment_vm.vm-k8docker.vm_id
+
+  enabled   = true
+  ipfilter  = true
+  macfilter = true
+  ndp       = false
+  radv      = false
+}

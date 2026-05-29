@@ -94,9 +94,21 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     type    = "in"
     proto   = "tcp"
     dport   = "443"
-    source  = "172.16.0.101"
+    source  = local.proxmoxMachines.nginx.ip
     comment = "Allow Nginx to reach k8mgd for wildcard trusted subdomains"
     iface   = "net0"
     enabled = true
   }
+}
+
+resource "proxmox_virtual_environment_firewall_options" "vm-k8mgd-config" {
+  depends_on = [proxmox_virtual_environment_vm.vm-k8mgd]
+  node_name  = local.nodeName
+  vm_id      = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
+
+  enabled   = true
+  ipfilter  = true
+  macfilter = true
+  ndp       = false
+  radv      = false
 }
