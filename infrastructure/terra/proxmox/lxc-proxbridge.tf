@@ -2,7 +2,7 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
 
   description = "Proxmox bridge for host level activities"
   node_name   = local.nodeName
-  vm_id       = 102
+  vm_id       = local.proxmoxMachines.proxbridge.vm_id
   tags        = ["mgd"]
   pool_id     = proxmox_virtual_environment_pool.pool-mgd.pool_id
 
@@ -11,14 +11,14 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
 
     ip_config {
       ipv4 {
-        address = "${local.machineSubnet}102/24"
-        gateway = "${local.machineSubnet}1"
+        address = local.proxmoxMachines.proxbridge.cidr
+        gateway = local.proxmoxBridgeIp
       }
     }
 
     user_account {
       keys     = [local.sshKeys.mgd]
-      password = "${var.vm_password}102"
+      password = "${var.vm_password}${local.proxmoxMachines.proxbridge.vm_id}"
     }
   }
 

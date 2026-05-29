@@ -2,7 +2,7 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
 
   description = "openclaw"
   node_name   = local.nodeName
-  vm_id       = 104
+  vm_id       = local.proxmoxMachines.openclaw.vm_id
   tags        = ["mgd"]
   pool_id     = proxmox_virtual_environment_pool.pool-mgd.pool_id
 
@@ -11,14 +11,14 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
 
     ip_config {
       ipv4 {
-        address = "${local.machineSubnet}104/24"
-        gateway = "${local.machineSubnet}1"
+        address = local.proxmoxMachines.openclaw.cidr
+        gateway = local.proxmoxBridgeIp
       }
     }
 
     user_account {
       keys     = [local.sshKeys.mgd]
-      password = "${var.vm_password}104"
+      password = "${var.vm_password}${local.proxmoxMachines.openclaw.vm_id}"
     }
   }
 

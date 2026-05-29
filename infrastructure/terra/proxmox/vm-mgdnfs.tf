@@ -4,7 +4,7 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
   tags        = ["debian"]
 
   node_name = local.nodeName
-  vm_id     = 108
+  vm_id     = local.proxmoxMachines.mgdnfs1.vm_id
   boot_order = [
     "scsi0",
     "net0",
@@ -56,13 +56,13 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
     datastore_id = "local"
     ip_config {
       ipv4 {
-        address = "${local.machineSubnet}108/24"
-        gateway = "${local.machineSubnet}1"
+        address = local.proxmoxMachines.mgdnfs1.cidr
+        gateway = local.proxmoxBridgeIp
       }
     }
 
     user_account {
-      password = "${var.vm_password}108"
+      password = "${var.vm_password}${local.proxmoxMachines.mgdnfs1.vm_id}"
       keys     = [local.sshKeys.mgd]
       username = "root"
     }

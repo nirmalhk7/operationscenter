@@ -4,7 +4,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
   tags        = ["debian"]
 
   node_name = local.nodeName
-  vm_id     = 106
+  vm_id     = local.proxmoxMachines.k8docker.vm_id
 
 
   agent {
@@ -40,13 +40,13 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
     datastore_id = "local"
     ip_config {
       ipv4 {
-        address = "${local.machineSubnet}106/24"
-        gateway = "${local.machineSubnet}1"
+        address = local.proxmoxMachines.k8docker.cidr
+        gateway = local.proxmoxBridgeIp
       }
     }
 
     user_account {
-      password = "${var.vm_password}106"
+      password = "${var.vm_password}${local.proxmoxMachines.k8docker.vm_id}"
       keys     = [local.sshKeys.mgd]
       username = "root"
     }

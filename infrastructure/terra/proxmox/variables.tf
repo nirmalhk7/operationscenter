@@ -43,7 +43,44 @@ locals {
   }
   machineIp     = "10.0.0.10"
   machineSubnet = "172.16.0."
+  machinePrefix = 24
   nodeName      = "milano"
+
+  proxmoxBridgeIp   = "${local.machineSubnet}1"
+  proxmoxBridgeCidr = "${local.machineSubnet}1/${local.machinePrefix}"
+
+  proxmoxMachines = {
+    nginx = {
+      vm_id = 101
+      ip    = "${local.machineSubnet}101"
+      cidr  = "${local.machineSubnet}101/${local.machinePrefix}"
+    }
+    proxbridge = {
+      vm_id = 102
+      ip    = "${local.machineSubnet}102"
+      cidr  = "${local.machineSubnet}102/${local.machinePrefix}"
+    }
+    openclaw = {
+      vm_id = 104
+      ip    = "${local.machineSubnet}104"
+      cidr  = "${local.machineSubnet}104/${local.machinePrefix}"
+    }
+    k8mgd = {
+      vm_id = 105
+      ip    = "${local.machineSubnet}105"
+      cidr  = "${local.machineSubnet}105/${local.machinePrefix}"
+    }
+    k8docker = {
+      vm_id = 106
+      ip    = "${local.machineSubnet}106"
+      cidr  = "${local.machineSubnet}106/${local.machinePrefix}"
+    }
+    mgdnfs1 = {
+      vm_id = 108
+      ip    = "${local.machineSubnet}108"
+      cidr  = "${local.machineSubnet}108/${local.machinePrefix}"
+    }
+  }
 
   sshKeys = {
     mgd = trimspace(file("~/.ssh/id_ed25519_homelab.pub"))

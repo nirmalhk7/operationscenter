@@ -4,7 +4,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
   tags        = ["debian"]
 
   node_name = local.nodeName
-  vm_id     = 105
+  vm_id     = local.proxmoxMachines.k8mgd.vm_id
 
   agent {
     enabled = true
@@ -39,13 +39,13 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
     datastore_id = "local"
     ip_config {
       ipv4 {
-        address = "${local.machineSubnet}105/24"
-        gateway = "${local.machineSubnet}1"
+        address = local.proxmoxMachines.k8mgd.cidr
+        gateway = local.proxmoxBridgeIp
       }
     }
 
     user_account {
-      password = "${var.vm_password}105"
+      password = "${var.vm_password}${local.proxmoxMachines.k8mgd.vm_id}"
       keys     = [local.sshKeys.mgd]
       username = "root"
     }

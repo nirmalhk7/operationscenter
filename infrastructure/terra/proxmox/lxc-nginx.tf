@@ -2,7 +2,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
 
   description = "NginX"
   node_name   = local.nodeName
-  vm_id       = 101
+  vm_id       = local.proxmoxMachines.nginx.vm_id
   tags        = ["mgd"]
   pool_id     = proxmox_virtual_environment_pool.pool-mgd.pool_id
 
@@ -11,14 +11,14 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
 
     ip_config {
       ipv4 {
-        address = "${local.machineSubnet}101/24"
-        gateway = "${local.machineSubnet}1"
+        address = local.proxmoxMachines.nginx.cidr
+        gateway = local.proxmoxBridgeIp
       }
     }
 
     user_account {
       keys     = [local.sshKeys.mgd]
-      password = "${var.vm_password}101"
+      password = "${var.vm_password}${local.proxmoxMachines.nginx.vm_id}"
     }
   }
 
