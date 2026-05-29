@@ -88,4 +88,15 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     iface          = "net0"
     enabled        = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "443"
+    source  = "172.16.0.101"
+    comment = "Allow Nginx to reach k8mgd for wildcard trusted subdomains"
+    iface   = "net0"
+    enabled = true
+  }
 }
