@@ -168,5 +168,6 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
   macfilter     = true
   ndp           = false
   radv          = false
+  log_level_in  = "info"
   log_level_out = "info"
 }

@@ -80,9 +80,11 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-proxbridge-config" 
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
 
-  enabled   = true
-  ipfilter  = true
-  macfilter = true
-  ndp       = false
-  radv      = false
+  enabled       = true
+  ipfilter      = true
+  macfilter     = true
+  ndp           = false
+  radv          = false
+  log_level_in  = "info"
+  log_level_out = "info"
 }
