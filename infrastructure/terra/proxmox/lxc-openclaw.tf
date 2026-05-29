@@ -64,19 +64,97 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
-  depends_on = [
-    proxmox_virtual_environment_container.lxc-openclaw,
-    proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
-  ]
+  depends_on = [proxmox_virtual_environment_container.lxc-openclaw]
 
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-openclaw.vm_id
 
   rule {
-    security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
-    comment        = "Managed Group Rules"
-    iface          = "net0"
-    enabled        = true
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "22"
+    comment = "Allow SSH to OpenClaw"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "18789"
+    source  = "172.16.0.101"
+    comment = "Allow Nginx to reach OpenClaw robot service"
+    iface   = "net0"
+    enabled = true
+  }
+
+  # TODO: Verify kubectl still works if this is tightened to tcp/32363 on 172.16.0.105 only.
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    dest    = "172.16.0.105"
+    comment = "Allow OpenClaw to reach k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    dest    = "172.16.0.101"
+    comment = "Allow OpenClaw to reach nginx"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    comment = "Allow outbound DNS over UDP"
+    proto   = "udp"
+    dport   = "53"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    comment = "Allow outbound DNS over TCP"
+    proto   = "tcp"
+    dport   = "53"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    comment = "Allow outbound HTTP"
+    proto   = "tcp"
+    dport   = "80"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    comment = "Allow outbound HTTPS"
+    proto   = "tcp"
+    dport   = "443"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "DROP"
+    type    = "out"
+    comment = "Drop all other outbound traffic"
+    iface   = "net0"
+    enabled = true
   }
 }
 
