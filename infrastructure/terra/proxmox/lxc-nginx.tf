@@ -80,6 +80,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
   vm_id      = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
   enabled       = true
+  output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true
   ndp           = false

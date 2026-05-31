@@ -27,19 +27,13 @@ flowchart LR
   Nginx -->|proxmox.conf: HTTPS 8006| ProxmoxUI
   Nginx -->|robot.conf: HTTP 18789| OpenClaw
 
-  ManagedNet -->|DNS 53/udp + 53/tcp| DNS
-  ManagedNet -->|HTTP 80/tcp| Nginx
-  ManagedNet -->|HTTPS 443/tcp| Nginx
-  ManagedNet -->|all other outbound allowed| Internet
-
-  DevNet -->|DNS 53/udp + 53/tcp| DNS
-  DevNet -->|HTTP 80/tcp| Nginx
-  DevNet -->|HTTPS 443/tcp| Nginx
-  DevNet -->|drop traffic to managed tier| ManagedNet
+  ManagedNet -->|all outbound allowed| Internet
+  DevNet -->|all outbound allowed| Internet
+  DevNet -->|all outbound allowed| ManagedNet
 
   OpenClaw -->|allow to Nginx any port| Nginx
   OpenClaw -->|allow to K8s any port| K8s
-  OpenClaw -->|drop all other outbound| Internet
+  OpenClaw -->|all outbound allowed| Internet
 ```
 
 ## Rule Summary
@@ -59,20 +53,18 @@ flowchart LR
 ### `sg-dev`
 - Inbound: allow SSH on `22/tcp`.
 - Inbound: allow traffic to dev-tier members.
-- Outbound: allow `53/udp`, `53/tcp`, `80/tcp`, and `443/tcp`.
-- Outbound: drop traffic to managed-tier IPs.
+- Outbound: allow all traffic.
 
 ### `lxc-openclaw`
 - Inbound: allow SSH on `22/tcp`.
 - Inbound: allow `tcp/18789` from `172.16.0.101`.
-- Outbound policy is `DROP`.
-- Outbound: allow any port to `172.16.0.101` and `172.16.0.105`.
-- Outbound: drop everything else.
+- Outbound policy is `ACCEPT`.
+- Outbound: explicit allow rules to `172.16.0.101` and `172.16.0.105` remain present but are no longer restrictive because default outbound is open.
 
 ### Guest Attachments
 - `lxc-nginx.tf`, `lxc-proxbridge.tf`, `vm-mgdk8.tf`, `vm-mgddocker.tf`, and `vm-mgdnfs.tf` all have `firewall = true` on the network device and attach `sg-managed`.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.
-- `lxc-openclaw.tf` enables its own firewall rules directly and uses a stricter outbound policy than the managed tier.
+- Every guest firewall options resource explicitly sets outbound policy to `ACCEPT`.
 
 ## Notes
 

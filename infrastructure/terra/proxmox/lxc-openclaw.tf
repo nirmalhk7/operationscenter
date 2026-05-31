@@ -120,7 +120,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = "DROP"
+  output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true
   ndp           = false

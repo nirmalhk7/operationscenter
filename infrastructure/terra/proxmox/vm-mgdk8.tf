@@ -107,6 +107,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-k8mgd-config" {
   vm_id      = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
 
   enabled       = true
+  output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true
   ndp           = false

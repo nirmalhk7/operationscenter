@@ -20,16 +20,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
   }
 
   rule {
-    action  = "DROP"
-    source  = "+dc/ipset-dev"
-    type    = "out"
-    dest    = "+dc/ipset-mgd"
-    comment = "Drop traffic to managed"
-    log     = "info"
-    enabled = true
-  }
-
-  rule {
     action  = "ACCEPT"
     type    = "out"
     comment = "Allow outbound DNS over UDP"
