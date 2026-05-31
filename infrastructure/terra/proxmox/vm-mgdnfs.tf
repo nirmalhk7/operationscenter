@@ -114,7 +114,8 @@ resource "proxmox_virtual_environment_firewall_options" "vm-mgdnfs1-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_vm.vm-mgdnfs1.vm_id
 
-  enabled       = false
+  enabled       = true
+  input_policy  = "ACCEPT"
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true
