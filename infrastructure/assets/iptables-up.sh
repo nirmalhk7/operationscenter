@@ -28,19 +28,23 @@ iptables -X
 
 # ==========================================
 # 3. CORE ROUTING & NAT
+#    Match the live host behavior:
+#    - wmnet can forward to WAN and Tailscale
+#    - LAN ICMP is allowed
+#    - Nginx/K8s port forwards remain available
 # ==========================================
 
 # A. ENABLE OUTGOING TAILSCALE TRAFFIC (Masquerade)
 iptables -t nat -A POSTROUTING -o "$VPN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
 
-# B. ENABLE OUTGOING INTERNET TRAFFIC (SNAT to WiFi)
-iptables -t nat -A POSTROUTING -o "$WAN_IFACE" -s "$INT_SUBNET" -j SNAT --to-source "$HOST_IP"
+# B. ENABLE OUTGOING INTERNET TRAFFIC (Masquerade)
+iptables -t nat -A POSTROUTING -o "$WAN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
 
 # C. ENABLE FORWARDING
+iptables -A FORWARD -i "$LAN_IFACE" -j ACCEPT
+iptables -A FORWARD -o "$LAN_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -i "$LAN_IFACE" -o "$WAN_IFACE" -j ACCEPT
-iptables -A FORWARD -i "$WAN_IFACE" -o "$LAN_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -i "$LAN_IFACE" -o "$VPN_IFACE" -j ACCEPT
-iptables -A FORWARD -i "$VPN_IFACE" -o "$LAN_IFACE" -j ACCEPT
 
 # D. Allow ICMP
 iptables -A INPUT -i "$LAN_IFACE" -p icmp -j ACCEPT

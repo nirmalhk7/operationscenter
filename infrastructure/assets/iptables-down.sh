@@ -20,13 +20,13 @@ VPN_IFACE="${VPN_IFACE:?}"
 
 # 1. Remove Core Routing
 iptables -t nat -D POSTROUTING -o "$VPN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
-iptables -t nat -D POSTROUTING -o "$WAN_IFACE" -s "$INT_SUBNET" -j SNAT --to-source "$HOST_IP"
+iptables -t nat -D POSTROUTING -o "$WAN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
 
 # 2. Remove Forwarding
+iptables -D FORWARD -i "$LAN_IFACE" -j ACCEPT
+iptables -D FORWARD -o "$LAN_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -D FORWARD -i "$LAN_IFACE" -o "$WAN_IFACE" -j ACCEPT
-iptables -D FORWARD -i "$WAN_IFACE" -o "$LAN_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -D FORWARD -i "$LAN_IFACE" -o "$VPN_IFACE" -j ACCEPT
-iptables -D FORWARD -i "$VPN_IFACE" -o "$LAN_IFACE" -j ACCEPT
 
 # 3. Remove ICMP
 iptables -D INPUT -i "$LAN_IFACE" -p icmp -j ACCEPT
