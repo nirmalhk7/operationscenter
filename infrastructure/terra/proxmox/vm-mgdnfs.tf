@@ -115,7 +115,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-mgdnfs1-config" {
   vm_id      = proxmox_virtual_environment_vm.vm-mgdnfs1.vm_id
 
   enabled       = true
-  ipfilter      = true
+  ipfilter      = false
   macfilter     = true
   ndp           = false
   radv          = false

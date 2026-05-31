@@ -64,4 +64,11 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     dport   = "443"
     enabled = true
   }
+
+  rule {
+    enabled = true
+    action  = "ACCEPT"
+    type    = "out"
+    comment = "Allow all other outbound traffic"
+  }
 }
