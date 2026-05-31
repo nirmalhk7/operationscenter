@@ -94,21 +94,11 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
-  # TODO: Verify kubectl still works if this is tightened to tcp/32363 on k8mgd only.
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    dest    = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow OpenClaw to reach k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
   rule {
     action  = "ACCEPT"
     type    = "out"
     dest    = local.proxmoxMachines.nginx.ip
-    comment = "Allow OpenClaw to reach nginx"
+    comment = "Allow outbound to Nginx"
     iface   = "net0"
     enabled = true
   }
@@ -116,47 +106,8 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   rule {
     action  = "ACCEPT"
     type    = "out"
-    comment = "Allow outbound DNS over UDP"
-    proto   = "udp"
-    dport   = "53"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    comment = "Allow outbound DNS over TCP"
-    proto   = "tcp"
-    dport   = "53"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    comment = "Allow outbound HTTP"
-    proto   = "tcp"
-    dport   = "80"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    comment = "Allow outbound HTTPS"
-    proto   = "tcp"
-    dport   = "443"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "DROP"
-    type    = "out"
-    comment = "Drop all other outbound traffic"
+    dest    = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow outbound to k8mgd"
     iface   = "net0"
     enabled = true
   }
@@ -168,7 +119,9 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
   vm_id      = proxmox_virtual_environment_container.lxc-openclaw.vm_id
 
   enabled       = true
-  ipfilter      = true
+  input_policy  = "DROP"
+  output_policy = "DROP"
+  ipfilter      = false
   macfilter     = true
   ndp           = false
   radv          = false
