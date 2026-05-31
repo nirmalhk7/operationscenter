@@ -31,6 +31,30 @@ resource "proxmox_virtual_environment_time" "milano" {
 
 resource "proxmox_virtual_environment_firewall_rules" "inbound" {
   node_name = local.nodeName
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    source  = "10.0.0.0/24"
+    comment = "Allow trusted LAN to reach Proxmox node"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    source  = "172.16.0.0/24"
+    comment = "Allow internal bridge to reach Proxmox node"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    source  = "100.64.0.0/10"
+    comment = "Allow Tailscale clients to reach Proxmox node"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_node_firewall" "options" {
