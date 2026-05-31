@@ -5,8 +5,17 @@ resource "proxmox_virtual_environment_cluster_options" "options" {
 }
 
 resource "proxmox_virtual_environment_cluster_firewall" "options" {
-  enabled = true
+  enabled        = true
+  ebtables       = false
+  input_policy   = "DROP"
+  output_policy  = "ACCEPT"
+  forward_policy = "ACCEPT"
 
+  log_ratelimit {
+    enabled = false
+    burst   = 5
+    rate    = "1/second"
+  }
 }
 
 resource "proxmox_virtual_environment_dns" "milano" {
@@ -22,4 +31,9 @@ resource "proxmox_virtual_environment_time" "milano" {
 
 resource "proxmox_virtual_environment_firewall_rules" "inbound" {
   node_name = local.nodeName
+}
+
+resource "proxmox_virtual_environment_node_firewall" "options" {
+  node_name = local.nodeName
+  enabled   = true
 }
