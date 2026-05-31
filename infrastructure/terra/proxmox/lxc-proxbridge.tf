@@ -81,7 +81,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-proxbridge-config" 
   vm_id      = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
 
   enabled       = true
-  input_policy  = "ACCEPT"
+  input_policy  = "DROP"
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true

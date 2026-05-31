@@ -93,6 +93,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
+    dport   = "6443"
+    comment = "Allow Kubernetes API ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
     dport   = "443"
     source  = local.proxmoxMachines.nginx.ip
     comment = "Allow Nginx to reach k8mgd for wildcard trusted subdomains"
@@ -107,7 +117,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-k8mgd-config" {
   vm_id      = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
 
   enabled       = true
-  input_policy  = "ACCEPT"
+  input_policy  = "DROP"
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true

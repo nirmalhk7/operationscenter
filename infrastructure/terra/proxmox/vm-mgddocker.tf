@@ -97,7 +97,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-k8docker-config" {
   vm_id      = proxmox_virtual_environment_vm.vm-k8docker.vm_id
 
   enabled       = true
-  input_policy  = "ACCEPT"
+  input_policy  = "DROP"
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true

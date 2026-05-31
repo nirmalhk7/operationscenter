@@ -29,7 +29,7 @@ flowchart LR
 
   ManagedNet -->|all outbound allowed| Internet
   DevNet -->|all outbound allowed| Internet
-  DevNet -->|all outbound allowed| ManagedNet
+  DevNet -.->|blocked by sg-dev| ManagedNet
 
   OpenClaw -->|allow to Nginx any port| Nginx
   OpenClaw -->|allow to K8s any port| K8s
@@ -39,11 +39,11 @@ flowchart LR
 ## Rule Summary
 
 ### `config.tf`
-- Datacenter firewall is disabled.
+- Datacenter firewall is enabled.
 - Datacenter input policy is `DROP`.
 - Datacenter output policy is `ACCEPT`.
 - Datacenter forward policy is `ACCEPT` so bridged guest traffic can leave the host.
-- The node-level `inbound` firewall rule resource exists but is empty.
+- Node firewall is enabled with inbound allows for local LAN, managed bridge, and Tailscale ranges.
 
 ### `sg-managed`
 - Inbound: allow SSH on `22/tcp`.
@@ -53,7 +53,8 @@ flowchart LR
 ### `sg-dev`
 - Inbound: allow SSH on `22/tcp`.
 - Inbound: allow traffic to dev-tier members.
-- Outbound: allow all traffic.
+- Outbound: drop traffic from `+dc/ipset-dev` to `+dc/ipset-mgd`.
+- Outbound: allow all other traffic.
 
 ### `lxc-openclaw`
 - Inbound: allow SSH on `22/tcp`.
@@ -63,7 +64,8 @@ flowchart LR
 
 ### Guest Attachments
 - Guest network devices have `firewall = false`; NIC-level firewalling remains disabled because it blocks LXC outbound traffic.
-- Managed guest firewall option resources have `enabled = true` with input and output policy set to `ACCEPT`.
+- Managed guest firewall option resources have `enabled = true`, input policy set to `DROP`, and output policy set to `ACCEPT`.
+- Managed inbound access is explicit: SSH through `sg-managed`, Nginx `80/tcp`, `443/tcp`, `6901/tcp`, k8mgd `6443/tcp`, Nginx to k8mgd `443/tcp`, and mgdnfs `2049/tcp`, `111/tcp`, `111/udp`.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.
 - Every guest firewall options resource explicitly sets outbound policy to `ACCEPT`.
 

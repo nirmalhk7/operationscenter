@@ -72,6 +72,36 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
     iface          = "net0"
     enabled        = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "80"
+    comment = "Allow HTTP ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "443"
+    comment = "Allow HTTPS ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "6901"
+    comment = "Allow robot stream proxy ingress"
+    iface   = "net0"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
@@ -80,7 +110,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
   vm_id      = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
   enabled       = true
-  input_policy  = "ACCEPT"
+  input_policy  = "DROP"
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true

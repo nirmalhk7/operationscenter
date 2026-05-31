@@ -107,6 +107,36 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
     iface          = "net0"
     enabled        = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "2049"
+    comment = "Allow NFS ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "111"
+    comment = "Allow RPC bind TCP ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "udp"
+    dport   = "111"
+    comment = "Allow RPC bind UDP ingress"
+    iface   = "net0"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "vm-mgdnfs1-config" {
@@ -115,7 +145,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-mgdnfs1-config" {
   vm_id      = proxmox_virtual_environment_vm.vm-mgdnfs1.vm_id
 
   enabled       = true
-  input_policy  = "ACCEPT"
+  input_policy  = "DROP"
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true

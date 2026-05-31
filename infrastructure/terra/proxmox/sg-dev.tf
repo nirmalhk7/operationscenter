@@ -56,6 +56,15 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
   }
 
   rule {
+    action  = "DROP"
+    type    = "out"
+    source  = "+dc/ipset-dev"
+    dest    = "+dc/ipset-mgd"
+    comment = "Block dev-to-managed traffic"
+    enabled = true
+  }
+
+  rule {
     enabled = true
     action  = "ACCEPT"
     type    = "out"
