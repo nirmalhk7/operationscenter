@@ -74,7 +74,7 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
 
   network_device {
     bridge   = "wmnet"
-    firewall = true
+    firewall = false
   }
 
   operating_system {
@@ -114,7 +114,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-mgdnfs1-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_vm.vm-mgdnfs1.vm_id
 
-  enabled       = true
+  enabled       = false
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true

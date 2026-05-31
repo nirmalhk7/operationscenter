@@ -26,7 +26,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
     bridge   = "wmnet"
     name     = "net0"
     enabled  = true
-    firewall = true
+    firewall = false
   }
 
   memory {
@@ -79,7 +79,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
-  enabled       = true
+  enabled       = false
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true

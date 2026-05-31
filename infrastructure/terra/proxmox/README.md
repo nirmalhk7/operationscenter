@@ -39,7 +39,7 @@ flowchart LR
 ## Rule Summary
 
 ### `config.tf`
-- Datacenter firewall is enabled.
+- Datacenter firewall is disabled.
 - Datacenter input policy is `DROP`.
 - Datacenter output policy is `ACCEPT`.
 - Datacenter forward policy is `ACCEPT` so bridged guest traffic can leave the host.
@@ -62,7 +62,8 @@ flowchart LR
 - Outbound: explicit allow rules to `172.16.0.101` and `172.16.0.105` remain present but are no longer restrictive because default outbound is open.
 
 ### Guest Attachments
-- `lxc-nginx.tf`, `lxc-proxbridge.tf`, `vm-mgdk8.tf`, `vm-mgddocker.tf`, and `vm-mgdnfs.tf` all have `firewall = true` on the network device and attach `sg-managed`.
+- Guest network devices have `firewall = false` while the firewall outage is being isolated.
+- Guest firewall option resources have `enabled = false` while the firewall outage is being isolated.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.
 - Every guest firewall options resource explicitly sets outbound policy to `ACCEPT`.
 

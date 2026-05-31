@@ -55,7 +55,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 
   network_device {
     bridge   = "wmnet"
-    firewall = true
+    firewall = false
   }
 
   operating_system {
@@ -106,7 +106,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-k8mgd-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
 
-  enabled       = true
+  enabled       = false
   output_policy = "ACCEPT"
   ipfilter      = false
   macfilter     = true
