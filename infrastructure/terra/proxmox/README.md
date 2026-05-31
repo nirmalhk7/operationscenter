@@ -62,8 +62,9 @@ flowchart LR
 - Outbound: explicit allow rules to `172.16.0.101` and `172.16.0.105` remain present but are no longer restrictive because default outbound is open.
 
 ### Guest Attachments
-- Guest network devices have `firewall = false` while the firewall outage is being isolated.
-- Guest firewall option resources have `enabled = false` while the firewall outage is being isolated.
+- `lxc-nginx.tf` has `firewall = true` on the network device for Phase 3A debugging.
+- Other guest network devices have `firewall = false` while Phase 3 is being isolated.
+- Guest firewall option resources have `enabled = false` while Phase 3 is being isolated.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.
 - Every guest firewall options resource explicitly sets outbound policy to `ACCEPT`.
 
