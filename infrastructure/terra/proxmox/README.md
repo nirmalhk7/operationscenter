@@ -59,11 +59,13 @@ flowchart LR
 ### `lxc-openclaw`
 - Inbound: allow SSH on `22/tcp`.
 - Inbound: allow `tcp/18789` from `172.16.0.101`.
+- OpenClaw network device has `firewall = true` so its guest firewall rules are enforced.
 - Outbound policy is `ACCEPT`.
-- Outbound: explicit allow rules to `172.16.0.101` and `172.16.0.105` remain present but are no longer restrictive because default outbound is open.
+- Outbound: all traffic is allowed so OpenClaw keeps internet access.
 
 ### Guest Attachments
 - Guest network devices have `firewall = false`; NIC-level firewalling remains disabled because it blocks LXC outbound traffic.
+- OpenClaw is the exception: its network device has `firewall = true` with outbound policy left open.
 - Managed guest firewall option resources have `enabled = true`, input policy set to `DROP`, and output policy set to `ACCEPT`.
 - Managed inbound access is explicit: SSH through `sg-managed`, Nginx `80/tcp`, `443/tcp`, `6901/tcp`, k8mgd `6443/tcp`, Nginx to k8mgd `443/tcp`, and mgdnfs `2049/tcp`, `111/tcp`, `111/udp`.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.

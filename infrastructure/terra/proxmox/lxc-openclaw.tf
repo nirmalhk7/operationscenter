@@ -118,7 +118,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
   node_name  = local.nodeName
   vm_id      = proxmox_virtual_environment_container.lxc-openclaw.vm_id
 
-  enabled       = false
+  enabled       = true
   input_policy  = "DROP"
   output_policy = "ACCEPT"
   ipfilter      = false
