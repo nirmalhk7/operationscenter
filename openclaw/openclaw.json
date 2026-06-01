@@ -101,7 +101,7 @@
       },
       "heartbeat": {
         "every": "30m",
-        "model": "openrouter/qwen/qwen3.5-flash-02-23",
+        "model": "openrouter/free",
         "target": "discord",
         "directPolicy": "allow",
         "lightContext": true,
