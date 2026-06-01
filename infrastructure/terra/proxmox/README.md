@@ -33,7 +33,7 @@ flowchart LR
 
   OpenClaw -->|allow to Nginx any port| Nginx
   OpenClaw -->|allow to K8s any port| K8s
-  OpenClaw -->|all outbound allowed| Internet
+  OpenClaw -->|HTTP/HTTPS/DNS/NTP allowed| Internet
 ```
 
 ## Rule Summary
@@ -67,16 +67,16 @@ flowchart LR
 - Inbound: allow SSH on `22/tcp`.
 - Inbound: allow `tcp/18789` from `172.16.0.101`.
 - OpenClaw network device has `firewall = true` so its guest firewall rules are enforced.
-- Outbound policy is `ACCEPT`.
-- Outbound: all traffic is allowed so OpenClaw keeps internet access.
+- Outbound policy is `DROP`.
+- Outbound: allow `172.16.0.105:6443`, drop RFC1918 and CGNAT/Tailscale ranges, then allow public `80/tcp`, `443/tcp`, DNS, and NTP.
 
 ### Guest Attachments
-- Guest network devices have `firewall = false`; NIC-level firewalling remains disabled because it blocks LXC outbound traffic.
-- OpenClaw is the exception: its network device has `firewall = true` with outbound policy left open.
-- Managed guest firewall option resources have `enabled = true`, input policy set to `DROP`, and output policy set to `ACCEPT`.
+- Most guest network devices have `firewall = false`; NIC-level firewalling remains disabled where enabling it previously blocked LXC outbound traffic.
+- OpenClaw and Nginx are exceptions: their network devices have `firewall = true` with explicit guest firewall rules.
+- Managed guest firewall option resources have `enabled = true` and input policy set to `DROP`.
 - Managed inbound access is explicit: SSH through `sg-managed`, Nginx `80/tcp`, `443/tcp`, `6901/tcp`, k8mgd `6443/tcp`, Nginx to k8mgd `443/tcp`, and mgdnfs `2049/tcp`, `111/tcp`, `111/udp`.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.
-- Every guest firewall options resource explicitly sets outbound policy to `ACCEPT`.
+- Most managed guest firewall options resources explicitly set outbound policy to `ACCEPT`; OpenClaw uses `DROP` with explicit outbound allows.
 
 ## Notes
 
