@@ -22,6 +22,10 @@
       "groq:default": {
         "provider": "groq",
         "mode": "api_key"
+      },
+      "openai-codex:nirmalhk7@gmail.com": {
+        "provider": "openai-codex",
+        "mode": "oauth"
       }
     }
   },
@@ -690,6 +694,15 @@
       "telegram": {
         "enabled": true,
         "config": {}
+      },
+      "openrouter": {
+        "enabled": true
+      },
+      "google": {
+        "enabled": true
+      },
+      "openai": {
+        "enabled": true
       }
     }
   }
