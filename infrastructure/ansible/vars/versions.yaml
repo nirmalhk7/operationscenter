@@ -37,9 +37,6 @@ polymarket_mcp_version: "1.0.0"
 # renovate: datasource=npm depName=stock-nse-india
 stock_nse_india_version: "1.3.0"
 
-# renovate: datasource=npm depName=@newsmcp/server
-newsmcp_server_version: "1.1.1"
-
 # renovate: datasource=npm depName=@cyanheads/secedgar-mcp-server
 secedgar_mcp_server_version: "0.4.0"
 

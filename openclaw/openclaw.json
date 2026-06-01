@@ -254,10 +254,9 @@
         "tools": {
           "profile": "minimal",
           "allow": [
-            "newsmcp__get_news",
-            "newsmcp__get_news_detail",
-            "newsmcp__get_topics",
-            "newsmcp__get_regions"
+            "exa__web_search_exa",
+            "exa__web_fetch_exa",
+            "exa__web_search_advanced_exa"
           ],
           "deny": [
             "bundle-mcp",
@@ -689,8 +688,9 @@
           "KUBECONFIG": "/root/openclaw_support/.kube/config"
         }
       },
-      "newsmcp": {
-        "command": "/root/.local/share/pnpm/newsmcp"
+      "exa": {
+        "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa,web_search_advanced_exa",
+        "transport": "streamable-http"
       },
       "nseindia": {
         "command": "/root/.local/share/pnpm/nseindia",

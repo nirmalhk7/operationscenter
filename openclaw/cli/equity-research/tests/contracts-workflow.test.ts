@@ -159,10 +159,9 @@ test("workflow stays JSON command steps", () => {
   const newswire = agents.find((agent) => agent.id === "newswire") as Record<string, unknown>;
   const newswireTools = newswire.tools as Record<string, unknown>;
   assert.deepEqual(newswireTools.allow, [
-    "newsmcp__get_news",
-    "newsmcp__get_news_detail",
-    "newsmcp__get_topics",
-    "newsmcp__get_regions",
+    "exa__web_search_exa",
+    "exa__web_fetch_exa",
+    "exa__web_search_advanced_exa",
   ]);
 });
 
