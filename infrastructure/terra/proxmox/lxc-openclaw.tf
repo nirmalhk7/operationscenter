@@ -30,7 +30,7 @@ resource "proxmox_virtual_environment_container" "lxc-openclaw" {
     bridge   = "wmnet"
     name     = "net0"
     enabled  = true
-    firewall = false
+    firewall = true
 
   }
 
@@ -97,17 +97,21 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   rule {
     action  = "ACCEPT"
     type    = "out"
-    dest    = local.proxmoxMachines.nginx.ip
-    comment = "Allow outbound to Nginx"
+    proto   = "tcp"
+    dest    = local.proxmoxMachines.k8mgd.ip
+    dport   = "6443"
+    comment = "Allow outbound to k8mgd Kubernetes API"
     iface   = "net0"
     enabled = true
   }
 
   rule {
     action  = "ACCEPT"
-    type    = "out"
-    dest    = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow outbound to k8mgd"
+    type    = "in"
+    proto   = "tcp"
+    source  = local.proxmoxMachines.k8mgd.ip
+    sport   = "6443"
+    comment = "Allow k8mgd Kubernetes API replies to OpenClaw"
     iface   = "net0"
     enabled = true
   }
@@ -120,9 +124,9 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = "ACCEPT"
+  output_policy = "DROP"
   ipfilter      = false
-  macfilter     = true
+  macfilter     = false
   ndp           = false
   radv          = false
   log_level_in  = "info"
