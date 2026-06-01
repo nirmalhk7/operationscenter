@@ -91,7 +91,7 @@
         "nvidia-nim/gpt-oss-120b": {},
         "groq/qwen/qwen3-32b": {},
         "openrouter/qwen/qwen3.5-flash-02-23": {},
-        "openai/gpt-5.5": {}
+        "openai-codex/gpt-5.5": {}
       },
       "workspace": "/root/.openclaw/workspace",
       "userTimezone": "America/Denver",
@@ -134,7 +134,7 @@
           "profile": "full"
         },
         "model": {
-          "primary": "openai/gpt-5.5",
+          "primary": "openai-codex/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
             "openrouter/free"
@@ -145,7 +145,7 @@
         "id": "rahul",
         "workspace": "/root/.openclaw/workspace-rahul",
         "model": {
-          "primary": "openai/gpt-5.5",
+          "primary": "openai-codex/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
             "openrouter/free"
@@ -177,7 +177,7 @@
         "id": "victor",
         "workspace": "/root/.openclaw/workspace-victor",
         "model": {
-          "primary": "openai/gpt-5.5",
+          "primary": "openai-codex/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
             "openrouter/free"
