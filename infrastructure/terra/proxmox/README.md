@@ -50,6 +50,13 @@ flowchart LR
 - Outbound: allow all traffic.
 - Managed guests keep unrestricted egress; the Nginx backend paths now work because they are not blocked by a managed-subnet drop rule.
 
+### `lxc-nginx`
+- Inbound: allow SSH on `22/tcp` through `sg-managed`.
+- Inbound: allow public proxy ports `80/tcp`, `443/tcp`, and robot stream proxy `6901/tcp`.
+- Nginx network device has `firewall = true` so its guest firewall rules are enforced.
+- Outbound policy remains `ACCEPT`; this preserves certbot DNS-01 renewal, package repository access, and GitHub downloads used by the Nginx Ansible workflow.
+- Runtime proxy traffic goes to private backends: `172.16.0.105:443`, `172.16.0.105:31216`, `172.16.0.1:8006`, and `172.16.0.104:18789`.
+
 ### `sg-dev`
 - Inbound: allow SSH on `22/tcp`.
 - Inbound: allow traffic to dev-tier members.
