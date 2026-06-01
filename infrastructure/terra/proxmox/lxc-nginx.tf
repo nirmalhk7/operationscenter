@@ -26,7 +26,7 @@ resource "proxmox_virtual_environment_container" "lxc-nginx" {
     bridge   = "wmnet"
     name     = "net0"
     enabled  = true
-    firewall = true
+    firewall = false
   }
 
   memory {
