@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.4.23",
-    "lastTouchedAt": "2026-05-28T04:29:47.000Z"
+    "lastTouchedAt": "2026-06-01T01:01:08.000Z"
   },
   "wizard": {
     "lastRunAt": "2026-03-21T05:51:14.376Z",
@@ -414,7 +414,10 @@
   "session": {
     "dmScope": "per-channel-peer",
     "resetByChannel": {
-      "discord": { "mode": "idle", "idleMinutes": 10080 }
+      "discord": {
+        "mode": "idle",
+        "idleMinutes": 10080
+      }
     },
     "maintenance": {
       "mode": "warn",
