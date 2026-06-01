@@ -426,18 +426,18 @@
   "channels": {
     "discord": {
       "enabled": true,
-      "groupPolicy": "allowlist",
-      "dmPolicy": "allowlist",
-      "allowFrom": [
-        "1220283451169837077"
-      ],
       "dm": {
         "enabled": true
       },
       "streaming": {
         "mode": "progress",
+        "chunkMode": "newline",
         "preview": {
-          "toolProgress": true
+          "chunk": {
+            "minChars": 200,
+            "maxChars": 800,
+            "breakPreference": "paragraph"
+          }
         }
       },
       "accounts": {
@@ -535,6 +535,13 @@
               "accentColor": "#B91C1C"
             }
           }
+        },
+        "default": {
+          "groupPolicy": "allowlist",
+          "dmPolicy": "allowlist",
+          "allowFrom": [
+            "1220283451169837077"
+          ]
         }
       },
       "agentComponents": {
@@ -551,20 +558,13 @@
       "execApprovals": {
         "enabled": true,
         "target": "dm",
-        "approvers": ["1220283451169837077"],
+        "approvers": [
+          "1220283451169837077"
+        ],
         "cleanupAfterResolve": true
-      },
-      "chunkMode": "newline",
-      "draftChunk": {
-        "minChars": 200,
-        "maxChars": 800,
-        "breakPreference": "paragraph"
       },
       "actions": {
         "presence": true
-      },
-      "streaming": {
-        "mode": "progress"
       },
       "ui": {
         "components": {
