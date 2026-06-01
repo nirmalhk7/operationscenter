@@ -106,6 +106,92 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   }
 
   rule {
+    action  = "DROP"
+    type    = "out"
+    dest    = "10.0.0.0/8"
+    comment = "Block outbound to RFC1918 10/8"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "DROP"
+    type    = "out"
+    dest    = "172.16.0.0/12"
+    comment = "Block outbound to RFC1918 172.16/12"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "DROP"
+    type    = "out"
+    dest    = "192.168.0.0/16"
+    comment = "Block outbound to RFC1918 192.168/16"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "DROP"
+    type    = "out"
+    dest    = "100.64.0.0/10"
+    comment = "Block outbound to CGNAT and Tailscale range"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "tcp"
+    dport   = "80"
+    comment = "Allow outbound HTTP to public internet"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "tcp"
+    dport   = "443"
+    comment = "Allow outbound HTTPS to public internet"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "tcp"
+    dport   = "53"
+    comment = "Allow outbound TCP DNS to public internet"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "udp"
+    dport   = "53"
+    comment = "Allow outbound UDP DNS to public internet"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "udp"
+    dport   = "123"
+    comment = "Allow outbound NTP to public internet"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
