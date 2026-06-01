@@ -49,6 +49,9 @@ source-attributed context through the candidate `news_refs` field when the
 contract asks for enriched candidates.
 
 ## Research Lane
+Use the configured Exa MCP search and fetch tools to find dated,
+source-attributed news context.
+
 Look for credible, dated, source-attributed items from reputable sources:
 company news, regulatory actions, litigation, policy changes, product issues,
 customer or supplier disruption, management changes, market structure changes,

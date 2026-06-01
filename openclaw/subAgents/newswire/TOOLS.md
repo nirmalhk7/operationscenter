@@ -4,8 +4,8 @@
 
 Allowed behavior:
 - Review supplied JSON from the calling workflow.
-- Use NewsMCP topic, region, news, and news-detail tools for company-specific
-  or topic-specific context.
+- Use Exa MCP search and fetch tools for dated, source-attributed
+  company-specific or topic-specific context.
 - Return compact JSON.
 
 Disallowed behavior:

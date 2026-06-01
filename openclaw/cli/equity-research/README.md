@@ -12,7 +12,7 @@ scorecard stages, JSON contract validation, value ranking, and configured OpenCl
 Victor is the only Discord-facing MountainValue configured agent.
 `eq_quantsieve`, `eq_eventhound`, `eq_riskskeptic`, and
 `eq_thesis_depth_reviewer` are MountainValue OpenClaw profiles with no Discord
-bindings. `newswire` is a reusable NewsMCP-backed news profile, currently
+bindings. `newswire` is a reusable Exa MCP-backed news profile, currently
 allowlisted only for Victor. Their runtime workspaces live under
 `/root/.openclaw/subAgents`, and their injected runtime instructions are
 `AGENTS.md` and `TOOLS.md`. Victor can spawn only those profiles as subagents
@@ -169,12 +169,11 @@ for catalyst context.
 
 ## News
 
-Ansible installs `@newsmcp/server` from npm. OpenClaw registers
-its `/root/.local/share/pnpm/newsmcp` command. `newswire` is the only profile
-in this package expected to use NewsMCP context. It is general-purpose, but
-MountainValue currently calls it in the `scan-news` lane before
-`scan-catalysts`; it can support timing, risk, or repricing context, but it is
-not valuation evidence.
+OpenClaw registers Exa MCP as a remote streamable HTTP server. `newswire` is
+the only profile in this package expected to use Exa search and fetch context.
+It is general-purpose, but MountainValue currently calls it in the `scan-news`
+lane before `scan-catalysts`; it can support timing, risk, or repricing
+context, but it is not valuation evidence.
 
 ## Validation
 
@@ -193,7 +192,7 @@ openclaw doctor
 openclaw mcp list
 openclaw mcp show github --json
 openclaw mcp show kubernetes --json
-openclaw mcp show newsmcp --json
+openclaw mcp show exa --json
 openclaw mcp show nseindia --json
 openclaw mcp show polymarket --json
 printf '{"reviews":[]}' | equity-research validate-contract reviews

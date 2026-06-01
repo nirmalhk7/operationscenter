@@ -32,7 +32,7 @@ review stages.
   business quality, leverage, liquidity, balance-sheet sanity,
   margin-of-safety potential, and value-trap risk. Workspace:
   `/root/.openclaw/subAgents/eq_quantsieve`.
-- `newswire`: reusable news-context reviewer. Uses NewsMCP for dated,
+- `newswire`: reusable news-context reviewer. Uses Exa MCP for dated,
   source-attributed entity or topic news. For MountainValue it looks for
   company-specific news that could explain forced selling, repricing,
   regulatory pressure, litigation, management change, capital-market stress, or
@@ -102,7 +102,7 @@ OpenClaw v2026.4.23 subagent context injects `AGENTS.md` and `TOOLS.md`, so thos
 two files are the runtime contract:
 
 - `eq_quantsieve`: first-pass value and quality review.
-- `newswire`: reusable NewsMCP-backed news scan.
+- `newswire`: reusable Exa MCP-backed news scan.
 - `eq_eventhound`: corporate catalyst and special-situation scan.
 - `eq_thesis_depth_reviewer`: thesis-depth US equity review.
 - `eq_riskskeptic`: bear-case and evidence-quality review.
