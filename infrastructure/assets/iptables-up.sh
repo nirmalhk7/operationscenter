@@ -35,6 +35,9 @@ iptables -X
 # ==========================================
 
 # A. ENABLE OUTGOING TAILSCALE TRAFFIC (Masquerade)
+iptables -t raw -I PREROUTING -i fwbr+ -j CT --zone 1
+iptables -t raw -I PREROUTING -i veth+ -j CT --zone 1
+
 iptables -t nat -A POSTROUTING -o "$VPN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
 
 # B. ENABLE OUTGOING INTERNET TRAFFIC (Masquerade)

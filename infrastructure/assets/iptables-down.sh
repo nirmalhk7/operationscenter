@@ -19,6 +19,9 @@ VPN_IFACE="${VPN_IFACE:?}"
 # -------------------------------
 
 # 1. Remove Core Routing
+iptables -t raw -D PREROUTING -i fwbr+ -j CT --zone 1 2>/dev/null
+iptables -t raw -D PREROUTING -i veth+ -j CT --zone 1 2>/dev/null
+
 iptables -t nat -D POSTROUTING -o "$VPN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
 iptables -t nat -D POSTROUTING -o "$WAN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
 
