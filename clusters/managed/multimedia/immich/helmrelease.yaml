@@ -16,6 +16,28 @@ spec:
         namespace: mgd-multimedia
   interval: 10m
   values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              tag: v1.142.0
+            env:
+              DB_HOSTNAME: 172.16.0.106
+              DB_DATABASE_NAME: *app
+              DB_USERNAME: immich_rw
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: immich-credentials
+                    key: DB_PASSWORD
+              REDIS_HOSTNAME: immich-redis
+              REDIS_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: immich-credentials
+                    key: REDIS_PASSWORD
+              IMMICH_LOG_LEVEL: verbose
     persistence:
       oauth-secret:
         enabled: true
@@ -24,24 +46,6 @@ spec:
         globalMounts:
           - path: /secrets/immich-credentials
             readOnly: true
-    image:
-      tag: v1.142.0
-    env:
-      DB_HOSTNAME: 172.16.0.106
-      DB_DATABASE_NAME: *app
-      DB_USERNAME: immich_rw
-      DB_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: immich-credentials
-            key: DB_PASSWORD
-      REDIS_HOSTNAME: immich-redis
-      REDIS_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: immich-credentials
-            key: REDIS_PASSWORD
-      IMMICH_LOG_LEVEL: verbose
     immich:
       configuration:
         oauth:
