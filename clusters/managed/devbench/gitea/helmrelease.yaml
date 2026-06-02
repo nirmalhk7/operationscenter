@@ -28,6 +28,22 @@ spec:
     valkey-cluster:
       enabled: false
     gitea:
+      oauth:
+      - name: authelia
+        provider: openidConnect
+        existingSecret: gitea-credentials
+        autoDiscoverUrl: https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration
+        scopes: openid email profile groups
+        groupClaimName: groups
+      config:
+        openid:
+          ENABLE_OPENID_SIGNIN: false
+          ENABLE_OPENID_SIGNUP: true
+          WHITELISTED_URIS: secure.trusted.nirmalhk7.com
+        service:
+          DISABLE_REGISTRATION: false
+          ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+          SHOW_REGISTRATION_BUTTON: false
       additionalConfigFromEnvs:
       - name: GITEA__database__DB_TYPE
         value: mysql
