@@ -138,6 +138,14 @@
         "tools": {
           "profile": "full"
         },
+        "heartbeat": {
+          "every": "30m",
+          "model": "openrouter/free",
+          "target": "discord",
+          "directPolicy": "allow",
+          "lightContext": true,
+          "isolatedSession": true
+        },
         "model": {
           "primary": "openai-codex/gpt-5.4-mini",
           "fallbacks": [
