@@ -50,8 +50,10 @@ spec:
           tls_skip_verify_insecure: "true"
           login_attribute_path: preferred_username
           groups_attribute_path: groups
+          email_attribute_path: email
           name_attribute_path: name
-          role_attribute_path: contains(groups, 'grafana_admin') && 'Admin' || 'Viewer'
+          role_attribute_path: (email == 'nirmalhk7@gmail.com' || contains(groups, 'admins')) && 'GrafanaAdmin' || contains(groups, 'grafana_admin') && 'Admin' || 'Viewer'
+          allow_assign_grafana_admin: "true"
           use_pkce: "true"
       sidecar:
         dashboards:
