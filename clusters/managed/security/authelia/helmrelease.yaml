@@ -229,7 +229,7 @@ spec:
         cookies:
           - name: authelia_session
             domain: nirmalhk7.com
-            authelia_url: https://secure.trusted.nirmalhk7.com
+            subdomain: secure.trusted
         redis:
           enabled: false
       notifier:
