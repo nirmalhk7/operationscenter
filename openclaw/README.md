@@ -128,7 +128,7 @@ points to the real forum channel. The deployed default target is
 
 MountainValue worker roles are configured OpenClaw profiles with no Discord
 bindings. Their workspaces and role docs deploy to `/root/.openclaw/subAgents/`.
-OpenClaw v2026.4.23 subagent context injects `AGENTS.md` and `TOOLS.md`, so those
+OpenClaw v2026.5.28 subagent context injects `AGENTS.md` and `TOOLS.md`, so those
 two files are the runtime contract:
 
 - `eq_quantsieve`: first-pass value and quality review.

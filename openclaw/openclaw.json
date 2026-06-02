@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.4.23",
-    "lastTouchedAt": "2026-06-01T01:01:08.000Z"
+    "lastTouchedAt": "2026-06-01T21:00:08.000Z"
   },
   "wizard": {
     "lastRunAt": "2026-03-21T05:51:14.376Z",
@@ -436,8 +436,8 @@
         "chunkMode": "newline",
         "preview": {
           "chunk": {
-            "minChars": 200,
-            "maxChars": 800,
+            "minChars": 120,
+            "maxChars": 600,
             "breakPreference": "paragraph"
           }
         }
@@ -479,7 +479,7 @@
               }
             }
           },
-          "activity": "At your service",
+          "activity": "Coordinating Operations Center",
           "autoPresence": {
             "enabled": true
           },
@@ -505,7 +505,7 @@
               ]
             }
           },
-          "activity": "Fullstack Dev in Koramangala",
+          "activity": "Flux and Kubernetes",
           "activityType": 3,
           "status": "online",
           "ui": {
@@ -529,7 +529,7 @@
               ]
             }
           },
-          "activity": "Final value analyst",
+          "activity": "MountainValue research",
           "activityType": 3,
           "status": "online",
           "ui": {
@@ -553,8 +553,8 @@
       "threadBindings": {
         "enabled": true,
         "spawnSubagentSessions": true,
-        "idleHours": 24,
-        "maxAgeHours": 72
+        "idleHours": 48,
+        "maxAgeHours": 168
       },
       "replyToMode": "first",
       "execApprovals": {
@@ -681,12 +681,6 @@
           "Authorization": "Bearer ${OPENCLAW_GITHUB_TOKEN}"
         },
         "transport": "streamable-http"
-      },
-      "kubernetes": {
-        "command": "/root/.local/share/pnpm/kubectl-mcp-server",
-        "env": {
-          "KUBECONFIG": "/root/openclaw_support/.kube/config"
-        }
       },
       "exa": {
         "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa,web_search_advanced_exa",
