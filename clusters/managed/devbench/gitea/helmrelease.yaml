@@ -35,6 +35,7 @@ spec:
         autoDiscoverUrl: https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration
         scopes: openid email profile groups
         groupClaimName: groups
+        adminGroup: admins
       config:
         openid:
           ENABLE_OPENID_SIGNIN: false
