@@ -52,6 +52,14 @@ spec:
               path: client-secret-grafana
             - key: client-secret-nextcloud
               path: client-secret-nextcloud
+            - key: client-secret-immich
+              path: client-secret-immich
+            - key: client-secret-gitea
+              path: client-secret-gitea
+            - key: client-secret-outline
+              path: client-secret-outline
+            - key: client-secret-open-webui
+              path: client-secret-open-webui
     configMap:
       identity_validation:
         reset_password:
@@ -68,6 +76,10 @@ spec:
           - domain: 'immich.trusted.nirmalhk7.com'
             policy: 'one_factor'
           - domain: 'git.trusted.nirmalhk7.com'
+            policy: 'one_factor'
+          - domain: 'outline.trusted.nirmalhk7.com'
+            policy: 'one_factor'
+          - domain: 'llms.trusted.nirmalhk7.com'
             policy: 'one_factor'
       identity_providers:
         oidc:
@@ -116,6 +128,86 @@ spec:
                 - groups
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
+            - client_id: immich
+              client_name: Immich
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-immich
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://immich.trusted.nirmalhk7.com/auth/login
+                - https://immich.trusted.nirmalhk7.com/user-settings
+                - app.immich:///oauth-callback
+              scopes:
+                - openid
+                - profile
+                - email
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+              access_token_signed_response_alg: none
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_post
+            - client_id: gitea
+              client_name: Gitea
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-gitea
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://git.trusted.nirmalhk7.com/user/oauth2/authelia/callback
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_basic
+            - client_id: outline
+              client_name: Outline
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-outline
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://outline.trusted.nirmalhk7.com/auth/oidc.callback
+              scopes:
+                - openid
+                - offline_access
+                - profile
+                - email
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+                - refresh_token
+              access_token_signed_response_alg: none
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_post
+            - client_id: open-webui
+              client_name: Open WebUI
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-open-webui
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://llms.trusted.nirmalhk7.com/oauth/oidc/callback
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_basic
       theme: 'dark'
       telemetry:
         metrics:
@@ -132,9 +224,14 @@ spec:
         encryption_key:
           secret_name: authelia-credentials
           path: session.encryption.key
+        same_site: lax
+        inactivity: 4h
+        expiration: 12h
+        remember_me: 30d
         cookies:
           - name: authelia_session
             domain: nirmalhk7.com
+            authelia_url: https://secure.trusted.nirmalhk7.com
         redis:
           enabled: false
       notifier:
