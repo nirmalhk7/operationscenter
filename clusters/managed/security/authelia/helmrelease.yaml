@@ -124,6 +124,8 @@ spec:
         file:
           enabled: true
           path: /config/users_database.yaml
+          search:
+            email: true
         ldap:
           enabled: false
       session:
