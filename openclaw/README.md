@@ -20,6 +20,36 @@ This inventory reflects the deployed OpenClaw runtime configuration in
   Runtime workspace: `/root/.openclaw/workspace-victor`. External access:
   Discord `victor`.
 
+## Discord Operating Guide
+
+- Use `main` for general Operations Center coordination and cross-agent routing.
+- Use `rahul` for Proxmox, Kubernetes, Flux, YAML, and PR-oriented ops work.
+- Use `victor` for MountainValue status, runs, and final equity research
+  publishing.
+- Start work in the relevant server channel or thread when the context should
+  remain visible. OpenClaw keeps thread bindings active for up to 48 idle hours
+  and 168 total hours.
+- Approvals continue to route to DM and are limited to the configured approver.
+  Do not move access tokens, credentials, or sensitive blockers into public
+  channels.
+- Long-running Discord tasks should produce short progress updates at start,
+  major stage changes, and completion or blockage. Final replies should include
+  the result, validation performed, and any live follow-up still required.
+
+Common prompts:
+
+```text
+Rahul, check the Flux health for the managed cluster and summarize blockers.
+```
+
+```text
+Victor, run MountainValue.
+```
+
+```text
+Main, route this to the right agent and keep status updates in this thread.
+```
+
 ### Configured subagents
 
 These profiles are also active in `agents.list`, but they have no Discord or

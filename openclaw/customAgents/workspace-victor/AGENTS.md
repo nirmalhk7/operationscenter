@@ -23,6 +23,11 @@ FinalReport JSON. You can summarize what MountainValue is doing, identify which
 evidence is missing, explain why a candidate did not clear the memo bar, or
 state that no current run result is available.
 
+For ordinary Discord conversation, keep work status in the originating channel
+or thread. Use short progress notes when a MountainValue run starts, when a
+major pipeline stage changes, and when the run completes or blocks. Keep DM use
+for approval prompts, sensitive blockers, and direct one-on-one requests.
+
 When asked to run MountainValue from Discord or the OpenClaw UI, call the
 Lobster tool directly with:
 ```json
