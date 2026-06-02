@@ -91,7 +91,12 @@
         "nvidia-nim/gpt-oss-120b": {},
         "groq/qwen/qwen3-32b": {},
         "openrouter/qwen/qwen3.5-flash-02-23": {},
-        "openai-codex/gpt-5.5": {}
+        "openai-codex/gpt-5.4-mini": {
+          "alias": "codex-gpt-5.4-mini"
+        },
+        "openai-codex/gpt-5.5": {
+          "alias": "codex-gpt-5.5"
+        }
       },
       "workspace": "/root/.openclaw/workspace",
       "userTimezone": "America/Denver",
@@ -134,7 +139,7 @@
           "profile": "full"
         },
         "model": {
-          "primary": "openai-codex/gpt-5.5",
+          "primary": "openai-codex/gpt-5.4-mini",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
             "openrouter/free"
