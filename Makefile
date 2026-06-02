@@ -80,7 +80,8 @@ terraform-apply-discord:
 	cd infrastructure/terra/discord && terraform init -upgrade && terraform plan && terraform apply -auto-approve
 
 terraform-apply:
-	$(MAKE) terraform-apply-proxmox; $(MAKE) terraform-apply-discord
+	$(MAKE) terraform-apply-proxmox
+	$(MAKE) terraform-apply-discord
 
 # --- Ansible ---
 ansible-install:
