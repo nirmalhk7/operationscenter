@@ -1,9 +1,9 @@
 # Makefile for operationscenter
 
-.PHONY: encrypt reencrypt backup nginx-build nginx-logs encrypt_newkey terraform-reset terraform-apply init onboard-agents-discord sync kubernetes-init kubernetes-clean ansible-run ansible-run-one
+.PHONY: setup init encrypt encrypt_all encrypt_newkey backup_nginx backup_repo nginx-build nginx-logs terraform-clear terraform-reset terraform-apply-proxmox terraform-apply-discord terraform-apply ansible-install ansible-run ansible-run-one kubernetes-init kubernetes-clean onboard-agents-discord flux-suspend flux-resume sync
 
 # --- Initialization ---
-init:
+setup:
 	@./install.sh
 	@echo "=== Part 1: Terraform ==="
 	$(MAKE) terraform-apply
@@ -11,9 +11,9 @@ init:
 	$(MAKE) ansible-run
 	@echo "=== Part 3: Kubernetes ==="
 	$(MAKE) kubernetes-init
-	@echo "=== Part 4: Docker & Nginx ==="
-	$(MAKE) nginx-build
-	@echo "=== Initialization Complete ==="
+	@echo "=== Setup Complete ==="
+
+init: setup
 
 # --- Sealed Secrets ---
 encrypt:
