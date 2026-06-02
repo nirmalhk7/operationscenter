@@ -39,6 +39,8 @@ spec:
           name: Authelia
           icon: signin
           allow_sign_up: "true"
+          client_id: grafana
+          client_secret: $__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}
           scopes: openid profile email groups
           empty_scopes: "false"
           auth_url: https://secure.trusted.nirmalhk7.com/api/oidc/authorization
@@ -56,6 +58,10 @@ spec:
           labelValue: "true"
           searchNamespace: ALL
       envValueFrom:
+        GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+          secretKeyRef:
+            name: grafana-credentials
+            key: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
         TELEGRAM_TOKEN:
           secretKeyRef:
             name: grafana-credentials
