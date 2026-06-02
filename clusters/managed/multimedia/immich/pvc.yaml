@@ -4,8 +4,8 @@ metadata:
   name: &app immich-pvc-1
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
-  storageClassName: milano-v3
+  storageClassName: milano-v2

@@ -64,18 +64,7 @@ spec:
         enabled: true
       persistence:
         library:
-          existingClaim: ""
-          storageClass: "milano-v3"
-          accessMode: ReadWriteMany
-          size: 11Gi
-    server:
-      persistence:
-        server:
-          enabled: true
-          type: persistentVolumeClaim
-          storageClass: "milano-v3"
-          accessMode: ReadWriteOnce
-          size: 1Gi
+          existingClaim: immich-pvc-1
     machine-learning:
       enabled: true
       persistence:
@@ -83,5 +72,5 @@ spec:
           enabled: true
           size: 10Gi
           type: persistentVolumeClaim
-          accessMode: ReadWriteMany
-          storageClass: "milano-v3"
+          accessMode: ReadWriteOnce
+          storageClass: "milano-v2"
