@@ -16,6 +16,14 @@ spec:
         namespace: mgd-multimedia
   interval: 10m
   values:
+    persistence:
+      oauth-secret:
+        enabled: true
+        type: secret
+        name: immich-credentials
+        globalMounts:
+          - path: /secrets/immich-credentials
+            readOnly: true
     image:
       tag: v1.142.0
     env:
@@ -35,6 +43,19 @@ spec:
             key: REDIS_PASSWORD
       IMMICH_LOG_LEVEL: verbose
     immich:
+      configuration:
+        oauth:
+          enabled: true
+          issuerUrl: https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration
+          clientId: immich
+          clientSecret:
+            _secret: /secrets/immich-credentials/OAUTH_CLIENT_SECRET
+          scope: openid profile email
+          buttonText: Login with Authelia
+          autoRegister: true
+          signingAlgorithm: RS256
+          storageLabelClaim: preferred_username
+          tokenEndpointAuthMethod: client_secret_post
       metrics:
         enabled: true
       persistence:
