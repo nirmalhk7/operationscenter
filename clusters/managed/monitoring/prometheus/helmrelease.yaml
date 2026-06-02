@@ -45,8 +45,9 @@ spec:
           scopes: openid profile email groups
           empty_scopes: "false"
           auth_url: https://secure.trusted.nirmalhk7.com/api/oidc/authorization
-          token_url: http://authelia.mgd-security.svc.cluster.local/api/oidc/token
-          api_url: http://authelia.mgd-security.svc.cluster.local/api/oidc/userinfo
+          token_url: https://secure.trusted.nirmalhk7.com/api/oidc/token
+          api_url: https://secure.trusted.nirmalhk7.com/api/oidc/userinfo
+          tls_skip_verify_insecure: "true"
           login_attribute_path: preferred_username
           groups_attribute_path: groups
           name_attribute_path: name
