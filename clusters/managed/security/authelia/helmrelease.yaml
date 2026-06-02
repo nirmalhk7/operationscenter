@@ -100,8 +100,6 @@ spec:
                 path: /secrets/authelia-app-secrets/client-secret-grafana
               redirect_uris:
                 - https://grafana.trusted.nirmalhk7.com/login/generic_oauth
-              post_logout_redirect_uris:
-                - https://grafana.trusted.nirmalhk7.com/login/generic_oauth
               scopes:
                 - openid
                 - profile
