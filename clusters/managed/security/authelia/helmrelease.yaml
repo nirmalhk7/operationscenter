@@ -61,6 +61,10 @@ spec:
             - key: client-secret-open-webui
               path: client-secret-open-webui
     configMap:
+      definitions:
+        user_attributes:
+          immich_role:
+            expression: '"admins" in groups ? "admin" : "user"'
       identity_validation:
         reset_password:
           secret:
@@ -84,6 +88,15 @@ spec:
       identity_providers:
         oidc:
           enabled: true
+          claims_policies:
+            immich_policy:
+              custom_claims:
+                immich_role:
+                  attribute: immich_role
+          scopes:
+            immich_role:
+              claims:
+                - immich_role
           hmac_secret:
             secret_name: authelia-credentials
             path: oidc-hmac-secret
@@ -130,6 +143,7 @@ spec:
               client_name: Immich
               client_secret:
                 path: /secrets/authelia-app-secrets/client-secret-immich
+              claims_policy: immich_policy
               public: false
               authorization_policy: one_factor
               redirect_uris:
@@ -140,6 +154,7 @@ spec:
                 - openid
                 - profile
                 - email
+                - immich_role
               response_types:
                 - code
               grant_types:
