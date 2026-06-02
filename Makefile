@@ -116,8 +116,6 @@ ansible-run-one: ansible-install
 
 # --- Kubernetes ---
 kubernetes-init:
-	@echo "Applying MariaDB Operator CRDs..."
-	kubectl apply -f https://github.com/mariadb-operator/mariadb-operator/releases/download/mariadb-operator-crds-25.8.3/crds.yaml
 	@echo "Installing FluxCD..."
 	kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
 	@echo "Applying managed cluster manifests..."
