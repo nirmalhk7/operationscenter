@@ -66,6 +66,7 @@ data:
     - Applications:
       - Robot:
           name: Robot
+          icon: openclaw-light
           description: Openclaw Dashboard
           href: "https://robot.trusted.nirmalhk7.com"
     - Infrastructure:
