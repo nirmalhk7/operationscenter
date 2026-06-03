@@ -81,6 +81,8 @@ spec:
       before-starting: |-
         #!/bin/sh
         set -eu
+        php occ app:install user_oidc || true
+        php occ app:enable user_oidc || true
         php occ user_oidc:provider Authelia \
           --clientid="${OIDC_CLIENT_ID}" \
           --clientsecret="${OIDC_CLIENT_SECRET}" \

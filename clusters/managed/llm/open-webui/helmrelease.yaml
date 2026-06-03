@@ -22,6 +22,8 @@ spec:
     podLabels:
       milano.app: *app
       milano.level: managed
+    podAnnotations:
+      milano.io/open-webui-auth-revision: "2026-06-02"
     persistence:
       storageClass: milano-v2
     extraEnvFrom:
