@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://portainer.trusted.nirmalhk7.com"
-    gethomepage.dev/group: Observability
+    gethomepage.dev/group: Infrastructure
     gethomepage.dev/icon: portainer
     gethomepage.dev/app: portainer # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Portainer
