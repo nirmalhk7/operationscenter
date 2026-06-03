@@ -63,7 +63,7 @@ data:
             - icon: linkace
               href: https://dashboardicons.com/icons
   services.yaml: |
-    - Applications:
+    - Automation:
       - Robot:
           name: Robot
           icon: openclaw

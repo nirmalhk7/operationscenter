@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://n8n.trusted.nirmalhk7.com"
-    gethomepage.dev/group: Applications
+    gethomepage.dev/group: Automation
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app
     gethomepage.dev/name: n8n
