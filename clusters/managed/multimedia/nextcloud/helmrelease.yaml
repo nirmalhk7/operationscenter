@@ -84,9 +84,16 @@ spec:
         - name: nfs-facility
           persistentVolumeClaim:
             claimName: nextcloud-nfs-facility
+        - name: immich-library
+          persistentVolumeClaim:
+            claimName: immich-user-content
       extraVolumeMounts:
         - name: nfs-facility
           mountPath: /mnt/nfs-facility
+        - name: immich-library
+          mountPath: /mnt/immich-library
+          subPath: library
+          readOnly: true
       hooks:
         before-starting: |-
           #!/bin/sh
@@ -94,6 +101,9 @@ spec:
           php occ app:enable files_external || true
           if ! php occ files_external:list --output=json | grep -Fq '"NFS Facility"'; then
             php occ files_external:create "NFS Facility" local null::null -c datadir=/mnt/nfs-facility
+          fi
+          if ! php occ files_external:list --output=json | grep -Fq '"Immich Photos"'; then
+            php occ files_external:create "Immich Photos" local null::null -c datadir=/mnt/immich-library
           fi
           php occ app:install user_oidc || true
           php occ app:enable user_oidc || true
