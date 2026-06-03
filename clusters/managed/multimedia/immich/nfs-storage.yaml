@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
+  storageClassName: milano-v3
   mountOptions:
     - nfsvers=4.1
     - hard
@@ -27,5 +27,5 @@ spec:
   resources:
     requests:
       storage: 32Gi
-  storageClassName: ""
+  storageClassName: milano-v3
   volumeName: immich-user-content
