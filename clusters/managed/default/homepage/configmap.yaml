@@ -66,7 +66,7 @@ data:
     - Applications:
       - Robot:
           name: Robot
-          icon: openclaw-light
+          icon: openclaw
           description: Openclaw Dashboard
           href: "https://robot.trusted.nirmalhk7.com"
     - Infrastructure:
@@ -101,7 +101,7 @@ data:
             key: ${TSKEY_API}
       - Google Home:
           id: googlehome
-          icon: tailscale-light
+          icon: google-home
           href: https://home.google.com/home/1-55a939b1374bf27e1be4ded764e93e4d2c88ff3cbb03c77c535f0137a96f7663/devices
       - Cloudflare:
           id: local-cloudflare
