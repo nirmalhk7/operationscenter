@@ -19,6 +19,8 @@ spec:
       k8s-app: kube-dns
   template:
     metadata:
+      annotations:
+        milano.io/coredns-hosts-revision: "2026-06-03"
       labels:
         k8s-app: kube-dns
     spec:
