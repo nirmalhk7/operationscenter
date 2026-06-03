@@ -47,6 +47,16 @@ spec:
         usernameKey: nx-username
         passwordKey: nx-password
       configs:
+        install.config.php: |-
+          <?php
+          $CONFIG = [
+            'installed' => true,
+            'trusted_domains' => [
+              'drive.trusted.nirmalhk7.com',
+              'nextcloud.mgd-multimedia.svc.cluster.local',
+            ],
+            'overwrite.cli.url' => 'https://drive.trusted.nirmalhk7.com',
+          ];
         oidc.config.php: |-
           <?php
           $CONFIG = [
@@ -54,6 +64,7 @@ spec:
             'lost_password_link' => 'https://secure.trusted.nirmalhk7.com/reset-password',
             'user_oidc' => [
               'auto_provision' => true,
+              'default_token_endpoint_auth_method' => 'client_secret_post',
               'soft_quota_default' => '5 GB',
             ],
           ];
@@ -66,6 +77,14 @@ spec:
           secretKeyRef:
             name: nextcloud-credentials
             key: oidc-client-secret
+    hooks:
+      before-starting: |-
+        #!/bin/sh
+        set -eu
+        php occ user_oidc:provider Authelia \
+          --clientid="${OIDC_CLIENT_ID}" \
+          --clientsecret="${OIDC_CLIENT_SECRET}" \
+          --discoveryuri="https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration"
 
     internalDatabase:
       enabled: false
