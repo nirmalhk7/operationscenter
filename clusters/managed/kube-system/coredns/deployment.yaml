@@ -36,7 +36,7 @@ spec:
         kubernetes.io/os: linux
       containers:
         - name: coredns
-          image: rancher/mirrored-coredns-coredns:1.14.1
+          image: rancher/mirrored-coredns-coredns:1.14.3
           imagePullPolicy: IfNotPresent
           resources:
             limits:

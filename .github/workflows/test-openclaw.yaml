@@ -26,12 +26,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.22.2'
+          node-version: '22.22.3'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: '10.33.2'
+          version: '10.34.1'
           run_install: |
             - args: [--global, 'openclaw@2026.4.23', promptfoo, '@buape/carbon', '@larksuiteoapi/node-sdk', grammy]
 
