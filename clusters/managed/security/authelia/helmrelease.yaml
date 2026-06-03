@@ -19,16 +19,10 @@ spec:
         - name: authelia-credentials
           secret:
             secretName: authelia-credentials
-        - name: authelia-assets
-          configMap:
-            name: authelia-assets
       extraVolumeMounts:
         - name: authelia-credentials
           mountPath: /config/users_database.yaml
           subPath: users_database.yaml
-          readOnly: true
-        - name: authelia-assets
-          mountPath: /config/assets
           readOnly: true
     persistence:
       enabled: true
@@ -228,8 +222,6 @@ spec:
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
       theme: 'dark'
-      server:
-        asset_path: /config/assets
       telemetry:
         metrics:
           enabled: true
