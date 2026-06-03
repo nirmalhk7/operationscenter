@@ -10,7 +10,7 @@ metadata:
     gethomepage.dev/icon: immich
     gethomepage.dev/name: Immich
     # gethomepage.dev/widget.key: TOKEN
-    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=immich"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=immich,app.kubernetes.io/name=server"
     # gethomepage.dev/widget.type: immich
     # gethomepage.dev/widget.url: /
 spec:
