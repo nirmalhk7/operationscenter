@@ -82,6 +82,28 @@ review stages.
   support, and unsupported claims. Workspace:
   `/root/.openclaw/subAgents/eq_riskskeptic`.
 
+### Free RSS MCP
+
+OpenClaw also registers the free `rss-reader-mcp` package as `rss-reader`.
+It accepts any RSS or Atom feed URL at query time.
+
+Sample news feeds:
+
+- BBC News: `https://feeds.bbci.co.uk/news/rss.xml`
+- TechCrunch: `https://techcrunch.com/feed/`
+- Hacker News: `https://hnrss.org/frontpage`
+- MIT Technology Review: `https://www.technologyreview.com/feed/`
+
+### X MCP
+
+OpenClaw registers `@mbelinky/x-mcp-server` as `x` using the package's
+default OAuth 1.0a flow. Populate these environment variables before using it:
+
+- `OPENCLAW_X_API_KEY`
+- `OPENCLAW_X_API_SECRET_KEY`
+- `OPENCLAW_X_ACCESS_TOKEN`
+- `OPENCLAW_X_ACCESS_TOKEN_SECRET`
+
 ### Workspace docs present but not configured
 
 The LXC playbook copies every directory under `openclaw/customAgents/` to

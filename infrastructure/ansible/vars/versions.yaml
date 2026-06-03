@@ -43,6 +43,12 @@ secedgar_mcp_server_version: "0.4.0"
 # renovate: datasource=npm depName=kubectl-mcp-server
 kubectl_mcp_server_version: "1.24.0"
 
+# renovate: datasource=npm depName=rss-reader-mcp
+rss_reader_mcp_version: "1.0.8"
+
+# renovate: datasource=npm depName=@mbelinky/x-mcp-server
+x_mcp_server_version: "1.1.0"
+
 # renovate: datasource=npm depName=npm-search-mcp-server
 npm_search_mcp_server_version: "0.1.1"
 

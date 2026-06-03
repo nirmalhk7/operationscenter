@@ -712,6 +712,18 @@
           "NODE_ENV": "production"
         }
       },
+      "rss-reader": {
+        "command": "/root/.local/share/pnpm/rss-mcp"
+      },
+      "x": {
+        "command": "/root/.local/share/pnpm/x-server",
+        "env": {
+          "API_KEY": "${OPENCLAW_X_API_KEY}",
+          "API_SECRET_KEY": "${OPENCLAW_X_API_SECRET_KEY}",
+          "ACCESS_TOKEN": "${OPENCLAW_X_ACCESS_TOKEN}",
+          "ACCESS_TOKEN_SECRET": "${OPENCLAW_X_ACCESS_TOKEN_SECRET}"
+        }
+      },
       "npm-search": {
         "command": "/root/.local/share/pnpm/npm-search-mcp-server"
       },
