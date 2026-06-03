@@ -46,6 +46,14 @@ spec:
         secretName: nextcloud-credentials
         usernameKey: nx-username
         passwordKey: nx-password
+      extraEnv:
+        - name: OIDC_CLIENT_ID
+          value: nextcloud
+        - name: OIDC_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-credentials
+              key: oidc-client-secret
       configs:
         install.config.php: |-
           <?php
@@ -73,14 +81,6 @@ spec:
             ],
           ];
 
-    extraEnv:
-      - name: OIDC_CLIENT_ID
-        value: nextcloud
-      - name: OIDC_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: nextcloud-credentials
-            key: oidc-client-secret
     hooks:
       before-starting: |-
         #!/bin/sh
