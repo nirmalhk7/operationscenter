@@ -39,15 +39,6 @@ spec:
       size: 20Gi
       storageClass: milano-v2
 
-    extraVolumes:
-      - name: nfs-facility
-        persistentVolumeClaim:
-          claimName: nextcloud-nfs-facility
-
-    extraVolumeMounts:
-      - name: nfs-facility
-        mountPath: /mnt/nfs-facility
-
     nextcloud:
       host: drive.trusted.nirmalhk7.com
       existingSecret:
@@ -89,23 +80,31 @@ spec:
               'soft_quota_default' => '5 GB',
             ],
           ];
-
-    hooks:
-      before-starting: |-
-        #!/bin/sh
-        set -eu
-        php occ app:enable files_external || true
-        if ! php occ files_external:list --output=json | grep -Fq '"NFS Facility"'; then
-          php occ files_external:create "NFS Facility" local null::null -c datadir=/mnt/nfs-facility
-        fi
-        php occ app:install user_oidc || true
-        php occ app:enable user_oidc || true
-        php occ user_oidc:provider Authelia \
-          --clientid="${OIDC_CLIENT_ID}" \
-          --clientsecret="${OIDC_CLIENT_SECRET}" \
-          --discoveryuri="https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration"
+      extraVolumes:
+        - name: nfs-facility
+          persistentVolumeClaim:
+            claimName: nextcloud-nfs-facility
+      extraVolumeMounts:
+        - name: nfs-facility
+          mountPath: /mnt/nfs-facility
+      hooks:
+        before-starting: |-
+          #!/bin/sh
+          set -eu
+          php occ app:enable files_external || true
+          if ! php occ files_external:list --output=json | grep -Fq '"NFS Facility"'; then
+            php occ files_external:create "NFS Facility" local null::null -c datadir=/mnt/nfs-facility
+          fi
+          php occ app:install user_oidc || true
+          php occ app:enable user_oidc || true
+          php occ user_oidc:provider Authelia \
+            --clientid="${OIDC_CLIENT_ID}" \
+            --clientsecret="${OIDC_CLIENT_SECRET}" \
+            --mapping-uid="email" \
+            --mapping-email="email" \
+            --discoveryuri="https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration"
     podAnnotations:
-      milano.io/nextcloud-oidc-revision: "2026-06-03b"
+      milano.io/nextcloud-oidc-revision: "2026-06-03c"
 
     internalDatabase:
       enabled: false
