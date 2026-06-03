@@ -19,11 +19,40 @@ spec:
       enabled: false
     redis:
       enabled: true
+    command:
+      - /bin/sh
+      - -lc
+    args:
+      - |
+        cat >/usr/local/lib/python3.11/site-packages/sitecustomize.py <<'PY'
+        """
+        Disable TLS verification for Open WebUI's Authlib OIDC client.
+
+        Authelia is fronted by Traefik's default certificate in this cluster, so
+        Open WebUI needs the same trust posture Grafana already uses.
+        """
+        try:
+          import functools
+          from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
+        except Exception:
+          pass
+        else:
+          _orig_init = AsyncOAuth2Client.__init__
+
+          @functools.wraps(_orig_init)
+          def _patched_init(self, *args, **kwargs):
+            kwargs.setdefault('verify', False)
+            return _orig_init(self, *args, **kwargs)
+
+          AsyncOAuth2Client.__init__ = _patched_init
+          print('sitecustomize: patched authlib httpx client', flush=True)
+        PY
+        exec /app/backend/start.sh
     podLabels:
       milano.app: *app
       milano.level: managed
     podAnnotations:
-      milano.io/open-webui-auth-revision: "2026-06-02"
+      milano.io/open-webui-auth-revision: "2026-06-03c"
     persistence:
       storageClass: milano-v2
     extraEnvFrom:
