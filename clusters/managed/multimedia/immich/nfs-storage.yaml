@@ -14,7 +14,7 @@ spec:
     - hard
     - noresvport
   nfs:
-    server: 172.16.0.108
+    server: 172.16.0.107
     path: /mnt/2tbhdd/immich
 ---
 apiVersion: v1

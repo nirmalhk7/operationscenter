@@ -76,9 +76,9 @@ locals {
       cidr  = "${local.machineSubnet}106/${local.machinePrefix}"
     }
     mgdnfs1 = {
-      vm_id = 108
-      ip    = "${local.machineSubnet}108"
-      cidr  = "${local.machineSubnet}108/${local.machinePrefix}"
+      vm_id = 107
+      ip    = "${local.machineSubnet}107"
+      cidr  = "${local.machineSubnet}107/${local.machinePrefix}"
     }
   }
 
