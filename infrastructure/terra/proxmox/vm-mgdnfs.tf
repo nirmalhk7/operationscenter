@@ -74,7 +74,7 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
 
   network_device {
     bridge   = "wmnet"
-    firewall = false
+    firewall = true
   }
 
   operating_system {
@@ -134,6 +134,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
     proto   = "udp"
     dport   = "111"
     comment = "Allow RPC bind UDP ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow ping from k8mgd for NFS reachability checks"
     iface   = "net0"
     enabled = true
   }
