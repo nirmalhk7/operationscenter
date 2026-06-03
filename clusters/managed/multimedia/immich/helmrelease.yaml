@@ -22,6 +22,25 @@ spec:
           main:
             image:
               tag: v1.142.0
+            command:
+              - /bin/bash
+              - -lc
+            args:
+              - |
+                set -euo pipefail
+                secret="$(cat /secrets/immich-credentials/OAUTH_CLIENT_SECRET)"
+                config="/config/immich-config.yaml"
+                tmp="$(mktemp /tmp/immich-config.XXXXXX.yaml)"
+                awk -v secret="$secret" '
+                  /^  clientId: immich$/ {
+                    print
+                    print "  clientSecret: \"" secret "\""
+                    next
+                  }
+                  { print }
+                ' "$config" > "$tmp"
+                export IMMICH_CONFIG_FILE="$tmp"
+                exec /usr/src/app/server/bin/start.sh
             env:
               DB_HOSTNAME: 172.16.0.106
               DB_DATABASE_NAME: *app
@@ -38,6 +57,10 @@ spec:
                     name: immich-credentials
                     key: REDIS_PASSWORD
               IMMICH_LOG_LEVEL: verbose
+              # Authelia is currently fronted by Traefik's default self-signed cert.
+              # Immich's OIDC discovery runs in Node, so it needs TLS verification disabled
+              # until that issuer is replaced with a trusted certificate.
+              NODE_TLS_REJECT_UNAUTHORIZED: "0"
     persistence:
       oauth-secret:
         enabled: true
@@ -65,8 +88,6 @@ spec:
           enabled: true
           issuerUrl: https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration
           clientId: immich
-          clientSecret:
-            _secret: /secrets/immich-credentials/OAUTH_CLIENT_SECRET
           scope: openid profile email immich_role
           buttonText: Login with Authelia
           autoRegister: true
