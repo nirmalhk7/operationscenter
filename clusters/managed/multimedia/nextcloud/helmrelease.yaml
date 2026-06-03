@@ -56,6 +56,7 @@ spec:
               'nextcloud.mgd-multimedia.svc.cluster.local',
             ],
             'overwrite.cli.url' => 'https://drive.trusted.nirmalhk7.com',
+            'allow_local_remote_servers' => true,
           ];
         oidc.config.php: |-
           <?php
