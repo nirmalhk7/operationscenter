@@ -6,7 +6,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://paperclip.trusted.nirmalhk7.com"
-    gethomepage.dev/group: "LLM"
+    gethomepage.dev/group: LLM
     gethomepage.dev/icon: "paperclip"
     gethomepage.dev/app: "paperclip"
     gethomepage.dev/name: "Paperclip"

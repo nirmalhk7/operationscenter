@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://llms.trusted.nirmalhk7.com"
-    gethomepage.dev/group: "Applications"
+    gethomepage.dev/group: LLM
     gethomepage.dev/icon: "open-webui-light"
     gethomepage.dev/app: "open-webui" # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: "Open WebUI"
