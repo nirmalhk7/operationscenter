@@ -46,6 +46,19 @@ spec:
         globalMounts:
           - path: /secrets/immich-credentials
             readOnly: true
+    server:
+      persistence:
+        user-content:
+          enabled: true
+          type: persistentVolumeClaim
+          existingClaim: immich-user-content
+          advancedMounts:
+            main:
+              main:
+                - path: /data/upload
+                  subPath: upload
+                - path: /data/library
+                  subPath: library
     immich:
       configuration:
         oauth:

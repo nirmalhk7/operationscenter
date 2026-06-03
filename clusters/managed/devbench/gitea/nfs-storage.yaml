@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitea-user-content
+spec:
+  capacity:
+    storage: 32Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+    - noresvport
+  nfs:
+    server: 172.16.0.108
+    path: /mnt/2tbhdd/gitea
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitea-user-content
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 32Gi
+  storageClassName: ""
+  volumeName: gitea-user-content

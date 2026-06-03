@@ -4,6 +4,7 @@ kind: Kustomization
 
 resources:
   - pvc.yaml
+  - nfs-storage.yaml
   - helmrelease.yaml
   - ingressroute.yaml
   - secret.yaml

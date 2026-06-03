@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - secret.yaml
+  - nfs-storage.yaml
   - helmrelease.yaml
   - ingressroute.yaml
 

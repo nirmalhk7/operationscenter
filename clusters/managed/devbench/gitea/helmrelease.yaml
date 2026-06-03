@@ -18,11 +18,18 @@ spec:
     postgresql-ha:
       enabled: false
     persistence:
-      claimName: gitea-pvc-1
-      storageClass: milano-v3
+      claimName: gitea-app-pvc-1
+      storageClass: milano-v2
       size: 10Gi
       labels:
         milano.app: *app
+    extraVolumes:
+      - name: user-content
+        persistentVolumeClaim:
+          claimName: gitea-user-content
+    extraContainerVolumeMounts:
+      - name: user-content
+        mountPath: /data-nfs
     valkey:
       enabled: false
     valkey-cluster:
@@ -37,6 +44,20 @@ spec:
         groupClaimName: groups
         adminGroup: admins
       config:
+        repository:
+          ROOT: /data-nfs/repositories
+        lfs:
+          STORAGE_TYPE: local
+          PATH: /data-nfs/lfs
+        attachment:
+          STORAGE_TYPE: local
+          PATH: /data-nfs/attachments
+        picture:
+          AVATAR_UPLOAD_PATH: /data-nfs/avatars
+          REPOSITORY_AVATAR_UPLOAD_PATH: /data-nfs/repo-avatars
+        storage.packages:
+          STORAGE_TYPE: local
+          PATH: /data-nfs/packages
         openid:
           ENABLE_OPENID_SIGNIN: false
           ENABLE_OPENID_SIGNUP: true

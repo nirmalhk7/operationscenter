@@ -10,6 +10,20 @@
   vars:
     dev_path: "/dev/sdb"
     mount_point: "/mnt/2tbhdd"
+    export_network: "172.16.0.0/24"
+    export_options: "rw,sync,no_subtree_check,no_root_squash,insecure"
+    app_dirs:
+      - nextcloud
+      - immich
+      - immich/upload
+      - immich/library
+      - gitea
+      - gitea/repositories
+      - gitea/lfs
+      - gitea/attachments
+      - gitea/avatars
+      - gitea/repo-avatars
+      - gitea/packages
 
   tasks:
     - name: Require device path to be set
@@ -64,17 +78,25 @@
       ansible.builtin.command: df -h {{ mount_point }}
       changed_when: false
 
+    - name: Ensure application export directories exist
+      ansible.builtin.file:
+        path: "{{ mount_point }}/{{ item }}"
+        state: directory
+        mode: '0777'
+      loop: "{{ app_dirs }}"
+
     - name: Ensure NFS server installed
       ansible.builtin.apt:
         name: "nfs-kernel-server"
         update_cache: true
 
-    - name: Configure NFS exports
-      ansible.builtin.lineinfile:
+    - name: Configure managed NFS export block
+      ansible.builtin.blockinfile:
         path: /etc/exports
-        line: "{{ mount_point }} 172.16.0.0/24(rw,sync,no_subtree_check,no_root_squash,insecure)"
-        state: present
         create: true
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - operationscenter mgdnfs"
+        block: |
+          {{ mount_point }} {{ export_network }}({{ export_options }})
       notify: Reload nfs exports
 
     - name: Ensure NFS service is running and enabled
@@ -82,6 +104,20 @@
         name: nfs-kernel-server
         state: started
         enabled: true
+
+    - name: Apply pending NFS export changes
+      ansible.builtin.meta: flush_handlers
+
+    - name: Verify NFS export is active
+      ansible.builtin.command: exportfs -v
+      register: exportfs_verify
+      changed_when: false
+
+    - name: Fail when NFS export is missing
+      ansible.builtin.assert:
+        that:
+          - mount_point in exportfs_verify.stdout
+        fail_msg: "NFS export for {{ mount_point }} is not active"
 
   handlers:
     - name: Reload nfs exports
