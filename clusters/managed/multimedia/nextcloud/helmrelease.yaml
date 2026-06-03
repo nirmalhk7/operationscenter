@@ -61,10 +61,13 @@ spec:
           <?php
           $CONFIG = [
             'allow_user_to_change_display_name' => false,
+            'overwritehost' => 'drive.trusted.nirmalhk7.com',
+            'overwriteprotocol' => 'https',
             'lost_password_link' => 'https://secure.trusted.nirmalhk7.com/reset-password',
             'user_oidc' => [
               'auto_provision' => true,
               'default_token_endpoint_auth_method' => 'client_secret_post',
+              'httpclient.allowselfsigned' => true,
               'soft_quota_default' => '5 GB',
             ],
           ];
@@ -87,6 +90,8 @@ spec:
           --clientid="${OIDC_CLIENT_ID}" \
           --clientsecret="${OIDC_CLIENT_SECRET}" \
           --discoveryuri="https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration"
+    podAnnotations:
+      milano.io/nextcloud-oidc-revision: "2026-06-03b"
 
     internalDatabase:
       enabled: false
