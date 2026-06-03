@@ -43,6 +43,12 @@ secedgar_mcp_server_version: "0.4.0"
 # renovate: datasource=npm depName=kubectl-mcp-server
 kubectl_mcp_server_version: "1.24.0"
 
+# renovate: datasource=npm depName=npm-search-mcp-server
+npm_search_mcp_server_version: "0.1.1"
+
+# renovate: datasource=npm depName=@isteam/hackernews-mcp
+hackernews_mcp_version: "1.0.1"
+
 # renovate: datasource=npm depName=@nirmalhk7/equity-research registryUrl=https://npm.pkg.github.com versioning=semver
 equity_research_version: "latest"
 

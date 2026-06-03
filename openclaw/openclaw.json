@@ -699,6 +699,10 @@
         "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa,web_search_advanced_exa",
         "transport": "streamable-http"
       },
+      "wikidata": {
+        "url": "https://wd-mcp.wmcloud.org/mcp/",
+        "transport": "streamable-http"
+      },
       "nseindia": {
         "command": "/root/.local/share/pnpm/nseindia",
         "args": [
@@ -707,6 +711,12 @@
         "env": {
           "NODE_ENV": "production"
         }
+      },
+      "npm-search": {
+        "command": "npm-search-mcp-server"
+      },
+      "hackernews": {
+        "command": "hackernews-mcp"
       },
       "polymarket": {
         "command": "/root/.local/share/pnpm/polymarket-mcp"
