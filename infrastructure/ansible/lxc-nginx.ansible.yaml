@@ -127,39 +127,24 @@
 
     - name: nginx_setup
       block:
-        - name: Fetch nginx repo archive
-          ansible.builtin.get_url:
-            url: "https://github.com/nirmalhk7/operationscenter/archive/refs/heads/main.tar.gz"
-            dest: /tmp/operationscenter-main.tar.gz
-            mode: '0644'
-
-        - name: Unarchive nginx assets
-          ansible.builtin.unarchive:
-            src: /tmp/operationscenter-main.tar.gz
-            dest: /tmp
-            remote_src: true
-            extra_opts: ["--strip-components=2", "operationscenter-main/nginx"]
-
         - name: Deploy nginx config
           block:
             - name: Deploy nginx conf.d
               ansible.builtin.copy:
-                src: /tmp/conf.d/
+                src: "{{ playbook_dir }}/../../nginx/conf.d/"
                 dest: /etc/nginx/conf.d/
                 owner: root
                 group: root
                 mode: '0644'
                 directory_mode: '0755'
-                remote_src: true
             - name: Deploy nginx mainconf
               ansible.builtin.copy:
-                src: /tmp/nginx.conf
+                src: "{{ playbook_dir }}/../../nginx/nginx.conf"
                 dest: /etc/nginx/nginx.conf
                 owner: root
                 group: root
                 mode: '0644'
                 directory_mode: '0755'
-                remote_src: true
 
         - name: Restart nginx
           ansible.builtin.systemd:
