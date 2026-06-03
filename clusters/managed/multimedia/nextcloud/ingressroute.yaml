@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/app: nextcloud
-    gethomepage.dev/group: Applications
+    gethomepage.dev/group: Productivity
     gethomepage.dev/href: https://drive.trusted.nirmalhk7.com
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=nextcloud"
     gethomepage.dev/icon: nextcloud-blue
