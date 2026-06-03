@@ -113,6 +113,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
     type    = "in"
     proto   = "tcp"
     dport   = "2049"
+    source  = local.proxmoxMachines.k8mgd.ip
     comment = "Allow NFS ingress"
     iface   = "net0"
     enabled = true
@@ -123,6 +124,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
     type    = "in"
     proto   = "tcp"
     dport   = "111"
+    source  = local.proxmoxMachines.k8mgd.ip
     comment = "Allow RPC bind TCP ingress"
     iface   = "net0"
     enabled = true
@@ -133,6 +135,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
     type    = "in"
     proto   = "udp"
     dport   = "111"
+    source  = local.proxmoxMachines.k8mgd.ip
     comment = "Allow RPC bind UDP ingress"
     iface   = "net0"
     enabled = true
