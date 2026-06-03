@@ -713,10 +713,10 @@
         }
       },
       "npm-search": {
-        "command": "npm-search-mcp-server"
+        "command": "/root/.local/share/pnpm/npm-search-mcp-server"
       },
       "hackernews": {
-        "command": "hackernews-mcp"
+        "command": "/root/.local/share/pnpm/hackernews-mcp"
       },
       "polymarket": {
         "command": "/root/.local/share/pnpm/polymarket-mcp"
