@@ -715,6 +715,15 @@
       "rss-reader": {
         "command": "/root/.local/share/pnpm/rss-mcp"
       },
+      "reddit": {
+        "command": "/root/.local/share/pnpm/reddit-mcp-server"
+      },
+      "filesystem": {
+        "command": "/root/.local/share/pnpm/mcp-server-filesystem",
+        "args": [
+          "/root/.openclaw"
+        ]
+      },
       "x": {
         "command": "/root/.local/share/pnpm/x-server",
         "env": {
@@ -722,6 +731,12 @@
           "API_SECRET_KEY": "${OPENCLAW_X_API_SECRET_KEY}",
           "ACCESS_TOKEN": "${OPENCLAW_X_ACCESS_TOKEN}",
           "ACCESS_TOKEN_SECRET": "${OPENCLAW_X_ACCESS_TOKEN_SECRET}"
+        }
+      },
+      "mapbox": {
+        "command": "/root/.local/share/pnpm/mcp-server",
+        "env": {
+          "MAPBOX_ACCESS_TOKEN": "${OPENCLAW_MAPBOX_ACCESS_TOKEN}"
         }
       },
       "npm-search": {

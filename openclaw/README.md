@@ -94,6 +94,15 @@ Sample news feeds:
 - Hacker News: `https://hnrss.org/frontpage`
 - MIT Technology Review: `https://www.technologyreview.com/feed/`
 
+### Reddit MCP
+
+OpenClaw registers `reddit-mcp-server` as `reddit`.
+
+### Filesystem MCP
+
+OpenClaw registers `@modelcontextprotocol/server-filesystem` as `filesystem`
+and constrains it to `/root/.openclaw`.
+
 ### X MCP
 
 OpenClaw registers `@mbelinky/x-mcp-server` as `x` using the package's
@@ -103,6 +112,12 @@ default OAuth 1.0a flow. Populate these environment variables before using it:
 - `OPENCLAW_X_API_SECRET_KEY`
 - `OPENCLAW_X_ACCESS_TOKEN`
 - `OPENCLAW_X_ACCESS_TOKEN_SECRET`
+
+### Mapbox MCP
+
+OpenClaw registers `@mapbox/mcp-server` as `mapbox`. Populate:
+
+- `OPENCLAW_MAPBOX_ACCESS_TOKEN`
 
 ### Workspace docs present but not configured
 

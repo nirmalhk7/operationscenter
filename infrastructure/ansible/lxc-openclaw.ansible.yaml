@@ -183,7 +183,7 @@
           ansible.builtin.shell:
             cmd: |
               pnpm setup
-              pnpm install -g openclaw@{{ openclaw_version }} polymarket-mcp@{{ polymarket_mcp_version }} stock-nse-india@{{ stock_nse_india_version }} @cyanheads/secedgar-mcp-server@{{ secedgar_mcp_server_version }} kubectl-mcp-server@{{ kubectl_mcp_server_version }} rss-reader-mcp@{{ rss_reader_mcp_version }} npm-search-mcp-server@{{ npm_search_mcp_server_version }} @isteam/hackernews-mcp@{{ hackernews_mcp_version }} @mbelinky/x-mcp-server@{{ x_mcp_server_version }} promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
+              pnpm install -g openclaw@{{ openclaw_version }} polymarket-mcp@{{ polymarket_mcp_version }} stock-nse-india@{{ stock_nse_india_version }} @cyanheads/secedgar-mcp-server@{{ secedgar_mcp_server_version }} kubectl-mcp-server@{{ kubectl_mcp_server_version }} rss-reader-mcp@{{ rss_reader_mcp_version }} npm-search-mcp-server@{{ npm_search_mcp_server_version }} @isteam/hackernews-mcp@{{ hackernews_mcp_version }} @mbelinky/x-mcp-server@{{ x_mcp_server_version }} reddit-mcp-server@{{ reddit_mcp_server_version }} @modelcontextprotocol/server-filesystem@{{ server_filesystem_version }} @mapbox/mcp-server@{{ mapbox_mcp_server_version }} promptfoo @buape/carbon @larksuiteoapi/node-sdk grammy
             executable: /bin/bash
           environment:
             PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
@@ -315,6 +315,12 @@
             that:
               - lookup('env', 'OPENCLAW_EDGAR_USER_AGENT') | length > 0
             fail_msg: "Set OPENCLAW_EDGAR_USER_AGENT before deploying OpenClaw with the SEC EDGAR MCP server enabled."
+
+        - name: Require Mapbox MCP access token
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_MAPBOX_ACCESS_TOKEN') | length > 0
+            fail_msg: "Set OPENCLAW_MAPBOX_ACCESS_TOKEN before deploying OpenClaw with the Mapbox MCP server enabled."
 
     - name: Validate candidate OpenClaw configuration before live deployment
       tags:
