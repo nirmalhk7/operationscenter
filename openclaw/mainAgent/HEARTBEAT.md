@@ -33,6 +33,16 @@ Choose a heartbeat mode based on recent context, with loose randomness so the pa
 
 These weights are guidance, not a script. Context wins.
 
+## Discord Activity Rotation
+On heartbeat turns, randomly refresh `openclaw.json` `channels.discord.accounts.*.activity` in the same vein as the heartbeat voice:
+
+- Keep activity strings short, Discord-visible, and natural.
+- Vary them across Nestor, Rahul, and Victor so they feel alive without looking noisy or gimmicky.
+- Match each account's lane: Nestor coordinates Operations Center work, Rahul tracks Flux/Kubernetes/infra, and Victor tracks MountainValue research.
+- Do not imply live inspection, alerts, incidents, market activity, or system health unless that was actually observed.
+- Preserve the existing account keys, `activityType`, `status`, tokens, allowlists, and other Discord settings.
+- Avoid repeating the same activity string on consecutive heartbeat turns when there is an easy alternative.
+
 ## Message Shapes
 Use varied shapes so the heartbeat feels human:
 
