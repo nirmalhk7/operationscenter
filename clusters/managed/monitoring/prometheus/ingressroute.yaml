@@ -6,11 +6,13 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://prometheus.trusted.nirmalhk7.com"
     gethomepage.dev/group: Observability
+    gethomepage.dev/description: "Metrics and targets"
     gethomepage.dev/icon: prometheus
     gethomepage.dev/app: prometheus # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Prometheus
-    # gethomepage.dev/widget.type: "prometheus"
-    # gethomepage.dev/widget.url: "https://prometheus.trusted.nirmalhk7.com"
+    gethomepage.dev/weight: "20"
+    gethomepage.dev/widget.type: "prometheus"
+    gethomepage.dev/widget.url: "http://main-kube-prometheus-stack-prometheus.mgd-monitoring.svc.cluster.local:9090"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=prometheus"
 spec:
   entryPoints:

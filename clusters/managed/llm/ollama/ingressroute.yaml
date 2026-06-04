@@ -7,8 +7,10 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: LLM
     gethomepage.dev/name: Ollama
+    gethomepage.dev/description: "Model runtime"
     gethomepage.dev/icon: ollama
     gethomepage.dev/href: "https://ollama.trusted.nirmalhk7.com"
+    gethomepage.dev/weight: "20"
 spec:
   entryPoints:
     - websecure

@@ -6,9 +6,11 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://touca.trusted.nirmalhk7.com"
     gethomepage.dev/group: Devbench
+    gethomepage.dev/description: "Regression testing"
     gethomepage.dev/icon: https://touca.io/docs/img/touca_logo_bg.png
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Touca
+    gethomepage.dev/weight: "60"
     gethomepage.dev/pod-selector: "app=touca-touca"
 spec:
   entryPoints:

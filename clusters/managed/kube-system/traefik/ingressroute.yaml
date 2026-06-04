@@ -7,9 +7,11 @@ metadata:
     meta.helm.sh/release-namespace: kube-system
     gethomepage.dev/href: "https://traefik.trusted.nirmalhk7.com"
     gethomepage.dev/group: Networking
+    gethomepage.dev/description: "Ingress controller"
     gethomepage.dev/icon: traefik
     gethomepage.dev/app: traefik # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Traefik
+    gethomepage.dev/weight: "10"
     # gethomepage.dev/widget.type: "traefik"
     # gethomepage.dev/widget.url: "https://traefik.trusted.nirmalhk7.com"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"

@@ -9,7 +9,8 @@ metadata:
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Secure
-    gethomepage.dev/description: *app
+    gethomepage.dev/description: "Identity and access"
+    gethomepage.dev/weight: "10"
     # gethomepage.dev/widget.type: *app
     # gethomepage.dev/widget.url: "https://secure.trusted.nirmalhk7.com"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=authelia"

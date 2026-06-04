@@ -11,9 +11,10 @@ metadata:
     gethomepage.dev/icon: nextcloud-blue
     gethomepage.dev/name: Drive
     gethomepage.dev/description: "Nextcloud"
-    gethomepage.dev/widget.key: TOKEN
-    gethomepage.dev/widget.type: nextcloud
-    gethomepage.dev/widget.url: /nextcloud
+    gethomepage.dev/weight: "10"
+    # gethomepage.dev/widget.key: TOKEN
+    # gethomepage.dev/widget.type: nextcloud
+    # gethomepage.dev/widget.url: /nextcloud
   name: nextcloud
 spec:
   entryPoints:

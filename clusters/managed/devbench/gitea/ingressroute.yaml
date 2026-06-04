@@ -10,6 +10,7 @@ metadata:
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Git
+    gethomepage.dev/weight: "10"
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=gitea"
 spec:
   entryPoints:

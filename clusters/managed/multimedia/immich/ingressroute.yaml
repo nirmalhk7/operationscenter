@@ -9,6 +9,8 @@ metadata:
     gethomepage.dev/href: https://immich.trusted.nirmalhk7.com
     gethomepage.dev/icon: immich
     gethomepage.dev/name: Immich
+    gethomepage.dev/description: "Photo library"
+    gethomepage.dev/weight: "10"
     # gethomepage.dev/widget.key: TOKEN
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=immich,app.kubernetes.io/name=server"
     # gethomepage.dev/widget.type: immich

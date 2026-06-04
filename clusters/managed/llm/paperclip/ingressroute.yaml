@@ -7,9 +7,11 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://paperclip.trusted.nirmalhk7.com"
     gethomepage.dev/group: LLM
+    gethomepage.dev/description: "Document assistant"
     gethomepage.dev/icon: "paperclip"
     gethomepage.dev/app: "paperclip"
     gethomepage.dev/name: "Paperclip"
+    gethomepage.dev/weight: "30"
     gethomepage.dev/pod-selector: "milano.app=paperclip"
 spec:
   entryPoints:

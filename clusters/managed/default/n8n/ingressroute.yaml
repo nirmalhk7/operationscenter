@@ -6,9 +6,11 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://n8n.trusted.nirmalhk7.com"
     gethomepage.dev/group: Automation
+    gethomepage.dev/description: "Workflow automation"
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app
     gethomepage.dev/name: n8n
+    gethomepage.dev/weight: "10"
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=n8n"
 spec:
   entryPoints:

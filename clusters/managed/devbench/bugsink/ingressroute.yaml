@@ -10,6 +10,8 @@ metadata:
     gethomepage.dev/icon: "https://www.bugsink.com/static/images/bugsink-logo.7a9597e724ff.webp"
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Bugs
+    gethomepage.dev/description: "Error tracking"
+    gethomepage.dev/weight: "20"
     gethomepage.dev/pod-selector: "app=bugsink"
 spec:
   entryPoints:

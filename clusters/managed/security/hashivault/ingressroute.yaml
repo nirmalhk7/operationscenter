@@ -10,6 +10,7 @@ metadata:
     gethomepage.dev/icon: hashicorp-vault
     gethomepage.dev/app: HashiVault # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: HashiVault
+    gethomepage.dev/weight: "20"
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=hashivault"
 spec:
   entryPoints:
