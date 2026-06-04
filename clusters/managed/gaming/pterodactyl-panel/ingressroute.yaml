@@ -12,6 +12,9 @@ metadata:
     gethomepage.dev/app: *app
     gethomepage.dev/name: Pterodactyl
     gethomepage.dev/weight: "10"
+    gethomepage.dev/widget.type: pterodactyl
+    gethomepage.dev/widget.url: "http://pterodactyl.mgd-gaming.svc.cluster.local"
+    gethomepage.dev/widget.key: "${PTERODACTYL_API_KEY}"
     gethomepage.dev/pod-selector: "milano.app=pterodactyl"
   labels:
     milano.level: managed

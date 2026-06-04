@@ -11,10 +11,11 @@ metadata:
     gethomepage.dev/name: Immich
     gethomepage.dev/description: "Photo library"
     gethomepage.dev/weight: "10"
-    # gethomepage.dev/widget.key: TOKEN
+    gethomepage.dev/widget.type: immich
+    gethomepage.dev/widget.url: "http://immich-server.mgd-multimedia.svc.cluster.local:2283"
+    gethomepage.dev/widget.key: "${IMMICH_API_KEY}"
+    gethomepage.dev/widget.version: "2"
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=immich,app.kubernetes.io/name=server"
-    # gethomepage.dev/widget.type: immich
-    # gethomepage.dev/widget.url: /
 spec:
   entryPoints:
     - websecure

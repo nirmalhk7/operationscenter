@@ -11,8 +11,11 @@ metadata:
     gethomepage.dev/app: portainer # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Portainer
     gethomepage.dev/weight: "10"
-    # gethomepage.dev/widget.type: "portainer"
-    # gethomepage.dev/widget.url: "https://portainer.trusted.nirmalhk7.com"
+    gethomepage.dev/widget.type: "portainer"
+    gethomepage.dev/widget.url: "http://portainer.mgd-monitoring.svc.cluster.local:9000"
+    gethomepage.dev/widget.env: "1"
+    gethomepage.dev/widget.kubernetes: "true"
+    gethomepage.dev/widget.key: "${PORTAINER_API_KEY}"
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=portainer"
 spec:
   entryPoints:
