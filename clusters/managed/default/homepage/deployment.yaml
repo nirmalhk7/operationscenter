@@ -12,6 +12,8 @@ spec:
       app.kubernetes.io/name: *app
   template:
     metadata:
+      annotations:
+        milano.io/homepage-config-revision: "2026-06-04a"
       labels:
         app.kubernetes.io/name: *app
         milano.app: *app
