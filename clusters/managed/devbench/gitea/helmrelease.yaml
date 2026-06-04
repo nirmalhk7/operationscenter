@@ -15,6 +15,8 @@ spec:
   interval: 10m
   releaseName: *app
   values:
+    strategy:
+      type: Recreate
     postgresql-ha:
       enabled: false
     persistence:
@@ -39,6 +41,7 @@ spec:
       - name: authelia
         provider: openidConnect
         existingSecret: gitea-credentials
+        skipTlsVerify: true
         autoDiscoverUrl: https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration
         scopes: openid email profile groups
         groupClaimName: groups
