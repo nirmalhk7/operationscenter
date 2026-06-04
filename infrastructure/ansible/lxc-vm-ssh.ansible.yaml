@@ -1,6 +1,6 @@
 ---
 - name: SSH key + hardening for all LXCs and VMs
-  hosts: lxc_nginx:vm_k8mgd:vm_k8docker:vm_mgdnfs1:vm_openclaw
+  hosts: lxc_nginx:lxc_proxbridge:vm_k8mgd:vm_k8docker:vm_mgdnfs1:vm_openclaw
   become: true
   vars:
     ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"

@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: proxbridge-node-disk
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  staticConfigs:
+    - labels:
+        job: proxbridge-node-disk
+      targets:
+        - 172.16.0.102:9100
+  metricsPath: /metrics
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: proxbridge-smartctl
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  staticConfigs:
+    - labels:
+        job: proxbridge-smartctl
+      targets:
+        - 172.16.0.102:9633
+  metricsPath: /metrics

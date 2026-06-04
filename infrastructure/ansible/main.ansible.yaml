@@ -2,6 +2,7 @@
 # Main entrypoint. Playbooks run sequentially; every task's progress is streamed live to the console.
 - import_playbook: host.ansible.yaml
 - import_playbook: lxc-vm-ssh.ansible.yaml
+- import_playbook: lxc-proxbridge.ansible.yaml
 - import_playbook: lxc-nginx.ansible.yaml
 - import_playbook: vm-k8docker.ansible.yaml
 - import_playbook: vm-k8mgd.ansible.yaml

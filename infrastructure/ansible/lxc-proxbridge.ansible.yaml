@@ -1,0 +1,337 @@
+---
+- name: Configure proxbridge CT passthrough on Proxmox
+  hosts: proxmox
+  become: true
+  gather_facts: false
+  vars:
+    proxbridge_ct_id: 102
+
+  handlers:
+    - name: Restart proxbridge CT
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          if pct status {{ proxbridge_ct_id }} | grep -q 'status: running'; then
+            pct reboot {{ proxbridge_ct_id }}
+          else
+            pct start {{ proxbridge_ct_id }}
+          fi
+          for attempt in {1..60}; do
+            if pct exec {{ proxbridge_ct_id }} -- true >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Timed out waiting for CT {{ proxbridge_ct_id }} after passthrough config change" >&2
+          exit 1
+        executable: /bin/bash
+
+  tasks:
+    - name: Ensure Proxmox SMART tooling is installed
+      ansible.builtin.apt:
+        name: smartmontools
+        state: present
+        update_cache: true
+
+    - name: Read proxbridge CT config
+      ansible.builtin.command: "pct config {{ proxbridge_ct_id }}"
+      register: proxbridge_pct_config
+      changed_when: false
+
+    - name: Require proxbridge to be privileged for raw host disk access
+      ansible.builtin.assert:
+        that:
+          - "'unprivileged: 1' not in proxbridge_pct_config.stdout"
+        fail_msg: "CT {{ proxbridge_ct_id }} must be privileged for proxbridge disk telemetry; convert/recreate it before running this playbook."
+
+    - name: Discover Proxmox-visible SMART devices
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          smartctl --scan-open | awk '$1 ~ "^/dev/" { print $1 }' | sort -u
+        executable: /bin/bash
+      register: proxbridge_smart_devices
+      changed_when: false
+      failed_when: proxbridge_smart_devices.rc != 0 or (proxbridge_smart_devices.stdout_lines | length) == 0
+
+    - name: Configure proxbridge host mounts and device passthrough
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          ctid="{{ proxbridge_ct_id }}"
+          before="$(pct config "$ctid")"
+
+          pct set "$ctid" -features nesting=1,keyctl=1
+          pct set "$ctid" -mp0 /proc,mp=/host/proc,ro=1
+          pct set "$ctid" -mp1 /sys,mp=/host/sys,ro=1
+          pct set "$ctid" -mp2 /,mp=/host/rootfs,ro=1
+          pct set "$ctid" -mp3 /run/udev,mp=/run/udev,ro=1
+
+          desired_devices=(
+          {% for device in proxbridge_smart_devices.stdout_lines %}
+            "{{ device }}"
+          {% endfor %}
+          )
+
+          idx=0
+          for device in "${desired_devices[@]}"; do
+            pct set "$ctid" "-dev${idx}" "path=${device},uid=0,gid=0,mode=0660"
+            idx=$((idx + 1))
+          done
+
+          while read -r key; do
+            [ -z "$key" ] && continue
+            key_idx="${key#dev}"
+            if [ "$key_idx" -ge "$idx" ]; then
+              pct set "$ctid" -delete "$key"
+            fi
+          done < <(pct config "$ctid" | awk -F: '/^dev[0-9]+:/ { print $1 }')
+
+          after="$(pct config "$ctid")"
+          if [ "$before" != "$after" ]; then
+            echo "PROXBRIDGE_CT_CONFIG_CHANGED=1"
+          else
+            echo "PROXBRIDGE_CT_CONFIG_CHANGED=0"
+          fi
+        executable: /bin/bash
+      register: proxbridge_ct_config
+      changed_when: "'PROXBRIDGE_CT_CONFIG_CHANGED=1' in proxbridge_ct_config.stdout"
+      notify: Restart proxbridge CT
+
+- name: Install proxbridge disk telemetry collectors
+  hosts: lxc_proxbridge
+  become: true
+  gather_facts: true
+  vars_files:
+    - vars/versions.yaml
+  vars:
+    scrutiny_api_endpoint: "https://scrutiny.trusted.nirmalhk7.com"
+    scrutiny_host_id: milano
+
+  handlers:
+    - name: Run scrutiny collector once
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: scrutiny-collector.service
+        state: started
+
+    - name: Restart node exporter
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: node_exporter
+        state: restarted
+        enabled: true
+
+    - name: Restart smartctl exporter
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: smartctl_exporter
+        state: restarted
+        enabled: true
+
+  tasks:
+    - name: Ensure telemetry base packages are installed
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - smartmontools
+          - tar
+
+    - name: Ensure Scrutiny directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - /opt/scrutiny/bin
+        - /opt/scrutiny/config
+
+    - name: Download node_exporter
+      ansible.builtin.get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        mode: '0644'
+
+    - name: Unarchive node_exporter
+      ansible.builtin.unarchive:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        dest: /tmp
+        remote_src: true
+
+    - name: Install node_exporter binary
+      ansible.builtin.copy:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+        dest: /usr/local/bin/node_exporter
+        owner: root
+        group: root
+        mode: '0755'
+        remote_src: true
+      notify: Restart node exporter
+
+    - name: Install systemd unit for host disk node_exporter
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Prometheus node_exporter for proxbridge host disk metrics
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User=root
+          Group=root
+          ExecStart=/usr/local/bin/node_exporter \
+            --web.listen-address=:9100 \
+            --path.procfs=/host/proc \
+            --path.sysfs=/host/sys \
+            --path.rootfs=/host/rootfs \
+            --collector.disable-defaults \
+            --collector.diskstats \
+            --collector.filesystem
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart node exporter
+
+    - name: Ensure host disk node_exporter is running
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: node_exporter
+        state: started
+        enabled: true
+
+    - name: Download smartctl_exporter
+      ansible.builtin.get_url:
+        url: "https://github.com/prometheus-community/smartctl_exporter/releases/download/v{{ smartctl_exporter_version }}/smartctl_exporter-{{ smartctl_exporter_version }}.linux-amd64.tar.gz"
+        dest: "/tmp/smartctl_exporter-{{ smartctl_exporter_version }}.linux-amd64.tar.gz"
+        mode: '0644'
+
+    - name: Unarchive smartctl_exporter
+      ansible.builtin.unarchive:
+        src: "/tmp/smartctl_exporter-{{ smartctl_exporter_version }}.linux-amd64.tar.gz"
+        dest: /tmp
+        remote_src: true
+
+    - name: Install smartctl_exporter binary
+      ansible.builtin.copy:
+        src: "/tmp/smartctl_exporter-{{ smartctl_exporter_version }}.linux-amd64/smartctl_exporter"
+        dest: /usr/local/bin/smartctl_exporter
+        owner: root
+        group: root
+        mode: '0755'
+        remote_src: true
+      notify: Restart smartctl exporter
+
+    - name: Install systemd unit for smartctl_exporter
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/smartctl_exporter.service
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Prometheus smartctl_exporter for proxbridge disks
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User=root
+          Group=root
+          ExecStart=/usr/local/bin/smartctl_exporter --web.listen-address=:9633 --smartctl.path=/usr/sbin/smartctl
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart smartctl exporter
+
+    - name: Ensure smartctl_exporter is running
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: smartctl_exporter
+        state: started
+        enabled: true
+
+    - name: Install Scrutiny collector binary
+      ansible.builtin.get_url:
+        url: "https://github.com/AnalogJ/scrutiny/releases/download/{{ scrutiny_version }}/scrutiny-collector-metrics-linux-amd64"
+        dest: /opt/scrutiny/bin/scrutiny-collector-metrics
+        checksum: "sha256:{{ scrutiny_collector_metrics_linux_amd64_sha256 }}"
+        owner: root
+        group: root
+        mode: '0755'
+      notify: Run scrutiny collector once
+
+    - name: Configure Scrutiny collector
+      ansible.builtin.copy:
+        dest: /opt/scrutiny/config/collector.yaml
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          version: 1
+
+          host:
+            id: "{{ scrutiny_host_id }}"
+
+          api:
+            endpoint: "{{ scrutiny_api_endpoint }}"
+
+          commands:
+            metrics_smartctl_bin: /usr/sbin/smartctl
+      notify: Run scrutiny collector once
+
+    - name: Install Scrutiny collector systemd service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/scrutiny-collector.service
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Scrutiny collector for proxbridge disks
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          User=root
+          Group=root
+          ExecStart=/opt/scrutiny/bin/scrutiny-collector-metrics run --config /opt/scrutiny/config/collector.yaml --log-file /var/log/scrutiny-collector.log
+      notify: Run scrutiny collector once
+
+    - name: Install Scrutiny collector systemd timer
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/scrutiny-collector.timer
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Run Scrutiny collector daily
+
+          [Timer]
+          OnCalendar=*-*-* 00:00:00
+          Persistent=true
+          RandomizedDelaySec=5m
+
+          [Install]
+          WantedBy=timers.target
+
+    - name: Ensure Scrutiny collector timer is enabled
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: scrutiny-collector.timer
+        state: started
+        enabled: true
