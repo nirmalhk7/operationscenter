@@ -29,50 +29,28 @@ data:
     layout:
       Observability:
         icon: grafana
-        style: row
-        columns: 4
       Networking:
         icon: traefik
-        style: row
-        columns: 4
       Infrastructure:
         icon: mdi-server-network
-        style: row
-        columns: 4
       Security:
         icon: hashicorp-vault
-        style: row
-        columns: 3
       Automation:
         icon: n8n
-        style: row
-        columns: 3
       LLM:
         icon: open-webui-light
-        style: row
-        columns: 3
       Productivity:
         icon: outline
-        style: row
-        columns: 3
       Media:
         icon: immich
-        style: row
-        columns: 3
       Devbench:
         icon: gitea
-        style: row
-        columns: 4
         initiallyCollapsed: true
       Gaming:
         icon: pterodactyl
-        style: row
-        columns: 3
         initiallyCollapsed: true
       Quick Links:
         icon: github-light
-        style: row
-        columns: 4
   custom.css: ""
   custom.js: |
     if(window.location.host === '10.0.0.10'){
@@ -156,6 +134,15 @@ data:
         text_size: xl
         text: Operations Center Boulder
         font: bold
+    - search:
+        provider: [brave, google, duckduckgo]
+        target: _blank
+        showSearchSuggestions: true
+    - datetime:
+        text_size: xl
+        format:
+          dateStyle: short
+          timeStyle: short
     - kubernetes:
         cluster:
           show: true
