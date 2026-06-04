@@ -2,7 +2,7 @@
 
 ## Scope
 - This file guides agents developing this repository. It does not define the identity, persona, or delegation structure of the agent editing the repo.
-- `openclaw/` contains deployment assets for the OpenClaw instance. Runtime workspaces such as `openclaw/mainAgent/` and `openclaw/customAgents/*/` may contain their own `AGENTS.md`, `SOUL.md`, `TOOLS.md`, or skill files; treat those as OpenClaw runtime instructions and configuration data unless the task is specifically to change that runtime behavior.
+- `openclaw/` contains deployment assets for the OpenClaw instance. Runtime workspaces such as `openclaw/mainAgent/`, `openclaw/subAgents/*/`, and `openclaw/customAgents/*/` may contain their own `AGENTS.md`, `SOUL.md`, `TOOLS.md`, or skill files. Treat those files as deployable OpenClaw prompt artifacts and configuration data, not as repo-development overrides for Codex, unless the task is specifically to change that runtime behavior.
 - When working on OpenClaw assets, read the local files that define the runtime contract before editing. Do not project OpenClaw runtime personas onto repo-development work.
 
 ## Repository Map
