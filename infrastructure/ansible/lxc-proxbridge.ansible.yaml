@@ -101,10 +101,11 @@
 - name: Install proxbridge disk telemetry collectors
   hosts: lxc_proxbridge
   become: true
-  gather_facts: true
+  gather_facts: false
   vars_files:
     - vars/versions.yaml
   vars:
+    ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
     scrutiny_api_endpoint: "https://scrutiny.trusted.nirmalhk7.com"
     scrutiny_api_host: scrutiny.trusted.nirmalhk7.com
     scrutiny_api_host_ip: 172.16.0.101
@@ -132,6 +133,16 @@
         enabled: true
 
   tasks:
+    - name: Wait for proxbridge SSH after CT passthrough changes
+      ansible.builtin.wait_for_connection:
+        delay: 5
+        timeout: 300
+
+    - name: Apply SSH hardening to proxbridge
+      ansible.builtin.include_role:
+        name: ssh-hardening
+      tags: [ssh]
+
     - name: Ensure telemetry base packages are installed
       ansible.builtin.apt:
         update_cache: true
