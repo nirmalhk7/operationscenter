@@ -32,6 +32,7 @@ wikis
 
 # Ansible
 **/*.var.yaml
+**/.ansible_known_hosts
 scripts/
 docker/vectorchord/init.sh
 docker/mariadb/init.sh
