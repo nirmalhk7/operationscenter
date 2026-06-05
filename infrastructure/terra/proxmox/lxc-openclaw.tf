@@ -169,6 +169,26 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     action  = "ACCEPT"
     type    = "out"
     proto   = "tcp"
+    dport   = "2083"
+    comment = "Allow outbound alternate HTTPS for Discord media latency checks"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "tcp"
+    dport   = "8443"
+    comment = "Allow outbound alternate HTTPS for Discord media latency checks"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "tcp"
     dport   = "53"
     comment = "Allow outbound TCP DNS to public internet"
     iface   = "net0"
