@@ -13,10 +13,12 @@
       register: openclaw_k8s_token_result
       changed_when: false
       failed_when: openclaw_k8s_token_result.rc != 0 or openclaw_k8s_token_result.stdout == ''
+      no_log: true
 
     - name: Set dynamic token fact
       ansible.builtin.set_fact:
         openclaw_dynamic_token: "{{ openclaw_k8s_token_result.stdout }}"
+      no_log: true
 
 - name: Deploy OpenClaw
   hosts: vm_openclaw
@@ -30,6 +32,7 @@
     openclaw_home: /root
     openclaw_support_home: /root/openclaw_support
     openclaw_validate_home: /root/openclaw_validate_home
+    openclaw_cluster_token: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_token'] | default(lookup('env', 'OPENCLAW_CLUSTER_TOKEN'), true) }}"
   handlers:
     - name: Restart OpenClaw service
       tags:
@@ -251,6 +254,12 @@
             group: "{{ openclaw_user }}"
             mode: '0700'
 
+        - name: Require Kubernetes token for OpenClaw kubeconfig
+          ansible.builtin.assert:
+            that:
+              - openclaw_cluster_token | length > 0
+            fail_msg: "vm-k8mgd did not provide openclaw_dynamic_token. Fix SSH access to vm-k8mgd or set OPENCLAW_CLUSTER_TOKEN before deploying OpenClaw Kubernetes access."
+
         - name: Create kubeconfig for OpenClaw
           ansible.builtin.copy:
             dest: "{{ openclaw_support_home }}/.kube/config"
@@ -277,15 +286,22 @@
             mode: '0600'
           vars:
             openclaw_k8s_ca: "{{ lookup('env', 'OPENCLAW_CLUSTER_CA') }}"
-            openclaw_k8s_token: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_token'] }}"
+            openclaw_k8s_token: "{{ openclaw_cluster_token }}"
             openclaw_client_cert: "{{ lookup('env', 'OPENCLAW_CLIENT_CERT') }}"
             openclaw_client_key: "{{ lookup('env', 'OPENCLAW_CLIENT_KEY') }}"
+          no_log: true
 
     - name: Validate required OpenClaw integration secrets
       tags:
         - openclaw-env
         - openclaw-validate
       block:
+        - name: Require Kubernetes token for OpenClaw environment
+          ansible.builtin.assert:
+            that:
+              - openclaw_cluster_token | length > 0
+            fail_msg: "vm-k8mgd did not provide openclaw_dynamic_token. Fix SSH access to vm-k8mgd or set OPENCLAW_CLUSTER_TOKEN before deploying the OpenClaw environment."
+
         - name: Require GitHub MCP PAT
           ansible.builtin.assert:
             that:
@@ -316,11 +332,11 @@
               - lookup('env', 'OPENCLAW_EDGAR_USER_AGENT') | length > 0
             fail_msg: "Set OPENCLAW_EDGAR_USER_AGENT before deploying OpenClaw with the SEC EDGAR MCP server enabled."
 
-        - name: Require Mapbox MCP access token
-          ansible.builtin.assert:
-            that:
-              - lookup('env', 'OPENCLAW_MAPBOX_ACCESS_TOKEN') | length > 0
-            fail_msg: "Set OPENCLAW_MAPBOX_ACCESS_TOKEN before deploying OpenClaw with the Mapbox MCP server enabled."
+        # - name: Require Mapbox MCP access token
+        #   ansible.builtin.assert:
+        #     that:
+        #       - lookup('env', 'OPENCLAW_MAPBOX_ACCESS_TOKEN') | length > 0
+        #     fail_msg: "Set OPENCLAW_MAPBOX_ACCESS_TOKEN before deploying OpenClaw with the Mapbox MCP server enabled."
 
     - name: Validate candidate OpenClaw configuration before live deployment
       tags:
