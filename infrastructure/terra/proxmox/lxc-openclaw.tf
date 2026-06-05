@@ -111,6 +111,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     dest    = "10.0.0.0/8"
     comment = "Block outbound to RFC1918 10/8"
     iface   = "net0"
+    log     = "info"
     enabled = true
   }
 
@@ -120,6 +121,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     dest    = "172.16.0.0/12"
     comment = "Block outbound to RFC1918 172.16/12"
     iface   = "net0"
+    log     = "info"
     enabled = true
   }
 
@@ -129,6 +131,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     dest    = "192.168.0.0/16"
     comment = "Block outbound to RFC1918 192.168/16"
     iface   = "net0"
+    log     = "info"
     enabled = true
   }
 
@@ -138,6 +141,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     dest    = "100.64.0.0/10"
     comment = "Block outbound to CGNAT and Tailscale range"
     iface   = "net0"
+    log     = "info"
     enabled = true
   }
 

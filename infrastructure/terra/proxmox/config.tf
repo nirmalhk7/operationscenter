@@ -58,6 +58,9 @@ resource "proxmox_virtual_environment_firewall_rules" "inbound" {
 }
 
 resource "proxmox_virtual_environment_node_firewall" "options" {
-  node_name = local.nodeName
-  enabled   = true
+  node_name         = local.nodeName
+  enabled           = true
+  log_level_in      = "info"
+  log_level_out     = "info"
+  log_level_forward = "info"
 }
