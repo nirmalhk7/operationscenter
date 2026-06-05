@@ -106,6 +106,8 @@
     - vars/versions.yaml
   vars:
     scrutiny_api_endpoint: "https://scrutiny.trusted.nirmalhk7.com"
+    scrutiny_api_host: scrutiny.trusted.nirmalhk7.com
+    scrutiny_api_host_ip: 172.16.0.101
     scrutiny_host_id: milano
 
   handlers:
@@ -151,6 +153,14 @@
       loop:
         - /opt/scrutiny/bin
         - /opt/scrutiny/config
+
+    - name: Route Scrutiny API hostname to internal Nginx
+      ansible.builtin.blockinfile:
+        path: /etc/hosts
+        marker: "# {mark} ANSIBLE MANAGED - scrutiny api"
+        block: |
+          {{ scrutiny_api_host_ip }} {{ scrutiny_api_host }}
+      notify: Run scrutiny collector once
 
     - name: Download node_exporter
       ansible.builtin.get_url:
