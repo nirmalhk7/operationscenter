@@ -77,12 +77,4 @@ else
     echo "SealedSecrets certificate found."
 fi
 
-echo "=== User Input ==="
-printf "Are you sure you want to initialize the infrastructure? (y/n): "
-read confirm
-echo "You entered: $confirm"
-if [ "$confirm" != "y" ]; then
-	echo "Initialization aborted."
-	exit 1
-fi
 echo "Starting initialization..."
