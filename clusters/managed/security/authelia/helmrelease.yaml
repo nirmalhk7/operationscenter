@@ -63,6 +63,8 @@ spec:
     configMap:
       definitions:
         user_attributes:
+          grafana_role:
+            expression: '(email == "nirmalhk7@gmail.com" || "admins" in groups || "grafana_admin" in groups) ? "admin" : "user"'
           immich_role:
             expression: '"admins" in groups ? "admin" : "user"'
       identity_validation:
@@ -89,11 +91,18 @@ spec:
         oidc:
           enabled: true
           claims_policies:
+            grafana_policy:
+              custom_claims:
+                grafana_role:
+                  attribute: grafana_role
             immich_policy:
               custom_claims:
                 immich_role:
                   attribute: immich_role
           scopes:
+            grafana_role:
+              claims:
+                - grafana_role
             immich_role:
               claims:
                 - immich_role
@@ -118,6 +127,7 @@ spec:
                 - profile
                 - email
                 - groups
+                - grafana_role
               response_types:
                 - code
               grant_types:
