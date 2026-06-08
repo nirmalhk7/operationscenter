@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        milano.io/homepage-config-revision: "2026-06-04c"
+        milano.io/homepage-config-revision: "2026-06-08b"
       labels:
         app.kubernetes.io/name: *app
         milano.app: *app
@@ -67,6 +67,9 @@ spec:
             - mountPath: /app/config/kubernetes.yaml
               name: homepage-config
               subPath: kubernetes.yaml
+            - mountPath: /app/config/proxmox.yaml
+              name: homepage-config
+              subPath: proxmox.yaml
             - mountPath: /app/config/services.yaml
               name: homepage-config
               subPath: services.yaml

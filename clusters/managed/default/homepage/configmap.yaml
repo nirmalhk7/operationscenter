@@ -73,31 +73,19 @@ data:
           name: NginX
           description: LXC
           href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=lxc%2F101:4::::::=consolejs"
-          proxmoxNode: milano
-          proxmoxVMID: 101
-          proxmoxType: lxc
       - lxc_tailscale:
           name: Tailscale
           description: LXC
           href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=lxc%2F102:4::::::=consolejs"
-          proxmoxNode: milano
-          proxmoxVMID: 102
-          proxmoxType: lxc
       - vm_kubernetes:
           name: Kubernetes
           description: VM
           href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=qemu%2F105:4::::::=consolejs"
-          proxmoxNode: milano
-          proxmoxVMID: 105
     - Networking:
       - Tailscale:
           id: local-tailscale
           icon: tailscale-light
           href: https://login.tailscale.com/admin/machines
-          widget:
-            type: tailscale
-            deviceid: ${TSKEY_DEVICEID}
-            key: ${TSKEY_API}
       - Google Home:
           id: googlehome
           icon: google-home
@@ -110,12 +98,6 @@ data:
           icon: proxmox-light
           id: proxmox
           href: https://proxmox.trusted.nirmalhk7.com/
-          widget:
-            type: proxmox
-            url: https://proxmox.trusted.nirmalhk7.com:8006
-            username: ${PROXMOX_USERNAME}
-            password: ${PROXMOX_PASSWORD}
-            node: milano
   widgets.yaml: |
     - greeting:
         text_size: xl
