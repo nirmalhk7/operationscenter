@@ -16,3 +16,10 @@ spec:
   values:
     image:
       tag: v0.9.2-omnibus
+    command:
+      - /bin/sh
+      - -lc
+    args:
+      - |
+        touch /tmp/custom-init-performed
+        exec /package/admin/s6/command/s6-svscan -d4 -- /run/service
