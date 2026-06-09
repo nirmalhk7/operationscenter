@@ -92,7 +92,10 @@
         "groq/qwen/qwen3-32b": {},
         "openrouter/qwen/qwen3.5-flash-02-23": {},
         "openai-codex/gpt-5.4-mini": {
-          "alias": "codex-gpt-5.4-mini"
+          "alias": "codex-gpt-5.4-mini",
+          "params": {
+            "fastMode": true
+          }
         },
         "openai-codex/gpt-5.5": {
           "alias": "codex-gpt-5.5"
@@ -112,7 +115,7 @@
         "lightContext": true,
         "isolatedSession": true
       },
-      "typingMode": "thinking",
+      "typingMode": "instant",
       "maxConcurrent": 16,
       "subagents": {
         "maxConcurrent": 10,
@@ -152,7 +155,8 @@
             "openrouter/qwen/qwen3.5-flash-02-23",
             "openrouter/free"
           ]
-        }
+        },
+        "fastModeDefault": true
       },
       {
         "id": "rahul",
@@ -445,15 +449,8 @@
         "enabled": true
       },
       "streaming": {
-        "mode": "progress",
-        "chunkMode": "newline",
-        "preview": {
-          "chunk": {
-            "minChars": 120,
-            "maxChars": 600,
-            "breakPreference": "paragraph"
-          }
-        }
+        "mode": "partial",
+        "chunkMode": "length"
       },
       "accounts": {
         "main": {
