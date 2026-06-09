@@ -92,6 +92,12 @@ spec:
           enabled: true
           claims_policies:
             grafana_policy:
+              id_token:
+                - email
+                - groups
+                - grafana_role
+                - name
+                - preferred_username
               custom_claims:
                 grafana_role:
                   attribute: grafana_role
@@ -118,6 +124,7 @@ spec:
           clients:
             - client_id: grafana
               client_name: Grafana
+              claims_policy: grafana_policy
               client_secret:
                 path: /secrets/authelia-app-secrets/client-secret-grafana
               redirect_uris:
