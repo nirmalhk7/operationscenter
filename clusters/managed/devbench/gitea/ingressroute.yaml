@@ -12,6 +12,9 @@ metadata:
     gethomepage.dev/name: Git
     gethomepage.dev/weight: "10"
     gethomepage.dev/pod-selector: "app.kubernetes.io/instance=gitea"
+    gethomepage.dev/widget.type: gitea
+    gethomepage.dev/widget.url: "http://gitea-http.mgd-devbench.svc.cluster.local:3000"
+    gethomepage.dev/widget.key: "${GITEA_API_TOKEN}"
 spec:
   entryPoints:
     - websecure

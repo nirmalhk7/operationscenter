@@ -12,6 +12,10 @@ metadata:
     gethomepage.dev/name: Drive
     gethomepage.dev/description: "Nextcloud"
     gethomepage.dev/weight: "10"
+    gethomepage.dev/widget.type: nextcloud
+    gethomepage.dev/widget.url: "http://nextcloud.mgd-multimedia.svc.cluster.local:8080"
+    gethomepage.dev/widget.username: "${NEXTCLOUD_USERNAME}"
+    gethomepage.dev/widget.password: "${NEXTCLOUD_PASSWORD}"
   name: nextcloud
 spec:
   entryPoints:
