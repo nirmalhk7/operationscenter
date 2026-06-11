@@ -140,6 +140,8 @@ spec:
               grant_types:
                 - authorization_code
               authorization_policy: one_factor
+              authorization_signed_response_alg: none
+              id_token_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
             - client_id: nextcloud
               client_name: Nextcloud
@@ -154,6 +156,8 @@ spec:
                 - profile
                 - email
                 - groups
+              authorization_signed_response_alg: none
+              id_token_signed_response_alg: none
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
             - client_id: immich
@@ -176,6 +180,8 @@ spec:
                 - code
               grant_types:
                 - authorization_code
+              authorization_signed_response_alg: none
+              id_token_signed_response_alg: none
               access_token_signed_response_alg: none
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
@@ -196,6 +202,8 @@ spec:
                 - code
               grant_types:
                 - authorization_code
+              authorization_signed_response_alg: none
+              id_token_signed_response_alg: none
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
             - client_id: outline
@@ -216,6 +224,8 @@ spec:
               grant_types:
                 - authorization_code
                 - refresh_token
+              authorization_signed_response_alg: none
+              id_token_signed_response_alg: none
               access_token_signed_response_alg: none
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
@@ -236,6 +246,8 @@ spec:
                 - code
               grant_types:
                 - authorization_code
+              authorization_signed_response_alg: none
+              id_token_signed_response_alg: none
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
       theme: 'dark'
