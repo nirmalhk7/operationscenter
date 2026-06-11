@@ -56,7 +56,7 @@
               !/^# (BEGIN|END) ANSIBLE MANAGED - retain sys_rawio$/ &&
               !/^lxc\.cap\.drop:/
             ' "$config"
-            printf 'lxc.cap.drop:\n'
+            printf 'lxc.cap.drop: \n'
           )"
           if [ "$before" != "$desired" ]; then
             printf '%s\n' "$desired" > "$config"
