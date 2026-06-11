@@ -42,10 +42,10 @@ spec:
         provider: openidConnect
         existingSecret: gitea-credentials
         useCustomUrls: true
-        autoDiscoverUrl: http://authelia-oidc-proxy.mgd-security.svc.cluster.local/.well-known/openid-configuration
+        autoDiscoverUrl: http://authelia-oidc.mgd-security.svc/.well-known/openid-configuration
         customAuthUrl: https://secure.trusted.nirmalhk7.com/api/oidc/authorization
-        customTokenUrl: http://authelia-oidc-proxy.mgd-security.svc.cluster.local/api/oidc/token
-        customProfileUrl: http://authelia-oidc-proxy.mgd-security.svc.cluster.local/api/oidc/userinfo
+        customTokenUrl: http://authelia-oidc.mgd-security.svc/api/oidc/token
+        customProfileUrl: http://authelia-oidc.mgd-security.svc/api/oidc/userinfo
         scopes: openid email profile groups
         groupClaimName: groups
         adminGroup: admins
