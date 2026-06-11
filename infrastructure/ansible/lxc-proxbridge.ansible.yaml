@@ -45,20 +45,28 @@
           - "'unprivileged: 1' not in proxbridge_pct_config.stdout"
         fail_msg: "CT {{ proxbridge_ct_id }} must be privileged for proxbridge disk telemetry; convert/recreate it before running this playbook."
 
-    - name: Remove obsolete CAP_SYS_RAWIO block markers
-      ansible.builtin.blockinfile:
-        path: "/etc/pve/lxc/{{ proxbridge_ct_id }}.conf"
-        marker: "# {mark} ANSIBLE MANAGED - retain sys_rawio"
-        state: absent
-        unsafe_writes: true
-
-    - name: Retain CAP_SYS_RAWIO in proxbridge
-      ansible.builtin.lineinfile:
-        path: "/etc/pve/lxc/{{ proxbridge_ct_id }}.conf"
-        regexp: '^lxc\.cap\.drop:'
-        line: 'lxc.cap.drop:'
-        unsafe_writes: true
+    - name: Persist proxbridge CAP_SYS_RAWIO override
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          config="/etc/pve/lxc/{{ proxbridge_ct_id }}.conf"
+          before="$(cat "$config")"
+          desired="$(
+            awk '
+              !/^# (BEGIN|END) ANSIBLE MANAGED - retain sys_rawio$/ &&
+              !/^lxc\.cap\.drop:/
+            ' "$config"
+            printf 'lxc.cap.drop:\n'
+          )"
+          if [ "$before" != "$desired" ]; then
+            printf '%s\n' "$desired" > "$config"
+            echo "PROXBRIDGE_CAP_CONFIG_CHANGED=1"
+          else
+            echo "PROXBRIDGE_CAP_CONFIG_CHANGED=0"
+          fi
+        executable: /bin/bash
       register: proxbridge_cap_config
+      changed_when: "'PROXBRIDGE_CAP_CONFIG_CHANGED=1' in proxbridge_cap_config.stdout"
       notify: Restart proxbridge CT
 
     - name: Configure proxbridge host mounts and device passthrough
