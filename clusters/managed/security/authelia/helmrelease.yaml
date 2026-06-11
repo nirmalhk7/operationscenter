@@ -64,7 +64,7 @@ spec:
       definitions:
         user_attributes:
           grafana_role:
-            expression: '(email == "nirmalhk7@gmail.com" || "admins" in groups || "grafana_admin" in groups) ? "admin" : "user"'
+            expression: '(email == "nirmalh7@gmail.com" || "admins" in groups || "grafana_admin" in groups) ? "admin" : "user"'
           immich_role:
             expression: '"admins" in groups ? "admin" : "user"'
       identity_validation:

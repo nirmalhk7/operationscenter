@@ -52,7 +52,7 @@ spec:
           groups_attribute_path: groups
           email_attribute_path: email
           name_attribute_path: name
-          role_attribute_path: grafana_role == 'admin' && 'GrafanaAdmin' || 'Viewer'
+          role_attribute_path: email == 'nirmalh7@gmail.com' && 'GrafanaAdmin' || contains(groups[*], 'admins') && 'GrafanaAdmin' || contains(groups[*], 'grafana_admin') && 'GrafanaAdmin' || 'Viewer'
           allow_assign_grafana_admin: "true"
           use_pkce: "true"
       sidecar:
