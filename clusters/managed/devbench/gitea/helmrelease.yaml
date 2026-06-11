@@ -41,11 +41,20 @@ spec:
       - name: authelia
         provider: openidConnect
         existingSecret: gitea-credentials
-        autoDiscoverUrl: https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration
+        useCustomUrls: true
+        autoDiscoverUrl: http://authelia-oidc-proxy.mgd-security.svc.cluster.local/.well-known/openid-configuration
+        customAuthUrl: https://secure.trusted.nirmalhk7.com/api/oidc/authorization
+        customTokenUrl: http://authelia-oidc-proxy.mgd-security.svc.cluster.local/api/oidc/token
+        customProfileUrl: http://authelia-oidc-proxy.mgd-security.svc.cluster.local/api/oidc/userinfo
         scopes: openid email profile groups
         groupClaimName: groups
         adminGroup: admins
       config:
+        server:
+          DOMAIN: git.trusted.nirmalhk7.com
+          ROOT_URL: https://git.trusted.nirmalhk7.com/
+          PROTOCOL: https
+          SSH_DOMAIN: git.trusted.nirmalhk7.com
         repository:
           ROOT: /data-nfs/repositories
         lfs:
