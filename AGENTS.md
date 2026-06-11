@@ -22,6 +22,12 @@
 - Prefer persistent storage via CSI drivers such as Longhorn for stateful services.
 - Add Prometheus discovery such as `ServiceMonitor` when the service actually exposes metrics and nearby monitoring patterns support it.
 
+### Shared NFS Storage
+- `vm-mgdnfs1.ansible.yaml` exports the parent `/mnt/2tbhdd` tree. Managed applications use static NFS PVs that point at app-specific subdirectories such as `nextcloud`, `immich`, and `gitea`.
+- PVCs are namespace-scoped. A pod cannot mount another namespace's PVC; create a separate PV/PVC in the consuming namespace or mount the NFS path through another supported mechanism.
+- Treat Immich and Gitea NFS roots as application-owned storage, not general shared folders. Exposing them through Nextcloud external storage bypasses the source application's authorization and metadata model.
+- When app-owned storage must be exposed to another workload, default to read-only mounts and explicitly confirm who may see the data. A read-only mount prevents writes but does not preserve the source application's access controls.
+
 ### Infrastructure
 - New VM and LXC names should reflect their tier where the nearby Terraform/Ansible pattern supports it, for example `vm-mgd-*` or `lxc-dev-*`.
 - Do not rename existing Terraform resource addresses or inventory identifiers only to normalize naming; that can create state moves and host churn. Match the local resource, pool, tag, and firewall conventions around the resource being changed.
