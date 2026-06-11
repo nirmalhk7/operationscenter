@@ -8,11 +8,15 @@ data:
       listen 8080;
       server_name authelia-oidc.mgd-security.svc authelia-oidc-proxy.mgd-security.svc;
 
+      resolver 10.43.0.10 valid=10s ipv6=off;
+      resolver_timeout 5s;
+      set $authelia_upstream secure.trusted.nirmalhk7.com;
+
       access_log /dev/stdout;
       error_log /dev/stderr warn;
 
       location = /.well-known/openid-configuration {
-        proxy_pass https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration;
+        proxy_pass https://$authelia_upstream/.well-known/openid-configuration;
         proxy_ssl_server_name on;
         proxy_ssl_name secure.trusted.nirmalhk7.com;
         proxy_ssl_verify off;
@@ -28,7 +32,7 @@ data:
       }
 
       location / {
-        proxy_pass https://secure.trusted.nirmalhk7.com;
+        proxy_pass https://$authelia_upstream;
         proxy_ssl_server_name on;
         proxy_ssl_name secure.trusted.nirmalhk7.com;
         proxy_ssl_verify off;
@@ -54,7 +58,7 @@ spec:
       labels:
         app.kubernetes.io/name: authelia-oidc-proxy
       annotations:
-        checksum/config: authelia-oidc-v2
+        checksum/config: authelia-oidc-v3
     spec:
       containers:
         - name: nginx
