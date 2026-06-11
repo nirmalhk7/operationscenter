@@ -53,7 +53,7 @@ spec:
         server:
           DOMAIN: git.trusted.nirmalhk7.com
           ROOT_URL: https://git.trusted.nirmalhk7.com/
-          PROTOCOL: https
+          PROTOCOL: http
           SSH_DOMAIN: git.trusted.nirmalhk7.com
         repository:
           ROOT: /data-nfs/repositories
