@@ -3,8 +3,17 @@
   hosts: proxmox
   become: true
   gather_facts: false
+  vars_files:
+    - vars/versions.yaml
   vars:
     proxbridge_ct_id: 102
+    scrutiny_api_endpoint: "https://scrutiny.trusted.nirmalhk7.com"
+    scrutiny_api_host: scrutiny.trusted.nirmalhk7.com
+    scrutiny_api_host_ip: 172.16.0.101
+    scrutiny_host_id: milano
+    scrutiny_devices:
+      - /dev/sda
+      - /dev/nvme0
 
   handlers:
     - name: Restart proxbridge CT
@@ -25,6 +34,12 @@
           echo "Timed out waiting for CT {{ proxbridge_ct_id }} after passthrough config change" >&2
           exit 1
         executable: /bin/bash
+
+    - name: Run scrutiny collector once
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: scrutiny-collector.service
+        state: started
 
   tasks:
     - name: Ensure Proxmox SMART tooling is installed
@@ -98,6 +113,103 @@
       changed_when: "'PROXBRIDGE_CT_CONFIG_CHANGED=1' in proxbridge_ct_config.stdout"
       notify: Restart proxbridge CT
 
+    - name: Ensure Proxmox Scrutiny directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - /opt/scrutiny/bin
+        - /opt/scrutiny/config
+
+    - name: Route Proxmox Scrutiny API hostname to internal Nginx
+      ansible.builtin.blockinfile:
+        path: /etc/hosts
+        marker: "# {mark} ANSIBLE MANAGED - scrutiny api"
+        block: |
+          {{ scrutiny_api_host_ip }} {{ scrutiny_api_host }}
+      notify: Run scrutiny collector once
+
+    - name: Install Proxmox Scrutiny collector binary
+      ansible.builtin.get_url:
+        url: "https://github.com/AnalogJ/scrutiny/releases/download/{{ scrutiny_version }}/scrutiny-collector-metrics-linux-amd64"
+        dest: /opt/scrutiny/bin/scrutiny-collector-metrics
+        checksum: "sha256:{{ scrutiny_collector_metrics_linux_amd64_sha256 }}"
+        owner: root
+        group: root
+        mode: '0755'
+      notify: Run scrutiny collector once
+
+    - name: Configure Proxmox Scrutiny collector
+      ansible.builtin.copy:
+        dest: /opt/scrutiny/config/collector.yaml
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          version: 1
+
+          host:
+            id: "{{ scrutiny_host_id }}"
+
+          api:
+            endpoint: "{{ scrutiny_api_endpoint }}"
+
+          allow_listed_devices:
+          {% for device in scrutiny_devices %}
+            - {{ device }}
+          {% endfor %}
+
+          commands:
+            metrics_smartctl_bin: /usr/sbin/smartctl
+      notify: Run scrutiny collector once
+
+    - name: Install Proxmox Scrutiny collector systemd service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/scrutiny-collector.service
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Scrutiny collector for Proxmox host disks
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          User=root
+          Group=root
+          ExecStart=/opt/scrutiny/bin/scrutiny-collector-metrics run --config /opt/scrutiny/config/collector.yaml --log-file /var/log/scrutiny-collector.log
+      notify: Run scrutiny collector once
+
+    - name: Install Proxmox Scrutiny collector systemd timer
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/scrutiny-collector.timer
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Run Proxmox Scrutiny collector daily
+
+          [Timer]
+          OnCalendar=*-*-* 00:00:00
+          Persistent=true
+          RandomizedDelaySec=5m
+
+          [Install]
+          WantedBy=timers.target
+
+    - name: Ensure Proxmox Scrutiny collector timer is enabled
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: scrutiny-collector.timer
+        state: started
+        enabled: true
+
 - name: Install proxbridge disk telemetry collectors
   hosts: lxc_proxbridge
   become: true
@@ -106,18 +218,8 @@
     - vars/versions.yaml
   vars:
     ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
-    scrutiny_api_endpoint: "https://scrutiny.trusted.nirmalhk7.com"
-    scrutiny_api_host: scrutiny.trusted.nirmalhk7.com
-    scrutiny_api_host_ip: 172.16.0.101
-    scrutiny_host_id: milano
 
   handlers:
-    - name: Run scrutiny collector once
-      ansible.builtin.systemd:
-        daemon_reload: true
-        name: scrutiny-collector.service
-        state: started
-
     - name: Restart node exporter
       ansible.builtin.systemd:
         daemon_reload: true
@@ -135,8 +237,8 @@
   tasks:
     - name: Wait for proxbridge SSH after CT passthrough changes
       ansible.builtin.wait_for_connection:
-        delay: 5
         timeout: 300
+      when: hostvars[groups['proxmox'][0]].proxbridge_ct_config is changed
 
     - name: Apply SSH hardening to proxbridge
       ansible.builtin.include_role:
@@ -153,25 +255,6 @@
           - gnupg
           - smartmontools
           - tar
-
-    - name: Ensure Scrutiny directories exist
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
-      loop:
-        - /opt/scrutiny/bin
-        - /opt/scrutiny/config
-
-    - name: Route Scrutiny API hostname to internal Nginx
-      ansible.builtin.blockinfile:
-        path: /etc/hosts
-        marker: "# {mark} ANSIBLE MANAGED - scrutiny api"
-        block: |
-          {{ scrutiny_api_host_ip }} {{ scrutiny_api_host }}
-      notify: Run scrutiny collector once
 
     - name: Download node_exporter
       ansible.builtin.get_url:
@@ -284,75 +367,19 @@
         state: started
         enabled: true
 
-    - name: Install Scrutiny collector binary
-      ansible.builtin.get_url:
-        url: "https://github.com/AnalogJ/scrutiny/releases/download/{{ scrutiny_version }}/scrutiny-collector-metrics-linux-amd64"
-        dest: /opt/scrutiny/bin/scrutiny-collector-metrics
-        checksum: "sha256:{{ scrutiny_collector_metrics_linux_amd64_sha256 }}"
-        owner: root
-        group: root
-        mode: '0755'
-      notify: Run scrutiny collector once
-
-    - name: Configure Scrutiny collector
-      ansible.builtin.copy:
-        dest: /opt/scrutiny/config/collector.yaml
-        owner: root
-        group: root
-        mode: '0644'
-        content: |
-          version: 1
-
-          host:
-            id: "{{ scrutiny_host_id }}"
-
-          api:
-            endpoint: "{{ scrutiny_api_endpoint }}"
-
-          commands:
-            metrics_smartctl_bin: /usr/sbin/smartctl
-      notify: Run scrutiny collector once
-
-    - name: Install Scrutiny collector systemd service
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/scrutiny-collector.service
-        owner: root
-        group: root
-        mode: '0644'
-        content: |
-          [Unit]
-          Description=Scrutiny collector for proxbridge disks
-          After=network-online.target
-          Wants=network-online.target
-
-          [Service]
-          Type=oneshot
-          User=root
-          Group=root
-          ExecStart=/opt/scrutiny/bin/scrutiny-collector-metrics run --config /opt/scrutiny/config/collector.yaml --log-file /var/log/scrutiny-collector.log
-      notify: Run scrutiny collector once
-
-    - name: Install Scrutiny collector systemd timer
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/scrutiny-collector.timer
-        owner: root
-        group: root
-        mode: '0644'
-        content: |
-          [Unit]
-          Description=Run Scrutiny collector daily
-
-          [Timer]
-          OnCalendar=*-*-* 00:00:00
-          Persistent=true
-          RandomizedDelaySec=5m
-
-          [Install]
-          WantedBy=timers.target
-
-    - name: Ensure Scrutiny collector timer is enabled
+    - name: Disable obsolete proxbridge LXC Scrutiny collector
       ansible.builtin.systemd:
         daemon_reload: true
         name: scrutiny-collector.timer
-        state: started
-        enabled: true
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Remove obsolete proxbridge LXC Scrutiny collector files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/scrutiny-collector.service
+        - /etc/systemd/system/scrutiny-collector.timer
+        - /opt/scrutiny
