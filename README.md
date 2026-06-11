@@ -63,7 +63,7 @@ graph TD
 ## 🛠️ Key Components
 - **Monitoring**: Full Prometheus & Grafana stack for observability.
 - **Storage**: Mixed storage types including NFS (`vm-mgdnfs`) and CSI drivers.
-- **Security**: Authentik for SSO (optional), Sealed Secrets for encryption.
+- **Security**: Authelia OIDC SSO (`secure.trusted.nirmalhk7.com`) with an in-cluster OIDC proxy for backend token exchange, plus Sealed Secrets for encryption.
 
 ## 🚀 Getting Started
 Most operational tasks are managed through the `Makefile`:
