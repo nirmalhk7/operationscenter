@@ -3,11 +3,6 @@ kind: ConfigMap
 metadata:
   name: scrutiny-collector
 data:
-  collector.yaml: |
-    version: 1
-
-    devices:
-      - device: /dev/sda
-        ignore: true
-      - device: /dev/sdb
-        ignore: true
+  scrutiny-collector-metrics: |
+    #!/bin/sh
+    echo "Scrutiny embedded collector disabled; external collectors provide disk metrics."

@@ -21,6 +21,7 @@ spec:
         enabled: true
         type: configMap
         name: scrutiny-collector
-        mountPath: /opt/scrutiny/config/collector.yaml
-        subPath: collector.yaml
+        defaultMode: 0555
+        mountPath: /opt/scrutiny/bin/scrutiny-collector-metrics
+        subPath: scrutiny-collector-metrics
         readOnly: true
