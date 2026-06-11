@@ -167,9 +167,7 @@
           - tar
 
     - name: Require CAP_SYS_RAWIO in proxbridge
-      ansible.builtin.shell:
-        cmd: "set -o pipefail && capsh --print | grep -Eq '^Current:.*cap_sys_rawio'"
-        executable: /bin/bash
+      ansible.builtin.command: capsh --has-p=cap_sys_rawio
       changed_when: false
 
     - name: Validate proxbridge Scrutiny disks
