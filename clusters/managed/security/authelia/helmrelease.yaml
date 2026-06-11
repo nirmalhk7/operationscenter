@@ -60,6 +60,10 @@ spec:
               path: client-secret-outline
             - key: client-secret-open-webui
               path: client-secret-open-webui
+            - key: client-secret-n8n
+              path: client-secret-n8n
+            - key: client-secret-sonarqube
+              path: client-secret-sonarqube
     configMap:
       definitions:
         user_attributes:
@@ -67,6 +71,8 @@ spec:
             expression: '(email == "nirmalh7@gmail.com" || "admins" in groups || "grafana_admin" in groups) ? "admin" : "user"'
           immich_role:
             expression: '"admins" in groups ? "admin" : "user"'
+          n8n_instance_role:
+            expression: '(email == "nirmalhk7@gmail.com" || "admins" in groups) ? "global:admin" : "global:member"'
       identity_validation:
         reset_password:
           secret:
@@ -87,6 +93,10 @@ spec:
             policy: 'one_factor'
           - domain: 'llms.trusted.nirmalhk7.com'
             policy: 'one_factor'
+          - domain: 'n8n.trusted.nirmalhk7.com'
+            policy: 'one_factor'
+          - domain: 'sonarqube.trusted.nirmalhk7.com'
+            policy: 'one_factor'
       identity_providers:
         oidc:
           enabled: true
@@ -105,6 +115,10 @@ spec:
               custom_claims:
                 immich_role:
                   attribute: immich_role
+            n8n_policy:
+              custom_claims:
+                n8n_instance_role:
+                  attribute: n8n_instance_role
           scopes:
             grafana_role:
               claims:
@@ -112,6 +126,9 @@ spec:
             immich_role:
               claims:
                 - immich_role
+            n8n:
+              claims:
+                - n8n_instance_role
           hmac_secret:
             secret_name: authelia-credentials
             path: oidc-hmac-secret
@@ -250,6 +267,50 @@ spec:
               id_token_signed_response_alg: none
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
+            - client_id: n8n
+              client_name: n8n
+              claims_policy: n8n_policy
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-n8n
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://n8n.trusted.nirmalhk7.com/rest/sso/oidc/callback
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+                - n8n
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+              authorization_signed_response_alg: none
+              id_token_signed_response_alg: none
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_post
+            - client_id: sonarqube
+              client_name: SonarQube
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-sonarqube
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://sonarqube.trusted.nirmalhk7.com/oauth2/callback/oidc
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+              authorization_signed_response_alg: none
+              id_token_signed_response_alg: none
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_post
       theme: 'dark'
       telemetry:
         metrics:

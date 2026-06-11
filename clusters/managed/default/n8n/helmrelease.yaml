@@ -25,8 +25,15 @@ spec:
       extraEnvVars:
         N8N_PROTOCOL: "https"
         N8N_HOST: "n8n.trusted.nirmalhk7.com"
+        N8N_EDITOR_BASE_URL: "https://n8n.trusted.nirmalhk7.com"
+        N8N_SSO_MANAGED_BY_ENV: "true"
+        N8N_SSO_OIDC_LOGIN_ENABLED: "true"
+        N8N_SSO_OIDC_CLIENT_ID: "n8n"
+        N8N_SSO_OIDC_DISCOVERY_ENDPOINT: "https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration"
+        N8N_SSO_USER_ROLE_PROVISIONING: "instance_role"
       extraSecretNamesForEnvFrom:
         - n8n-credentials
+        - n8n-oidc-credentials
     webhook:
       url: "https://n8n.trusted.nirmalhk7.com"
     timezone: "America/Denver"
