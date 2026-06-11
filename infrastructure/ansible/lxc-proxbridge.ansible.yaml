@@ -3,8 +3,6 @@
   hosts: proxmox
   become: true
   gather_facts: false
-  vars_files:
-    - vars/versions.yaml
   vars:
     proxbridge_ct_id: 102
     scrutiny_devices:
@@ -36,12 +34,6 @@
         executable: /bin/bash
 
   tasks:
-    - name: Ensure Proxmox SMART tooling is installed
-      ansible.builtin.apt:
-        name: smartmontools
-        state: present
-        update_cache: true
-
     - name: Read proxbridge CT config
       ansible.builtin.command: "pct config {{ proxbridge_ct_id }}"
       register: proxbridge_pct_config
@@ -59,6 +51,7 @@
         marker: "# {mark} ANSIBLE MANAGED - retain sys_rawio"
         block: |
           lxc.cap.drop:
+        unsafe_writes: true
       register: proxbridge_cap_config
       notify: Restart proxbridge CT
 
