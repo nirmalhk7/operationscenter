@@ -8,7 +8,7 @@ data:
     traefik: true
   proxmox.yaml: |
     url: https://proxmox.trusted.nirmalhk7.com:8006
-    token: ${PROXMOX_USERNAME}
+    token: homepage.bot@pve!homepage
     secret: ${PROXMOX_PASSWORD}
   settings.yaml: |
     title: "Operations Center Boulder - MILANO"
@@ -101,7 +101,7 @@ data:
           widget:
             type: proxmox
             url: https://proxmox.trusted.nirmalhk7.com:8006
-            username: ${PROXMOX_USERNAME}
+            username: homepage.bot@pve!homepage
             password: ${PROXMOX_PASSWORD}
   widgets.yaml: |
     - greeting:
