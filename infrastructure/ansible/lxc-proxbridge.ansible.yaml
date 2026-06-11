@@ -45,12 +45,18 @@
           - "'unprivileged: 1' not in proxbridge_pct_config.stdout"
         fail_msg: "CT {{ proxbridge_ct_id }} must be privileged for proxbridge disk telemetry; convert/recreate it before running this playbook."
 
-    - name: Retain CAP_SYS_RAWIO in proxbridge
+    - name: Remove obsolete CAP_SYS_RAWIO block markers
       ansible.builtin.blockinfile:
         path: "/etc/pve/lxc/{{ proxbridge_ct_id }}.conf"
         marker: "# {mark} ANSIBLE MANAGED - retain sys_rawio"
-        block: |
-          lxc.cap.drop:
+        state: absent
+        unsafe_writes: true
+
+    - name: Retain CAP_SYS_RAWIO in proxbridge
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ proxbridge_ct_id }}.conf"
+        regexp: '^lxc\.cap\.drop:'
+        line: 'lxc.cap.drop:'
         unsafe_writes: true
       register: proxbridge_cap_config
       notify: Restart proxbridge CT
