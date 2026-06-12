@@ -22,7 +22,7 @@ spec:
         - "https://github.com/sonar-auth-oidc/sonar-auth-oidc/releases/download/v3.0.0/sonar-auth-oidc-plugin-3.0.0.jar"
     sonarProperties:
       sonar.core.serverBaseURL: "https://sonarqube.trusted.nirmalhk7.com"
-      sonar.forceAuthentication: "true"
+      sonar.forceAuthentication: "false"
       sonar.auth.oidc.enabled: "true"
       sonar.auth.oidc.autoLogin: "true"
       sonar.auth.oidc.issuerUri: "https://secure.trusted.nirmalhk7.com"
