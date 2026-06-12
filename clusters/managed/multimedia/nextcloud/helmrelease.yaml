@@ -54,6 +54,11 @@ spec:
             secretKeyRef:
               name: nextcloud-credentials
               key: oidc-client-secret
+        - name: SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-credentials
+              key: SMTP_PASSWORD
       configs:
         install.config.php: |-
           <?php
@@ -92,8 +97,17 @@ spec:
             --mapping-uid="email" \
             --mapping-email="email" \
             --discoveryuri="https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration"
+          php occ config:system:set mail_smtpmode --value=smtp
+          php occ config:system:set mail_smtphost --value=smtp.maileroo.com
+          php occ config:system:set mail_smtpport --value=587 --type=integer
+          php occ config:system:set mail_smtpsecure --value=tls
+          php occ config:system:set mail_smtpauth --value=1 --type=integer
+          php occ config:system:set mail_smtpname --value=nestor@nirmalhk7.com
+          php occ config:system:set mail_smtppassword --value="${SMTP_PASSWORD}"
+          php occ config:system:set mail_from_address --value=nestor
+          php occ config:system:set mail_domain --value=nirmalhk7.com
     podAnnotations:
-      milano.io/nextcloud-oidc-revision: "2026-06-03c"
+      milano.io/nextcloud-oidc-revision: "2026-06-12a"
 
     internalDatabase:
       enabled: false
