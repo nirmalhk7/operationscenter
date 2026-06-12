@@ -16,7 +16,7 @@ spec:
         app: {{ .Release.Name }}-touca-mongo
     spec:
       containers:
-      - image: mongo:5.0.10
+      - image: mongo:4.4
         name: {{ .Release.Name }}-touca-mongo
         ports:
         - containerPort: 27017
