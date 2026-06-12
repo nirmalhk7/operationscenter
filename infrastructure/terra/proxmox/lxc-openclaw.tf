@@ -106,6 +106,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   }
 
   rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "tcp"
+    sport   = "22"
+    comment = "Allow SSH reply traffic from OpenClaw"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
     action  = "DROP"
     type    = "out"
     dest    = "10.0.0.0/8"
