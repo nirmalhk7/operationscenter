@@ -25,3 +25,11 @@ spec:
         mountPath: /opt/scrutiny/bin/scrutiny-collector-metrics
         subPath: scrutiny-collector-metrics
         readOnly: true
+      web-config:
+        enabled: true
+        type: secret
+        name: scrutiny-config
+        defaultMode: 0444
+        mountPath: /opt/scrutiny/config/scrutiny.yaml
+        subPath: scrutiny.yaml
+        readOnly: true

@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - collector-configmap.yaml
+  - scrutiny-config.yaml
   - helmrelease.yaml
   - ingressroute.yaml
 
