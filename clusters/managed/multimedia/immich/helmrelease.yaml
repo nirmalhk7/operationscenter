@@ -28,10 +28,11 @@ spec:
             args:
               - |
                 set -euo pipefail
-                secret="$(cat /secrets/immich-credentials/OAUTH_CLIENT_SECRET)"
+                oauth_secret="$(cat /secrets/immich-credentials/OAUTH_CLIENT_SECRET)"
+                smtp_password="$(cat /secrets/immich-credentials/SMTP_PASSWORD)"
                 config="/config/immich-config.yaml"
                 tmp="$(mktemp /tmp/immich-config.XXXXXX.yaml)"
-                awk -v secret="$secret" '
+                awk -v secret="$oauth_secret" '
                   /^  clientId: immich$/ {
                     print
                     print "  clientSecret: \"" secret "\""
@@ -39,6 +40,7 @@ spec:
                   }
                   { print }
                 ' "$config" > "$tmp"
+                sed -i "s/__SMTP_PASSWORD__/${smtp_password}/g" "$tmp"
                 export IMMICH_CONFIG_FILE="$tmp"
                 exec /usr/src/app/server/bin/start.sh
             env:
@@ -95,6 +97,18 @@ spec:
           storageLabelClaim: preferred_username
           roleClaim: immich_role
           tokenEndpointAuthMethod: client_secret_post
+        notifications:
+          smtp:
+            enabled: true
+            from: "Nirmal - Immich <nestor@nirmalhk7.com>"
+            replyTo: nestor@nirmalhk7.com
+            transport:
+              host: smtp.maileroo.com
+              port: 587
+              secure: false
+              ignoreCert: false
+              username: nestor@nirmalhk7.com
+              password: "__SMTP_PASSWORD__"
       metrics:
         enabled: true
       persistence:
