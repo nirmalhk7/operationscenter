@@ -77,6 +77,13 @@ spec:
           DISABLE_REGISTRATION: false
           ALLOW_ONLY_EXTERNAL_REGISTRATION: true
           SHOW_REGISTRATION_BUTTON: false
+        mailer:
+          ENABLED: true
+          FROM: nestor@nirmalhk7.com
+          PROTOCOL: smtp+starttls
+          SMTP_ADDR: smtp.maileroo.com:587
+          USER: nestor@nirmalhk7.com
+          SUBJECT_PREFIX: "Nirmal - "
       additionalConfigFromEnvs:
       - name: GITEA__database__DB_TYPE
         value: mysql
@@ -94,3 +101,8 @@ spec:
           secretKeyRef:
             name: gitea-credentials
             key: DB_PASSWORD
+      - name: GITEA__mailer__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: gitea-credentials
+            key: SMTP_PASSWORD
