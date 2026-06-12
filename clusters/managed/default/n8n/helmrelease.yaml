@@ -34,6 +34,7 @@ spec:
       extraSecretNamesForEnvFrom:
         - n8n-credentials
         - n8n-oidc-credentials
+        - n8n-smtp-credentials
     webhook:
       url: "https://n8n.trusted.nirmalhk7.com"
     timezone: "America/Denver"

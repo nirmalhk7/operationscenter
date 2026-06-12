@@ -6,3 +6,4 @@ resources:
   - ingressroute.yaml
   - secrets.yaml
   - oidc-secret.yaml
+  - smtp-secret.yaml
