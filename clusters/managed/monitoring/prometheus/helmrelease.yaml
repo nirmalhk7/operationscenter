@@ -148,7 +148,7 @@ spec:
                   execErrState: Alerting
                   for: 1m
                   annotations:
-                    summary: "A monitored endpoint is down or unreachable."
+                    summary: "Nirmal - A monitored endpoint is down or unreachable."
                   labels:
                     severity: warning
                     namespace: sample
