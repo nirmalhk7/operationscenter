@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-touca-mongo
   name: {{ .Release.Name }}-touca-mongo
-  namespace: {{ .Release.Name }}-touca
+  namespace: {{ .Release.Namespace }}
 spec:
   ports:
   - port: 27017

@@ -2,10 +2,14 @@ toucaApp:
   dockerRepoName: "touca"
   dockerImageName: "touca"
   dockerImageTag: "2.0.0"
+  webappRoot: "http://localhost:8080"
 
 volume:
-  scName: "ebs-sc"
+  scName: "milano-v2"
+  size: 4Gi
 
-namespace: {{ .Release.Namespace }}
 ingress:
-  enabled: true
+  enabled: false
+
+services:
+  type: ClusterIP

@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-touca-mongo
   name: {{ .Release.Name }}-touca-mongo
-  namespace: {{ .Release.Name }}-touca
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
   selector:
@@ -39,7 +39,7 @@ spec:
       volumes:
       - name: mongo-volume
         persistentVolumeClaim:
-          claimName: touca-ebs
+          claimName: {{ .Release.Name }}-mongo-data
       - name: mongod-conf
         configMap:
           name: mongod-conf

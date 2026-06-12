@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-touca-minio
   name: {{ .Release.Name }}-touca-minio
-  namespace: {{ .Release.Name }}-touca
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
   selector:
@@ -31,4 +31,4 @@ spec:
       volumes:
       - name: minio-volume
         persistentVolumeClaim:
-          claimName: touca-ebs
+          claimName: {{ .Release.Name }}-minio-data

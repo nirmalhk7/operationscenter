@@ -1,0 +1,22 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app touca
+  namespace: mgd-devbench
+spec:
+  releaseName: *app
+  interval: 10m
+  chart:
+    spec:
+      chart: ./charts/touca
+      sourceRef:
+        kind: GitRepository
+        name: operationscenter-git
+        namespace: flux-system
+  values:
+    toucaApp:
+      webappRoot: "https://touca.trusted.nirmalhk7.com"
+    volume:
+      scName: milano-v2
+    ingress:
+      enabled: false

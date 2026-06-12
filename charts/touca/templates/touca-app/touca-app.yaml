@@ -25,7 +25,7 @@ spec:
         - name: ENV_FILE
           value: prod
         - name: WEBAPP_ROOT
-          value: "http://{{ .Release.Name }}-touca-app"
+          value: {{ .Values.toucaApp.webappRoot | quote }}
         - name: MINIO_HOST
           value: {{ .Release.Name }}-touca-minio
         - name: MONGO_HOST

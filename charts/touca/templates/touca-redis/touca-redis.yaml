@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-touca-redis
   name: {{ .Release.Name }}-touca-redis
-  namespace: {{ .Release.Name }}-touca
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
   selector:
@@ -24,4 +24,4 @@ spec:
       volumes:
       - name: redis-volume
         persistentVolumeClaim:
-          claimName: touca-ebs
+          claimName: {{ .Release.Name }}-redis-data

@@ -11,6 +11,7 @@ metadata:
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Touca
     gethomepage.dev/weight: "60"
+    gethomepage.dev/pod-selector: "app=touca-touca-app"
 spec:
   entryPoints:
     - websecure
@@ -19,5 +20,5 @@ spec:
     - match: Host(`touca.trusted.nirmalhk7.com`)
       kind: Rule
       services:
-        - name: touca-touca
+        - name: touca-touca-app
           port: 8080

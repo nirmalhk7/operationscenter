@@ -18,10 +18,10 @@ spec:
         ports:
         - containerPort: 8000
         env:
+        - name: BASE_URL
+          value: "https://bugs.trusted.nirmalhk7.com"
         - name: BEHIND_HTTPS_PROXY
           value: "true"
-        - name: DJANGO_SECURE_PROXY_SSL_HEADER
-          value: "HTTP_X_FORWARDED_PROTO,https"
         envFrom:
         - secretRef:
             name: bugsink-credentials

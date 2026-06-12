@@ -13,4 +13,4 @@ data:
 kind: ConfigMap
 metadata:
   name: mongo-entrypoint
-  namespace: {{ .Release.Name }}-touca
+  namespace: {{ .Release.Namespace }}

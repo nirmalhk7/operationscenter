@@ -13,4 +13,4 @@ data:
 kind: ConfigMap
 metadata:
   name: mongod-conf
-  namespace: {{ .Release.Name }}-touca
+  namespace: {{ .Release.Namespace }}

@@ -1,12 +1,38 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: touca-ebs
-  namespace: {{ .Release.Name }}-touca
-spec: 
+  name: {{ .Release.Name }}-mongo-data
+  namespace: {{ .Release.Namespace }}
+spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: {{ .Values.volume.scName }}
-  resources: 
+  resources:
     requests:
-      storage: 4Gi
+      storage: {{ .Values.volume.size }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-minio-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.volume.scName }}
+  resources:
+    requests:
+      storage: {{ .Values.volume.size }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-redis-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.volume.scName }}
+  resources:
+    requests:
+      storage: 1Gi
