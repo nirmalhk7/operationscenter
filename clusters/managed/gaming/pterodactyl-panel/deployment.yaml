@@ -58,6 +58,25 @@ spec:
                 secretKeyRef:
                   name: pterodactyl-secrets
                   key: DB_PASSWORD
+            - name: MAIL_MAILER
+              value: smtp
+            - name: MAIL_HOST
+              value: smtp.maileroo.com
+            - name: MAIL_PORT
+              value: "587"
+            - name: MAIL_USERNAME
+              value: nestor@nirmalhk7.com
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pterodactyl-secrets
+                  key: MAIL_PASSWORD
+            - name: MAIL_ENCRYPTION
+              value: tls
+            - name: MAIL_FROM_ADDRESS
+              value: nestor@nirmalhk7.com
+            - name: MAIL_FROM_NAME
+              value: "Nirmal - Pterodactyl"
           readinessProbe:
             httpGet:
               path: /
