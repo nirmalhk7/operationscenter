@@ -42,6 +42,8 @@ spec:
               path: jwt-secret
             - key: users_database.yaml
               path: users_database.yaml
+            - key: notifier.smtp.password
+              path: notifier.smtp.password
             - key: oidc-hmac-secret
               path: oidc-hmac-secret
             - key: oidc-jwks-private-key.pem
@@ -339,8 +341,17 @@ spec:
           enabled: false
       notifier:
         filesystem:
+          enabled: false
+        smtp:
           enabled: true
-          filename: /config/notification.txt
+          address: 'submission://smtp.maileroo.com:587'
+          username: nestor@nirmalhk7.com
+          password:
+            secret_name: authelia-credentials
+            path: notifier.smtp.password
+          sender: 'Nirmal - Authelia <nestor@nirmalhk7.com>'
+          subject: 'Nirmal - {title}'
+          startup_check_address: nestor@nirmalhk7.com
       storage:
         encryption_key:
           secret_name: authelia-credentials
