@@ -55,6 +55,14 @@ spec:
           role_attribute_path: email == 'nirmalh7@gmail.com' && 'GrafanaAdmin' || contains(groups[*], 'admins') && 'GrafanaAdmin' || contains(groups[*], 'grafana_admin') && 'GrafanaAdmin' || 'Viewer'
           allow_assign_grafana_admin: "true"
           use_pkce: "true"
+        smtp:
+          enabled: true
+          host: smtp.maileroo.com:587
+          user: nestor@nirmalhk7.com
+          password: $__env{GF_SMTP_PASSWORD}
+          from_address: nestor@nirmalhk7.com
+          from_name: "Nirmal - Grafana"
+          startTLS_policy: MandatoryStartTLS
       sidecar:
         dashboards:
           enabled: "true"
@@ -70,11 +78,24 @@ spec:
           secretKeyRef:
             name: grafana-credentials
             key: token
+        GF_SMTP_PASSWORD:
+          secretKeyRef:
+            name: grafana-credentials
+            key: SMTP_PASSWORD
       assertNoLeakedSecrets: false
       alerting:
         contactpoints.yaml:
           apiVersion: 1
           contactPoints:
+            - orgId: 1
+              name: email
+              receivers:
+                - uid: email_1
+                  type: email
+                  disableResolveMessage: false
+                  settings:
+                    addresses: nirmalhk7@gmail.com
+                    singleEmail: false
             - orgId: 1
               name: telegram
               receivers:
@@ -89,7 +110,7 @@ spec:
           apiVersion: 1
           policies:
             - orgId: 1
-              receiver: telegram
+              receiver: email
               group_by:
                 - namespace
                 - alertname
