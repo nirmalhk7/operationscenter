@@ -312,6 +312,16 @@ spec:
                 - authorization_code
               token_endpoint_auth_method: client_secret_basic
       theme: 'dark'
+      totp:
+        disable: false
+        issuer: 'Nirmal Secure'
+      webauthn:
+        disable: false
+        enable_passkey_login: true
+        display_name: 'Nirmal Secure'
+        selection_criteria:
+          discoverability: 'preferred'
+          user_verification: 'preferred'
       telemetry:
         metrics:
           enabled: true
