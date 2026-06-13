@@ -155,6 +155,18 @@
         state: started
 
   tasks:
+    - name: Drop stale proxbridge SSH host key after CT reboot
+      ansible.builtin.known_hosts:
+        path: "{{ inventory_dir }}/.ansible_known_hosts"
+        name: "{{ hostvars[item].ansible_host }}"
+        state: absent
+      delegate_to: localhost
+      run_once: true
+      loop: "{{ groups['lxc_proxbridge'] }}"
+      when:
+        - (hostvars[groups['proxmox'][0]].proxbridge_ct_config is changed)
+          or (hostvars[groups['proxmox'][0]].proxbridge_cap_config is changed)
+
     - name: Wait for proxbridge SSH after CT passthrough changes
       ansible.builtin.wait_for_connection:
         timeout: 300

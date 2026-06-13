@@ -41,6 +41,7 @@
 - Do not rename existing Terraform resource addresses or inventory identifiers only to normalize naming; that can create state moves and host churn. Match the local resource, pool, tag, and firewall conventions around the resource being changed.
 - Ansible playbooks use the `.ansible.yaml` suffix.
 - Keep sensitive host data in vars or environment-backed lookups instead of hardcoding it. Keep base playbooks generic and reusable.
+- **Proxmox host disk telemetry** uses privileged LXC CT 102 (`proxbridge`, `172.16.0.102`). Terraform (`infrastructure/terra/proxmox/lxc-proxbridge.tf`) only provisions the container; SMART collection and Prometheus disk exporters require `infrastructure/ansible/lxc-proxbridge.ansible.yaml`. That playbook is imported from `main.ansible.yaml` but is safe to run alone with `make ansible-run-one NOTEBOOK=lxc-proxbridge.ansible.yaml`.
 
 ### Nginx
 - The `nginx/` directory is the reverse-proxy source of truth.

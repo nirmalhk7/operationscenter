@@ -18,6 +18,7 @@ flowchart LR
   ProxmoxUI["Proxmox UI<br/>172.16.0.1:8006"]
   ManagedNet["Managed tier<br/>172.16.0.100-199"]
   DevNet["Dev tier<br/>172.16.0.200-255"]
+  Proxbridge["proxbridge<br/>172.16.0.102"]
 
   Local -->|direct Proxmox UI 8006| ProxmoxUI
   Local -->|trusted web entry 80/443| Nginx
@@ -26,6 +27,7 @@ flowchart LR
   Nginx -->|mgd.conf: HTTPS 443| K8s
   Nginx -->|proxmox.conf: HTTPS 8006| ProxmoxUI
   Nginx -->|robot.conf: HTTP 18789| OpenClaw
+  Proxbridge -->|Scrutiny collector HTTPS| Nginx
 
   ManagedNet -->|all outbound allowed| Internet
   DevNet -->|all outbound allowed| Internet
@@ -91,4 +93,5 @@ flowchart LR
 - `nginx/conf.d/robot.conf` proxies `robot.trusted.nirmalhk7.com` to `172.16.0.104:18789`.
 - `home.trusted.nirmalhk7.com` uses the wildcard `*.trusted` route in `mgd.conf`, not `local.conf`.
 - `nginx/conf.d/local.conf` is a separate local default server on `80`; it is not part of the `*.trusted` routes.
+- `lxc-proxbridge` (CT 102, `172.16.0.102`) bridges Proxmox host disk SMART telemetry into the cluster. Terraform creates the container only; `infrastructure/ansible/lxc-proxbridge.ansible.yaml` configures disk passthrough and external Scrutiny/Prometheus collectors. The collector resolves `scrutiny.trusted.nirmalhk7.com` to nginx via `/etc/hosts` and posts through `mgd.conf`.
 - SSH on `22/tcp` is allowed inbound on every security group shown here.
