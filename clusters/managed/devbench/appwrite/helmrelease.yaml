@@ -6,6 +6,7 @@ metadata:
 spec:
   releaseName: *app
   interval: 10m
+  timeout: 15m
   chart:
     spec:
       chart: appwrite-helm
@@ -17,6 +18,8 @@ spec:
   values:
     global:
       storageClass: milano-v3
+      security:
+        allowInsecureImages: true
     podLabels:
       milano.app: *app
     environments:
@@ -28,6 +31,12 @@ spec:
         host: 172.16.0.106
         port: 3306
         schema: appwrite
+        username: appwrite_rw
+      redis:
+        # PHP Redis extension fails DNS lookup on *.svc.cluster.local FQDNs.
+        host: appwrite-redis-master
+      usage:
+        stats: disabled
       console:
         whitelist:
           emails: nirmalhk7@gmail.com
@@ -39,6 +48,7 @@ spec:
         device: Local
     components:
       core:
+        test: []
         ingress:
           enabled: false
         podLabels:
@@ -49,22 +59,58 @@ spec:
         podLabels:
           milano.app: *app
       realtime:
+        test: []
         ingress:
           enabled: false
         podLabels:
           milano.app: *app
+      tasks:
+        maintenance:
+          test: []
       schedulers:
         functions:
           replicaCount: 0
+          test: []
+        executions:
+          test: []
+        messages:
+          test: []
       workers:
-        functions:
-          replicaCount: 0
+        usage:
+          test: []
+        usagedump:
+          test: []
+        audits:
+          test: []
         builds:
           replicaCount: 0
+          test: []
+        certificates:
+          test: []
+        databases:
+          test: []
+        deletes:
+          test: []
+        functions:
+          replicaCount: 0
+          test: []
+        mails:
+          test: []
+        messaging:
+          test: []
+        migrations:
+          test: []
+        webhooks:
+          test: []
     mariadb:
       enabled: false
     redis:
       enabled: true
+      image:
+        repository: bitnamilegacy/redis
+        tag: 7.2.3-debian-11-r1
+      metrics:
+        enabled: false
       auth:
         enabled: false
       replica:
@@ -75,10 +121,6 @@ spec:
           storageClass: milano-v2
           size: 8Gi
     influxdb:
-      enabled: true
-      persistence:
-        enabled: true
-        storageClass: milano-v2
-        size: 8Gi
+      enabled: false
     telegraf:
-      enabled: true
+      enabled: false
