@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-12T16:30:00.000Z",
+  "source": {
+    "companyId": "e0043b96-f425-425d-8fcf-b1d72a020994",
+    "companyName": "Operations Center"
+  },
+  "includes": {
+    "company": true,
+    "agents": true
+  },
+  "company": {
+    "path": "COMPANY.md",
+    "name": "Operations Center",
+    "description": "GitOps-managed OpenClaw agent company for the Operations Center",
+    "brandColor": "#5865F2",
+    "requireBoardApprovalForNewAgents": false
+  },
+  "agents": [
+    {
+      "slug": "nestor",
+      "name": "Nestor",
+      "path": "agents/nestor/AGENT.md",
+      "role": "ceo",
+      "title": "Chief of Staff",
+      "icon": "crown",
+      "capabilities": "Coordinates Operations Center OpenClaw agents",
+      "reportsToSlug": null,
+      "adapterType": "openclaw_gateway",
+      "adapterConfig": {
+        "url": "ws://172.16.0.104:18789",
+        "agentId": "main",
+        "headers": {
+          "x-openclaw-token": {
+            "type": "env",
+            "name": "OPENCLAW_GATEWAY_AUTH_TOKEN"
+          }
+        },
+        "autoPairOnFirstConnect": true,
+        "sessionKeyStrategy": "issue",
+        "timeoutSec": 300,
+        "waitTimeoutMs": 60000
+      },
+      "runtimeConfig": {},
+      "permissions": {},
+      "budgetMonthlyCents": 0,
+      "metadata": {
+        "openclawWorkspace": "/root/.openclaw/workspace"
+      }
+    },
+    {
+      "slug": "rahul",
+      "name": "Rahul",
+      "path": "agents/rahul/AGENT.md",
+      "role": "engineer",
+      "title": "Cluster Manager",
+      "icon": "server",
+      "capabilities": "Proxmox, Flux, and Kubernetes operations",
+      "reportsToSlug": "nestor",
+      "adapterType": "openclaw_gateway",
+      "adapterConfig": {
+        "url": "ws://172.16.0.104:18789",
+        "agentId": "rahul",
+        "headers": {
+          "x-openclaw-token": {
+            "type": "env",
+            "name": "OPENCLAW_GATEWAY_AUTH_TOKEN"
+          }
+        },
+        "autoPairOnFirstConnect": true,
+        "sessionKeyStrategy": "issue",
+        "timeoutSec": 300,
+        "waitTimeoutMs": 60000
+      },
+      "runtimeConfig": {},
+      "permissions": {},
+      "budgetMonthlyCents": 0,
+      "metadata": {
+        "openclawWorkspace": "/root/.openclaw/workspace-rahul"
+      }
+    },
+    {
+      "slug": "victor",
+      "name": "Victor",
+      "path": "agents/victor/AGENT.md",
+      "role": "researcher",
+      "title": "MountainValue Lead",
+      "icon": "chart-line",
+      "capabilities": "Equity research orchestration",
+      "reportsToSlug": "nestor",
+      "adapterType": "openclaw_gateway",
+      "adapterConfig": {
+        "url": "ws://172.16.0.104:18789",
+        "agentId": "victor",
+        "headers": {
+          "x-openclaw-token": {
+            "type": "env",
+            "name": "OPENCLAW_GATEWAY_AUTH_TOKEN"
+          }
+        },
+        "autoPairOnFirstConnect": true,
+        "sessionKeyStrategy": "issue",
+        "timeoutSec": 300,
+        "waitTimeoutMs": 60000
+      },
+      "runtimeConfig": {},
+      "permissions": {},
+      "budgetMonthlyCents": 0,
+      "metadata": {
+        "openclawWorkspace": "/root/.openclaw/workspace-victor"
+      }
+    },
+    {
+      "slug": "eq-quantsieve",
+      "name": "eq_quantsieve",
+      "path": "agents/eq-quantsieve/AGENT.md",
+      "role": "researcher",
+      "title": "Quant Screener",
+      "icon": "calculator",
+      "capabilities": "Quantitative equity screening",
+      "reportsToSlug": "victor",
+      "adapterType": "openclaw_gateway",
+      "adapterConfig": {
+        "url": "ws://172.16.0.104:18789",
+        "agentId": "eq_quantsieve",
+        "headers": {
+          "x-openclaw-token": {
+            "type": "env",
+            "name": "OPENCLAW_GATEWAY_AUTH_TOKEN"
+          }
+        },
+        "autoPairOnFirstConnect": true,
+        "sessionKeyStrategy": "issue",
+        "timeoutSec": 300,
+        "waitTimeoutMs": 60000
+      },
+      "runtimeConfig": {},
+      "permissions": {},
+      "budgetMonthlyCents": 0,
+      "metadata": {
+        "openclawWorkspace": "/root/.openclaw/subAgents/eq_quantsieve"
+      }
+    },
+    {
+      "slug": "eq-eventhound",
+      "name": "eq_eventhound",
+      "path": "agents/eq-eventhound/AGENT.md",
+      "role": "researcher",
+      "title": "Event Hound",
+      "icon": "radar",
+      "capabilities": "Event and catalyst research",
+      "reportsToSlug": "victor",
+      "adapterType": "openclaw_gateway",
+      "adapterConfig": {
+        "url": "ws://172.16.0.104:18789",
+        "agentId": "eq_eventhound",
+        "headers": {
+          "x-openclaw-token": {
+            "type": "env",
+            "name": "OPENCLAW_GATEWAY_AUTH_TOKEN"
+          }
+        },
+        "autoPairOnFirstConnect": true,
+        "sessionKeyStrategy": "issue",
+        "timeoutSec": 300,
+        "waitTimeoutMs": 60000
+      },
+      "runtimeConfig": {},
+      "permissions": {},
+      "budgetMonthlyCents": 0,
+      "metadata": {
+        "openclawWorkspace": "/root/.openclaw/subAgents/eq_eventhound"
+      }
+    },
+    {
+      "slug": "eq-riskskeptic",
+      "name": "eq_riskskeptic",
+      "path": "agents/eq-riskskeptic/AGENT.md",
+      "role": "researcher",
+      "title": "Risk Skeptic",
+      "icon": "shield",
+      "capabilities": "Risk review",
+      "reportsToSlug": "victor",
+      "adapterType": "openclaw_gateway",
+      "adapterConfig": {
+        "url": "ws://172.16.0.104:18789",
+        "agentId": "eq_riskskeptic",
+        "headers": {
+          "x-openclaw-token": {
+            "type": "env",
+            "name": "OPENCLAW_GATEWAY_AUTH_TOKEN"
+          }
+        },
+        "autoPairOnFirstConnect": true,
+        "sessionKeyStrategy": "issue",
+        "timeoutSec": 300,
+        "waitTimeoutMs": 60000
+      },
+      "runtimeConfig": {},
+      "permissions": {},
+      "budgetMonthlyCents": 0,
+      "metadata": {
+        "openclawWorkspace": "/root/.openclaw/subAgents/eq_riskskeptic"
+      }
+    },
+    {
+      "slug": "eq-thesis-depth-reviewer",
+      "name": "eq_thesis_depth_reviewer",
+      "path": "agents/eq-thesis-depth-reviewer/AGENT.md",
+      "role": "researcher",
+      "title": "Thesis Depth Reviewer",
+      "icon": "microscope",
+      "capabilities": "Thesis depth review",
+      "reportsToSlug": "victor",
+      "adapterType": "openclaw_gateway",
+      "adapterConfig": {
+        "url": "ws://172.16.0.104:18789",
+        "agentId": "eq_thesis_depth_reviewer",
+        "headers": {
+          "x-openclaw-token": {
+            "type": "env",
+            "name": "OPENCLAW_GATEWAY_AUTH_TOKEN"
+          }
+        },
+        "autoPairOnFirstConnect": true,
+        "sessionKeyStrategy": "issue",
+        "timeoutSec": 300,
+        "waitTimeoutMs": 60000
+      },
+      "runtimeConfig": {},
+      "permissions": {},
+      "budgetMonthlyCents": 0,
+      "metadata": {
+        "openclawWorkspace": "/root/.openclaw/subAgents/eq_thesis_depth_reviewer"
+      }
+    },
+    {
+      "slug": "newswire",
+      "name": "newswire",
+      "path": "agents/newswire/AGENT.md",
+      "role": "researcher",
+      "title": "Newswire",
+      "icon": "newspaper",
+      "capabilities": "News and web research",
+      "reportsToSlug": "victor",
+      "adapterType": "openclaw_gateway",
+      "adapterConfig": {
+        "url": "ws://172.16.0.104:18789",
+        "agentId": "newswire",
+        "headers": {
+          "x-openclaw-token": {
+            "type": "env",
+            "name": "OPENCLAW_GATEWAY_AUTH_TOKEN"
+          }
+        },
+        "autoPairOnFirstConnect": true,
+        "sessionKeyStrategy": "issue",
+        "timeoutSec": 300,
+        "waitTimeoutMs": 60000
+      },
+      "runtimeConfig": {},
+      "permissions": {},
+      "budgetMonthlyCents": 0,
+      "metadata": {
+        "openclawWorkspace": "/root/.openclaw/subAgents/newswire"
+      }
+    }
+  ],
+  "requiredSecrets": []
+}
