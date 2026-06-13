@@ -61,7 +61,8 @@ graph TD
    - **Nature**: Experimental playground for testing new services.
 
 ## 🛠️ Key Components
-- **Monitoring**: Full Prometheus & Grafana stack for observability.
+- **Dashboard**: [Homepage](https://gethomepage.dev/) at `home.trusted.nirmalhk7.com` auto-discovers Traefik `IngressRoute` services from `gethomepage.dev/*` annotations across the cluster.
+- **Monitoring**: Full Prometheus & Grafana stack for observability. Proxmox host disk health is tracked by [Scrutiny](https://github.com/AnalogJ/scrutiny) (`scrutiny.trusted.nirmalhk7.com`); SMART data is collected from the privileged `proxbridge` LXC (CT 102) via Ansible, not from in-cluster pods.
 - **Storage**: Mixed storage types including NFS (`vm-mgdnfs`) and CSI drivers.
 - **Security**: Authelia OIDC SSO (`secure.trusted.nirmalhk7.com`) with an in-cluster OIDC proxy for backend token exchange, plus Sealed Secrets for encryption.
 

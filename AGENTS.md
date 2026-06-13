@@ -22,6 +22,14 @@
 - Prefer persistent storage via CSI drivers such as Longhorn for stateful services.
 - Add Prometheus discovery such as `ServiceMonitor` when the service actually exposes metrics and nearby monitoring patterns support it.
 
+### Traefik IngressRoutes and Homepage
+- External HTTP routing for managed apps uses Traefik `IngressRoute` resources (`apiVersion: traefik.io/v1alpha1`) in the feature directory, not chart-managed `Ingress` objects. Disable chart ingress in `HelmRelease` values when a local `ingressroute.yaml` exists.
+- The cluster dashboard is Homepage (`clusters/managed/default/homepage/`). It discovers services cluster-wide from annotated IngressRoutes when `kubernetes.yaml` sets `mode: cluster`, `traefik: true`, and `ingress: false` (this repo uses Traefik CRDs only; leave standard `Ingress` discovery off).
+- Annotate each IngressRoute with `gethomepage.dev/*` keys so tiles appear on the dashboard. Required: `gethomepage.dev/enabled: "true"` and `gethomepage.dev/href`. Common optional keys: `group`, `name`, `description`, `icon`, `weight`, `app`, `pod-selector`, and `widget.*` for widgets. Use `gethomepage.dev/app` when the IngressRoute name does not match the workload's `app.kubernetes.io/name`. Gitea (`clusters/managed/devbench/gitea/ingressroute.yaml`) is the reference pattern.
+- Homepage lists every cluster IngressRoute that has `gethomepage.dev/enabled: "true"` and does not deduplicate by `href`. An IngressRoute must exist in exactly one namespace—the feature's `mgd-*` namespace from the parent Kustomization. Copies left in other namespaces after a migration produce duplicate dashboard tiles.
+- Flux `prune: true` removes only resources it reconciled. Orphaned IngressRoutes without `kustomize.toolkit.fluxcd.io/name` labels are not pruned automatically; delete them manually or they will keep showing on Homepage even when Git is correct.
+- Homepage RBAC should grant `ingressroutes` on `traefik.io` only. The legacy `traefik.containo.us` API group is not installed on this cluster.
+
 ### Shared NFS Storage
 - `vm-mgdnfs1.ansible.yaml` exports the parent `/mnt/2tbhdd` tree. Managed applications use static NFS PVs that point at app-specific subdirectories such as `nextcloud`, `immich`, and `gitea`.
 - PVCs are namespace-scoped. A pod cannot mount another namespace's PVC; create a separate PV/PVC in the consuming namespace or mount the NFS path through another supported mechanism.
@@ -66,12 +74,14 @@
 3. For third-party charts, add or reuse the namespace-local repository manifest under `_repositories` and define the service with a `HelmRelease`.
 4. Add the service directory to `clusters/managed/<namespace>/kustomization.yaml`.
 5. Add a new namespace directory to `clusters/managed/kustomization.yaml` only when the namespace itself is new.
+6. If the service has a public URL, add `ingressroute.yaml` with Traefik routing and Homepage annotations (see **Traefik IngressRoutes and Homepage**). Keep the IngressRoute in the same feature directory so Kustomize assigns the correct `mgd-*` namespace.
 
 ### Provisioning Infrastructure
 1. Update the relevant Terraform directory under `infrastructure/terra/`.
 2. Update `infrastructure/ansible/inventory.ini` and the matching playbook or vars under `infrastructure/ansible/`.
 3. Update `nginx/` if external proxying is required.
 4. Treat apply and deployment commands as explicit operational steps, not routine validation.
+5. For Proxmox host disk SMART data in Scrutiny, run `lxc-proxbridge.ansible.yaml` after Terraform creates or recreates CT 102. Terraform alone does not pass through host block devices or install collectors.
 
 ## Validation and Safety
 - Prefer non-mutating validation first: render affected Kustomize paths, run `terraform fmt` and validation for Terraform changes where provider setup permits it, run Ansible syntax checks for changed playbooks, and run an Nginx config test on the Nginx version that will receive the files.
@@ -79,9 +89,28 @@
 - Do not assume local access to Proxmox, Kubernetes, Nginx, or the OpenClaw host from repository files alone. State which validation was local and which live validation still requires the target environment.
 
 ## Operational Notes
+### Homepage duplicate tiles
+- Duplicate dashboard entries usually mean multiple annotated IngressRoutes share the same `gethomepage.dev/href` in different namespaces—not a Homepage config bug.
+- List candidates: `kubectl get ingressroutes.traefik.io -A -o custom-columns='NS:.metadata.namespace,NAME:.metadata.name,HREF:.metadata.annotations.gethomepage\.dev/href,FLUX:.metadata.labels.kustomize\.toolkit\.fluxcd\.io/name'`.
+- Confirm from Homepage: `kubectl exec -n mgd-default deploy/homepage -- wget -qO- http://127.0.0.1:3000/api/services` and look for repeated `href` values.
+- Delete stale copies from wrong namespaces; keep the IngressRoute in the namespace where the app actually runs. Reconcile with `kubectl kustomize clusters/managed/<namespace>` to see which routes Git expects in each tier.
+
 ### OIDC and auth troubleshooting
 - A `401` on Outline `POST /api/auth.info` before login is expected; it is not by itself evidence of misconfiguration.
 - OIDC login loops after Authelia consent usually mean the app failed the server-side token exchange. Check app logs for TLS errors against `secure.trusted.nirmalhk7.com` or missing/mismatched `OIDC_CLIENT_SECRET`.
 - Verify the decrypted secret in the app namespace contains every expected key (`kubectl get secret <name> -n <ns> -o jsonpath='{.data}'`) and that the pod env includes them after rollout.
 - A `HelmRelease` can show `Stalled` / `UpgradeFailed` while an older ReplicaSet pod still serves traffic. After fixing the underlying issue, restart the deployment or `flux suspend helmrelease <name> -n <ns>` followed by `flux resume` if reconciliation is stuck.
 - Outline admin is stored in Postgres (`users.role = admin`); there is no `ADMIN_EMAIL` env var. Map OIDC logins with `OIDC_USERNAME_CLAIM: email` when matching an existing admin user.
+
+### Proxmox host disk telemetry (proxbridge and Scrutiny)
+- **Architecture:** Proxmox block devices are not visible inside the Kubernetes cluster. CT 102 (`proxbridge`, inventory group `lxc_proxbridge`) runs on the Proxmox host with raw disk passthrough and read-only host filesystem mounts so `smartctl`, `scrutiny-collector-metrics`, `node_exporter`, and `smartctl_exporter` can read the physical drives.
+- **Ansible playbook:** `infrastructure/ansible/lxc-proxbridge.ansible.yaml` has three plays:
+  1. `proxmox` — pass through `/dev/sda`, `/dev/sdb`, `/dev/nvme0`; mount `/proc`, `/sys`, `/`, and `/run/udev` under `/host/*`; clear `lxc.cap.drop` so `CAP_SYS_RAWIO` is available; reboot CT 102 when those change.
+  2. `lxc_proxbridge` — install collectors and a daily `scrutiny-collector.timer`.
+  3. `proxmox` — remove any legacy Scrutiny collector that ran directly on the Proxmox host.
+- **CT requirements:** CT 102 must stay privileged (`unprivileged: 1` must not appear in `pct config 102`). Device list and `scrutiny_host_id` (`milano`) live in the playbook vars; keep them aligned with the host hardware.
+- **Scrutiny hub:** `clusters/managed/monitoring/scrutiny/` runs the Scrutiny web UI and API at `scrutiny.trusted.nirmalhk7.com`. The in-cluster embedded collector is intentionally disabled (`collector-configmap.yaml` replaces `scrutiny-collector-metrics` with a no-op). Host-disk SMART data comes only from proxbridge.
+- **Collector API path:** proxbridge posts to `https://scrutiny.trusted.nirmalhk7.com` with a managed `/etc/hosts` entry pointing that hostname at nginx (`172.16.0.101`). Traffic follows `nginx/conf.d/mgd.conf` to Traefik on k8mgd, then the Scrutiny service. Do not point the collector at the in-cluster Service DNS unless nginx routing is replaced.
+- **Prometheus:** `clusters/managed/monitoring/prometheus/proxbridge_scrapeconfigs.yaml` defines `ScrapeConfig` targets for `172.16.0.102:9100` (`node_exporter` disk/filesystem via `/host/*`) and `:9633` (`smartctl_exporter`).
+- **SSH host key rotation:** passthrough changes reboot CT 102 and replace its SSH host key. The playbook drops the stale key from `infrastructure/ansible/.ansible_known_hosts` before reconnecting. If a run still fails with `REMOTE HOST IDENTIFICATION HAS CHANGED`, run `ssh-keygen -R 172.16.0.102 -f infrastructure/ansible/.ansible_known_hosts` and re-run the playbook.
+- **Troubleshooting empty Scrutiny:** check `pct config 102` for `dev0`–`dev2` and `mp0`–`mp3`, then on proxbridge verify `systemctl status scrutiny-collector.timer node_exporter smartctl_exporter` and `/var/log/scrutiny-collector.log`. An empty dashboard with a healthy Scrutiny pod usually means the proxbridge playbook was never applied. `smartctl` checksum warnings (exit code 4) on SATA drives can still publish usable data.

@@ -7,8 +7,8 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://paperclip.trusted.nirmalhk7.com"
     gethomepage.dev/group: LLM
-    gethomepage.dev/description: "Document assistant"
-    gethomepage.dev/icon: "sh-paperclip"
+    gethomepage.dev/description: "AI agent manager"
+    gethomepage.dev/icon: "mdi-robot-outline"
     gethomepage.dev/app: "paperclip"
     gethomepage.dev/name: "Paperclip"
     gethomepage.dev/weight: "30"

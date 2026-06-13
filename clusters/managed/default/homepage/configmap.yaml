@@ -5,6 +5,7 @@ metadata:
 data:
   kubernetes.yaml: |
     mode: cluster
+    ingress: false
     traefik: true
   proxmox.yaml: |
     url: https://proxmox.trusted.nirmalhk7.com:8006
@@ -68,6 +69,7 @@ data:
           icon: openclaw
           description: Openclaw Dashboard
           href: "https://robot.trusted.nirmalhk7.com"
+          siteMonitor: "https://robot.trusted.nirmalhk7.com"
     - Infrastructure:
       - lxc_nginx:
           name: NginX
