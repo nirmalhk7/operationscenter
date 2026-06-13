@@ -163,8 +163,6 @@ spec:
               grant_types:
                 - authorization_code
               authorization_policy: one_factor
-              authorization_signed_response_alg: none
-              id_token_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
             - client_id: nextcloud
               client_name: Nextcloud
@@ -179,9 +177,6 @@ spec:
                 - profile
                 - email
                 - groups
-              authorization_signed_response_alg: none
-              id_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
             - client_id: immich
               client_name: Immich
@@ -203,10 +198,6 @@ spec:
                 - code
               grant_types:
                 - authorization_code
-              authorization_signed_response_alg: none
-              id_token_signed_response_alg: none
-              access_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
             - client_id: gitea
               client_name: Gitea
@@ -225,9 +216,6 @@ spec:
                 - code
               grant_types:
                 - authorization_code
-              authorization_signed_response_alg: none
-              id_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
             - client_id: outline
               client_name: Outline
@@ -247,10 +235,6 @@ spec:
               grant_types:
                 - authorization_code
                 - refresh_token
-              authorization_signed_response_alg: none
-              id_token_signed_response_alg: none
-              access_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
             - client_id: open-webui
               client_name: Open WebUI
@@ -269,9 +253,6 @@ spec:
                 - code
               grant_types:
                 - authorization_code
-              authorization_signed_response_alg: none
-              id_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
             - client_id: n8n
               client_name: n8n
@@ -292,9 +273,6 @@ spec:
                 - code
               grant_types:
                 - authorization_code
-              authorization_signed_response_alg: none
-              id_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
             - client_id: sonarqube
               client_name: SonarQube
