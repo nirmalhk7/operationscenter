@@ -137,6 +137,14 @@
                 group: root
                 mode: '0644'
                 directory_mode: '0755'
+            - name: Deploy nginx stream.d
+              ansible.builtin.copy:
+                src: "{{ playbook_dir }}/../../nginx/stream.d/"
+                dest: /etc/nginx/stream.d/
+                owner: root
+                group: root
+                mode: '0644'
+                directory_mode: '0755'
             - name: Deploy nginx mainconf
               ansible.builtin.copy:
                 src: "{{ playbook_dir }}/../../nginx/nginx.conf"

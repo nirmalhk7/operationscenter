@@ -13,10 +13,18 @@
     repo_list: "/etc/apt/sources.list.d/docker.list"
     mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
     mariadb_rw_password: "{{ lookup('env', 'MARIADB_RW_PASSWORD') }}"
-    mariadb_db_names: [nextcloud, gitea, sonarqube, bugsink, authelia,pterodactyl]
+    mariadb_db_names: [nextcloud, gitea, sonarqube, bugsink, authelia, pterodactyl, appwrite]
     vectorchord_pg_password: "{{ lookup('env', 'VECTORCHORD_PG_PASSWORD') }}" 
     vectorchord_image: "tensorchord/vchord-postgres:pg17-v0.4.3"
     vectorchord_db_names: [immich, authentik, sonarqube, outline, n8n]
+    mongodb_root_password: "{{ lookup('env', 'MONGODB_ROOT_PASSWORD') }}"
+    mongodb_db_names: [touca]
+    # External access via nginx stream proxy (db.trusted.nirmalhk7.com:<port>)
+    db_proxy_hostname: db.trusted.nirmalhk7.com
+    db_proxy_ports:
+      mariadb: 3306
+      postgresql: 5432
+      mongodb: 27017
 
   tasks:
     - name: Check if docker is installed
@@ -27,7 +35,7 @@
     - name: Ensure DB management dependencies are installed
       ansible.builtin.apt:
         update_cache: true
-        name: [python3-pymysql, python3-psycopg2]
+        name: [python3-pymysql, python3-psycopg2, python3-pymongo]
 
     - name: Docker setup
       block:
@@ -93,6 +101,7 @@
                 image: mariadb:12
                 state: started
                 restart_policy: unless-stopped
+                # External: db.trusted.nirmalhk7.com:3306 via nginx stream proxy
                 published_ports:
                   - "3306:3306"
                 volumes:
@@ -143,6 +152,7 @@
                 image: "{{ vectorchord_image }}"
                 state: started
                 restart_policy: unless-stopped
+                # External: db.trusted.nirmalhk7.com:5432 via nginx stream proxy
                 published_ports:
                   - "5432:5432"
                 volumes:
@@ -190,3 +200,48 @@
                 login_host: 127.0.0.1
               loop: "{{ vectorchord_db_names | product(['vchord', 'earthdistance']) | list }}"
               when: item.0 == 'immich'
+
+        - name: MongoDB deployment
+          tags: mongodb
+          block:
+            - name: Ensure MongoDB container is running
+              community.docker.docker_container:
+                name: mongo
+                image: mongo:4.4
+                state: started
+                restart_policy: unless-stopped
+                # External: db.trusted.nirmalhk7.com:27017 via nginx stream proxy
+                published_ports:
+                  - "27017:27017"
+                volumes:
+                  - mongodb_data:/data/db
+                env:
+                  MONGO_INITDB_ROOT_USERNAME: root
+                  MONGO_INITDB_ROOT_PASSWORD: "{{ mongodb_root_password }}"
+                healthcheck:
+                  test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+                  interval: 30s
+                  timeout: 10s
+                  retries: 5
+
+            - name: Wait for MongoDB healthy
+              ansible.builtin.shell: >
+                {% raw %}docker inspect --format '{{.State.Health.Status}}' mongo{% endraw %}
+              register: mongo_health
+              retries: 20
+              delay: 5
+              until: mongo_health.stdout == "healthy"
+              changed_when: false
+
+            - name: Create MongoDB application users
+              community.mongodb.mongodb_user:
+                database: "{{ item }}"
+                name: "{{ item }}_rw"
+                password: "{{ mariadb_rw_password }}"
+                roles: readWrite
+                state: present
+                login_user: root
+                login_password: "{{ mongodb_root_password }}"
+                login_host: 127.0.0.1
+                login_port: 27017
+              loop: "{{ mongodb_db_names }}"

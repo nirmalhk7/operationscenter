@@ -53,10 +53,10 @@ flowchart LR
 
 ### `lxc-nginx`
 - Inbound: allow SSH on `22/tcp` through `sg-managed`.
-- Inbound: allow public proxy ports `80/tcp`, `443/tcp`, and robot stream proxy `6901/tcp`.
+- Inbound: allow public proxy ports `80/tcp`, `443/tcp`, robot stream proxy `6901/tcp`, and database stream proxy `3306/tcp`, `5432/tcp`, `27017/tcp`.
 - Nginx network device has `firewall = true` so its guest firewall rules are enforced.
 - Outbound policy remains `ACCEPT`; this preserves certbot DNS-01 renewal, package repository access, and GitHub downloads used by the Nginx Ansible workflow.
-- Runtime proxy traffic goes to private backends: `172.16.0.105:443`, `172.16.0.105:31216`, `172.16.0.1:8006`, and `172.16.0.104:18789`.
+- Runtime proxy traffic goes to private backends: `172.16.0.105:443`, `172.16.0.105:31216`, `172.16.0.106:3306`, `172.16.0.106:5432`, `172.16.0.106:27017`, `172.16.0.1:8006`, and `172.16.0.104:18789`.
 
 ### `sg-dev`
 - Inbound: allow SSH on `22/tcp`.
@@ -76,8 +76,9 @@ flowchart LR
 - Most guest network devices have `firewall = false`; NIC-level firewalling remains disabled where enabling it previously blocked LXC outbound traffic.
 - OpenClaw and Nginx are exceptions: their network devices have `firewall = true` with explicit guest firewall rules.
 - Managed guest firewall option resources have `enabled = true`, input policy set to `DROP`, and drop logging set to `info`.
-- Managed inbound access is explicit: SSH through `sg-managed`, Nginx `80/tcp`, `443/tcp`, `6901/tcp`, k8mgd `6443/tcp`, Nginx to k8mgd `443/tcp`, and mgdnfs `2049/tcp`, `111/tcp`, `111/udp`, plus ICMP from `172.16.0.105` for reachability checks. The NFS rules are now scoped to `172.16.0.105`.
+- Managed inbound access is explicit: SSH through `sg-managed`, Nginx `80/tcp`, `443/tcp`, `6901/tcp`, `3306/tcp`, `5432/tcp`, `27017/tcp`, k8mgd `6443/tcp`, Nginx to k8mgd `443/tcp`, and mgdnfs `2049/tcp`, `111/tcp`, `111/udp`, plus ICMP from `172.16.0.105` for reachability checks. The NFS rules are now scoped to `172.16.0.105`.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.
+- `vm-mgddocker.tf` allows `3306/tcp`, `5432/tcp`, and `27017/tcp` from `172.16.0.101` (nginx stream proxy) and `172.16.0.105` (in-cluster apps) only.
 - Most managed guest firewall options resources explicitly set outbound policy to `ACCEPT`; OpenClaw uses `DROP` with explicit outbound allows.
 
 ## Notes

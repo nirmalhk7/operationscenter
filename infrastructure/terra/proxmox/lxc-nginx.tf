@@ -102,6 +102,36 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
     iface   = "net0"
     enabled = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "3306"
+    comment = "Allow MariaDB stream proxy ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "5432"
+    comment = "Allow PostgreSQL stream proxy ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "27017"
+    comment = "Allow MongoDB stream proxy ingress"
+    iface   = "net0"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {

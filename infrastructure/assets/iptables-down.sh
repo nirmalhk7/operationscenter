@@ -39,6 +39,9 @@ iptables -D OUTPUT -o "$LAN_IFACE" -p icmp -j ACCEPT
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901 2>/dev/null
+iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 3306 -j DNAT --to-destination "$NGINX_IP":3306 2>/dev/null
+iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 5432 -j DNAT --to-destination "$NGINX_IP":5432 2>/dev/null
+iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 27017 -j DNAT --to-destination "$NGINX_IP":27017 2>/dev/null
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 6443 -j DNAT --to-destination "$K8S_IP":6443
 
 # Remove NFS and RPC Bind DNAT rules
@@ -49,6 +52,9 @@ iptables -t nat -D PREROUTING -p udp --dport 111 -j DNAT --to-destination "$NFS_
 iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 80 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 6901 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
+iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 3306 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
+iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 5432 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
+iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 27017 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
 iptables -D FORWARD -p tcp -d "$K8S_IP" --dport 6443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -D FORWARD -p tcp -s "$NGINX_IP" -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -D FORWARD -p tcp -s "$K8S_IP" -m state --state ESTABLISHED,RELATED -j ACCEPT
@@ -57,10 +63,16 @@ iptables -D FORWARD -p tcp -s "$K8S_IP" -m state --state ESTABLISHED,RELATED -j 
 iptables -t nat -D PREROUTING -i "$VPN_IFACE" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80 2>/dev/null
 iptables -t nat -D PREROUTING -i "$VPN_IFACE" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443 2>/dev/null
 iptables -t nat -D PREROUTING -i "$VPN_IFACE" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901 2>/dev/null
+iptables -t nat -D PREROUTING -i "$VPN_IFACE" -p tcp --dport 3306 -j DNAT --to-destination "$NGINX_IP":3306 2>/dev/null
+iptables -t nat -D PREROUTING -i "$VPN_IFACE" -p tcp --dport 5432 -j DNAT --to-destination "$NGINX_IP":5432 2>/dev/null
+iptables -t nat -D PREROUTING -i "$VPN_IFACE" -p tcp --dport 27017 -j DNAT --to-destination "$NGINX_IP":27017 2>/dev/null
 iptables -t nat -D PREROUTING -i "$VPN_IFACE" -p tcp --dport 6443 -j DNAT --to-destination "$K8S_IP":6443 2>/dev/null
 
 # 6. Remove Localhost Loopback
 iptables -t nat -D OUTPUT -d "$VPN_IP" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80 2>/dev/null
 iptables -t nat -D OUTPUT -d "$VPN_IP" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443 2>/dev/null
 iptables -t nat -D OUTPUT -d "$VPN_IP" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901 2>/dev/null
+iptables -t nat -D OUTPUT -d "$VPN_IP" -p tcp --dport 3306 -j DNAT --to-destination "$NGINX_IP":3306 2>/dev/null
+iptables -t nat -D OUTPUT -d "$VPN_IP" -p tcp --dport 5432 -j DNAT --to-destination "$NGINX_IP":5432 2>/dev/null
+iptables -t nat -D OUTPUT -d "$VPN_IP" -p tcp --dport 27017 -j DNAT --to-destination "$NGINX_IP":27017 2>/dev/null
 iptables -t nat -D OUTPUT -d "$VPN_IP" -p tcp --dport 6443 -j DNAT --to-destination "$K8S_IP":6443 2>/dev/null

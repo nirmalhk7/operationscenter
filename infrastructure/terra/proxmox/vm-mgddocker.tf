@@ -89,6 +89,72 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
     iface          = "net0"
     enabled        = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "3306"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow MariaDB from nginx stream proxy"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "5432"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow PostgreSQL from nginx stream proxy"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "27017"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow MongoDB from nginx stream proxy"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "3306"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow MariaDB from k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "5432"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow PostgreSQL from k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "27017"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow MongoDB from k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "vm-k8docker-config" {
