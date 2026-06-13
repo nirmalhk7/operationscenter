@@ -1,3 +1,4 @@
+{{- if .Values.mongo.embedded.enabled }}
 apiVersion: v1
 data:
   mongod.conf: |
@@ -14,3 +15,4 @@ kind: ConfigMap
 metadata:
   name: mongod-conf
   namespace: {{ .Release.Namespace }}
+{{- end }}

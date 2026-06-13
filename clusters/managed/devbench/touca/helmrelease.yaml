@@ -16,6 +16,11 @@ spec:
   values:
     toucaApp:
       webappRoot: "https://touca.trusted.nirmalhk7.com"
+    mongo:
+      embedded:
+        enabled: false
+      host: "172.16.0.106"
+      existingSecret: touca-credentials
     volume:
       scName: milano-v2
     ingress:

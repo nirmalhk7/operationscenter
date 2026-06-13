@@ -1,4 +1,4 @@
-
+{{- if .Values.mongo.embedded.enabled }}
 apiVersion: v1
 data:
   entrypoint.js: |
@@ -14,3 +14,4 @@ kind: ConfigMap
 metadata:
   name: mongo-entrypoint
   namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -4,6 +4,12 @@ toucaApp:
   dockerImageTag: "2.0.0"
   webappRoot: "http://localhost:8080"
 
+mongo:
+  embedded:
+    enabled: true
+  host: ""
+  existingSecret: ""
+
 volume:
   scName: "milano-v2"
   size: 4Gi

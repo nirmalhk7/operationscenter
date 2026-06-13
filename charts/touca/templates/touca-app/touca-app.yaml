@@ -29,14 +29,31 @@ spec:
         - name: MINIO_HOST
           value: {{ .Release.Name }}-touca-minio
         - name: MONGO_HOST
+          {{- if .Values.mongo.embedded.enabled }}
           value: {{ .Release.Name }}-touca-mongo
+          {{- else }}
+          value: {{ required "mongo.host is required when mongo.embedded.enabled is false" .Values.mongo.host | quote }}
+          {{- end }}
         - name: REDIS_HOST
           value: {{ .Release.Name }}-touca-redis
         - name: MINIO_USER
           value: toucauser
         - name: MINIO_PASS
           value: toucapass
+        {{- if .Values.mongo.existingSecret }}
+        - name: MONGO_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mongo.existingSecret }}
+              key: MONGO_USER
+        - name: MONGO_PASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mongo.existingSecret }}
+              key: MONGO_PASS
+        {{- else }}
         - name: MONGO_USER
           value: toucauser
         - name: MONGO_PASS
           value: toucapass
+        {{- end }}
