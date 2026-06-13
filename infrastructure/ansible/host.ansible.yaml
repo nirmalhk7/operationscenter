@@ -11,6 +11,10 @@
     ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
     tailscale_args: "{{ lookup('env', 'TAILSCALE_ARGS') if lookup('env', 'TAILSCALE_ARGS') else '--ssh' }}"
     homepage_proxmox_password: "{{ lookup('env', 'HOMEPAGE_PROXMOX_PASSWORD') | default('', true) }}"
+    proxmox_oidc_client_secret: "{{ lookup('env', 'PROXMOX_OIDC_CLIENT_SECRET') | default('', true) }}"
+    proxmox_oidc_realm: authelia
+    proxmox_oidc_issuer_url: https://secure.trusted.nirmalhk7.com
+    proxmox_oidc_admin_user: nirmalhk7@gmail.com@authelia
 
   tasks:
     - name: Routine package update/ basic setup
@@ -167,6 +171,115 @@
               - homepage.bot@pve
               - --roles
               - PVEAuditor
+          changed_when: false
+
+    - name: Configure Authelia OpenID Connect realm for Proxmox
+      tags: [oidc, authelia]
+      block:
+        - name: Require Proxmox OIDC client secret
+          ansible.builtin.assert:
+            that:
+              - proxmox_oidc_client_secret | length > 0
+            fail_msg: "Set PROXMOX_OIDC_CLIENT_SECRET in infrastructure/ansible/.env"
+
+        - name: Read Proxmox realms
+          ansible.builtin.command:
+            argv:
+              - pveum
+              - realm
+              - list
+              - --output-format
+              - json
+          register: proxmox_realms
+          changed_when: false
+
+        - name: Create Authelia OpenID realm
+          ansible.builtin.command:
+            argv:
+              - pveum
+              - realm
+              - add
+              - "{{ proxmox_oidc_realm }}"
+              - --type
+              - openid
+              - --issuer-url
+              - "{{ proxmox_oidc_issuer_url }}"
+              - --client-id
+              - proxmox
+              - --client-key
+              - "{{ proxmox_oidc_client_secret }}"
+              - --username-claim
+              - email
+              - --scopes
+              - openid email profile
+              - --autocreate
+              - "1"
+              - --query-userinfo
+              - "1"
+              - --comment
+              - Authelia OIDC SSO
+          when: proxmox_oidc_realm not in (proxmox_realms.stdout | from_json | map(attribute='realm'))
+          no_log: true
+
+        - name: Update Authelia OpenID realm
+          ansible.builtin.command:
+            argv:
+              - pveum
+              - realm
+              - modify
+              - "{{ proxmox_oidc_realm }}"
+              - --issuer-url
+              - "{{ proxmox_oidc_issuer_url }}"
+              - --client-id
+              - proxmox
+              - --client-key
+              - "{{ proxmox_oidc_client_secret }}"
+              - --scopes
+              - openid email profile
+              - --autocreate
+              - "1"
+              - --query-userinfo
+              - "1"
+              - --comment
+              - Authelia OIDC SSO
+          when: proxmox_oidc_realm in (proxmox_realms.stdout | from_json | map(attribute='realm'))
+          no_log: true
+
+        - name: Read Proxmox users
+          ansible.builtin.command:
+            argv:
+              - pveum
+              - user
+              - list
+              - --output-format
+              - json
+          register: proxmox_oidc_users
+          changed_when: false
+
+        - name: Create Authelia admin Proxmox user
+          ansible.builtin.command:
+            argv:
+              - pveum
+              - user
+              - add
+              - "{{ proxmox_oidc_admin_user }}"
+              - --comment
+              - Authelia OIDC administrator
+              - --enable
+              - "1"
+          when: proxmox_oidc_admin_user not in (proxmox_oidc_users.stdout | from_json | map(attribute='userid'))
+
+        - name: Grant Proxmox administrator access to Authelia admin user
+          ansible.builtin.command:
+            argv:
+              - pveum
+              - acl
+              - modify
+              - /
+              - --users
+              - "{{ proxmox_oidc_admin_user }}"
+              - --roles
+              - Administrator
           changed_when: false
 
     - name: Tailscale setup on Proxmox host

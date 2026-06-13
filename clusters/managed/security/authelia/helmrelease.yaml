@@ -66,6 +66,8 @@ spec:
               path: client-secret-n8n
             - key: client-secret-sonarqube
               path: client-secret-sonarqube
+            - key: client-secret-proxmox
+              path: client-secret-proxmox
     configMap:
       definitions:
         user_attributes:
@@ -98,6 +100,8 @@ spec:
           - domain: 'n8n.trusted.nirmalhk7.com'
             policy: 'one_factor'
           - domain: 'sonarqube.trusted.nirmalhk7.com'
+            policy: 'one_factor'
+          - domain: 'proxmox.trusted.nirmalhk7.com'
             policy: 'one_factor'
       identity_providers:
         oidc:
@@ -309,10 +313,26 @@ spec:
                 - code
               grant_types:
                 - authorization_code
-              authorization_signed_response_alg: none
-              id_token_signed_response_alg: none
-              userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
+            - client_id: proxmox
+              client_name: Proxmox
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-proxmox
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://proxmox.trusted.nirmalhk7.com
+                - https://proxmox.trusted.nirmalhk7.com:443
+                - https://172.16.0.1:8006
+              scopes:
+                - openid
+                - profile
+                - email
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+              token_endpoint_auth_method: client_secret_basic
       theme: 'dark'
       telemetry:
         metrics:
