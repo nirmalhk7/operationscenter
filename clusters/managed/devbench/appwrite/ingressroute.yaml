@@ -1,0 +1,29 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: &app appwrite
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://dev.trusted.nirmalhk7.com"
+    gethomepage.dev/group: Devbench
+    gethomepage.dev/description: "Appwrite"
+    gethomepage.dev/icon: *app
+    gethomepage.dev/app: *app
+    gethomepage.dev/name: Appwrite
+    gethomepage.dev/weight: "20"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=appwrite"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`dev.trusted.nirmalhk7.com`) && PathPrefix(`/console`)
+      kind: Rule
+      services:
+        - name: appwrite-console
+          port: 80
+    - match: Host(`dev.trusted.nirmalhk7.com`)
+      kind: Rule
+      services:
+        - name: appwrite-core
+          port: 80

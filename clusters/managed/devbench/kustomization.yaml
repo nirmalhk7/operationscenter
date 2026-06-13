@@ -5,6 +5,7 @@ resources:
   - ../_middlewares
   - _repositories
   - namespace.yaml
+  - appwrite
   - bugsink
   - gitea
   - locust

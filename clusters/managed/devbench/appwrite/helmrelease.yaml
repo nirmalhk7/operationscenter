@@ -1,0 +1,84 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app appwrite
+  namespace: mgd-devbench
+spec:
+  releaseName: *app
+  interval: 10m
+  chart:
+    spec:
+      chart: appwrite-helm
+      version: 0.3.4
+      sourceRef:
+        kind: HelmRepository
+        name: appwrite-helm
+        namespace: mgd-devbench
+  values:
+    global:
+      storageClass: milano-v3
+    podLabels:
+      milano.app: *app
+    environments:
+      domain:
+        app: dev.trusted.nirmalhk7.com
+        target: dev.trusted.nirmalhk7.com
+        functions: functions.dev.trusted.nirmalhk7.com
+      database:
+        host: 172.16.0.106
+        port: 3306
+        schema: appwrite
+      console:
+        whitelist:
+          emails: nirmalhk7@gmail.com
+      options:
+        forceHttps: disabled
+        functions:
+          forceHttps: disabled
+      storage:
+        device: Local
+    components:
+      core:
+        ingress:
+          enabled: false
+        podLabels:
+          milano.app: *app
+      console:
+        ingress:
+          enabled: false
+        podLabels:
+          milano.app: *app
+      realtime:
+        ingress:
+          enabled: false
+        podLabels:
+          milano.app: *app
+      schedulers:
+        functions:
+          replicaCount: 0
+      workers:
+        functions:
+          replicaCount: 0
+        builds:
+          replicaCount: 0
+    mariadb:
+      enabled: false
+    redis:
+      enabled: true
+      auth:
+        enabled: false
+      replica:
+        replicaCount: 0
+      master:
+        persistence:
+          enabled: true
+          storageClass: milano-v2
+          size: 8Gi
+    influxdb:
+      enabled: true
+      persistence:
+        enabled: true
+        storageClass: milano-v2
+        size: 8Gi
+    telegraf:
+      enabled: true
