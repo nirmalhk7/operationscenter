@@ -35,8 +35,12 @@ spec:
       redis:
         # PHP Redis extension fails DNS lookup on *.svc.cluster.local FQDNs.
         host: appwrite-redis-master
+      influxdb:
+        host: appwrite-influxdb
+      statsd:
+        host: appwrite-telegraf
       usage:
-        stats: disabled
+        stats: enabled
       console:
         whitelist:
           emails: nirmalhk7@gmail.com
@@ -121,6 +125,24 @@ spec:
           storageClass: milano-v2
           size: 8Gi
     influxdb:
-      enabled: false
+      enabled: true
+      auth:
+        admin:
+          password: supersecret-influx-password
+          token: supersecret-influx-token
+          org: appwrite
+          bucket: telegraf
+      persistence:
+        enabled: true
+        storageClass: milano-v2
+        size: 8Gi
     telegraf:
-      enabled: false
+      enabled: true
+      config:
+        outputs:
+          - influxdb_v2:
+              urls:
+                - http://appwrite-influxdb:8086
+              token: supersecret-influx-token
+              bucket: telegraf
+              organization: appwrite
