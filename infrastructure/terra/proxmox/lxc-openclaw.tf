@@ -96,6 +96,17 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
 
   rule {
     action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "18789"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow Paperclip on k8mgd to reach OpenClaw gateway"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
     type    = "out"
     proto   = "tcp"
     dest    = local.proxmoxMachines.k8mgd.ip

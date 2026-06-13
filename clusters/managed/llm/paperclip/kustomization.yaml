@@ -6,5 +6,21 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingressroute.yaml
+  - company-import-cronjob.yaml
 # paperclip-secrets will be generated from secret.yaml (SealedSecret)
   - secret.yaml
+configMapGenerator:
+  - name: paperclip-company-operations-center
+    files:
+      - paperclip.manifest.json=company/operations-center/paperclip.manifest.json
+      - COMPANY.md=company/operations-center/COMPANY.md
+      - agents/nestor/AGENT.md=company/operations-center/agents/nestor/AGENT.md
+      - agents/rahul/AGENT.md=company/operations-center/agents/rahul/AGENT.md
+      - agents/victor/AGENT.md=company/operations-center/agents/victor/AGENT.md
+      - agents/eq-quantsieve/AGENT.md=company/operations-center/agents/eq-quantsieve/AGENT.md
+      - agents/eq-eventhound/AGENT.md=company/operations-center/agents/eq-eventhound/AGENT.md
+      - agents/eq-riskskeptic/AGENT.md=company/operations-center/agents/eq-riskskeptic/AGENT.md
+      - agents/eq-thesis-depth-reviewer/AGENT.md=company/operations-center/agents/eq-thesis-depth-reviewer/AGENT.md
+      - agents/newswire/AGENT.md=company/operations-center/agents/newswire/AGENT.md
+    options:
+      disableNameSuffixHash: true
