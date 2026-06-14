@@ -42,3 +42,9 @@ configMapGenerator:
     options:
       labels:
         milano_grafana_dashboard: "true"
+  - name: grafana-dash-lan
+    files:
+      - dashboards/lan-monitoring.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"

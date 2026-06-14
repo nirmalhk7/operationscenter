@@ -60,6 +60,11 @@ locals {
       ip    = "${local.machineSubnet}102"
       cidr  = "${local.machineSubnet}102/${local.machinePrefix}"
     }
+    homesecurity = {
+      vm_id = 103
+      ip    = "${local.machineSubnet}103"
+      cidr  = "${local.machineSubnet}103/${local.machinePrefix}"
+    }
     openclaw = {
       vm_id = 104
       ip    = "${local.machineSubnet}104"

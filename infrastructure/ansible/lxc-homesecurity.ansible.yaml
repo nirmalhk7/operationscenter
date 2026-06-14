@@ -1,0 +1,107 @@
+---
+- name: Deploy home WiFi monitoring stack on homesecurity LXC
+  hosts: lxc_homesecurity
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - vars/versions.yaml
+    - vars/homesecurity.yaml
+
+  vars:
+    docker_repo: "https://download.docker.com/linux/debian"
+    docker_gpg: "/etc/apt/keyrings/docker.asc"
+    repo_list: "/etc/apt/sources.list.d/docker.list"
+
+  tasks:
+    - name: Check if docker is installed
+      ansible.builtin.stat:
+        path: /usr/bin/docker
+      register: docker_bin
+
+    - name: Docker setup
+      when: not docker_bin.stat.exists
+      block:
+        - name: Ensure base deps
+          ansible.builtin.apt:
+            update_cache: true
+            name: [ca-certificates, curl]
+
+        - name: Ensure keyrings directory exists
+          ansible.builtin.file:
+            path: /etc/apt/keyrings
+            state: directory
+            mode: "0755"
+
+        - name: Download Docker GPG key
+          ansible.builtin.get_url:
+            url: "{{ docker_repo }}/gpg"
+            dest: "{{ docker_gpg }}"
+            mode: "0644"
+
+        - name: Get dpkg architecture
+          ansible.builtin.command: dpkg --print-architecture
+          register: dpkg_arch
+          changed_when: false
+
+        - name: Add Docker apt repository
+          ansible.builtin.copy:
+            dest: "{{ repo_list }}"
+            mode: "0644"
+            content: |
+              deb [arch={{ dpkg_arch.stdout }} signed-by={{ docker_gpg }}] {{ docker_repo }} {{ ansible_lsb.codename | default('bookworm') }} stable
+
+        - name: Install Docker packages at requested versions
+          ansible.builtin.apt:
+            name:
+              - "docker-ce={{ docker_ce_version }}"
+              - "docker-ce-cli={{ docker_ce_version }}"
+              - "containerd.io={{ containerd_version }}"
+              - "docker-buildx-plugin={{ docker_buildx_plugin_version }}"
+              - "docker-compose-plugin={{ docker_compose_plugin_version }}"
+            update_cache: true
+
+    - name: Ensure Docker service is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Ensure homesecurity install directory exists
+      ansible.builtin.file:
+        path: "{{ homesecurity_install_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Sync homesecurity stack files
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ homesecurity_install_dir }}/{{ item.dest }}"
+        mode: "{{ item.mode | default('0644') }}"
+      loop:
+        - { src: files/homesecurity/docker-compose.yml, dest: docker-compose.yml }
+        - { src: files/homesecurity/blackbox/blackbox.yml, dest: blackbox/blackbox.yml }
+        - { src: files/homesecurity/network_exporter/network_exporter.yml, dest: network_exporter/network_exporter.yml }
+        - { src: files/homesecurity/openport/config.yaml, dest: openport/config.yaml }
+        - { src: files/homesecurity/netalertx/README.md, dest: netalertx/README.md, mode: "0644" }
+
+    - name: Deploy homesecurity Docker Compose stack
+      community.docker.docker_compose_v2:
+        project_name: "{{ homesecurity_compose_project }}"
+        project_src: "{{ homesecurity_install_dir }}"
+        state: present
+        pull: always
+
+    - name: Wait for exporter endpoints
+      ansible.builtin.uri:
+        url: "{{ item }}"
+        status_code: 200
+      register: homesecurity_health
+      until: homesecurity_health.status == 200
+      retries: 12
+      delay: 5
+      loop:
+        - http://127.0.0.1:9115/metrics
+        - http://127.0.0.1:9427/metrics
+        - http://127.0.0.1:9919/metrics
+        - http://127.0.0.1:9798/metrics

@@ -75,6 +75,10 @@ data:
           name: NginX
           description: LXC
           href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=lxc%2F101:4::::::=consolejs"
+      - lxc_homesecurity:
+          name: Home Security
+          description: LXC — WiFi LAN monitoring
+          href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=lxc%2F103:4::::::=consolejs"
       - lxc_tailscale:
           name: Tailscale
           description: LXC
@@ -105,6 +109,14 @@ data:
             url: https://proxmox.trusted.nirmalhk7.com:8006
             username: homepage.bot@pve!homepage
             password: ${PROXMOX_PASSWORD}
+    - Observability:
+      - NetAlertX:
+          id: local-netalertx
+          name: NetAlertX
+          icon: mdi-lan-connect
+          description: Home WiFi device inventory and alerts
+          href: "https://netalertx.trusted.nirmalhk7.com"
+          siteMonitor: "https://netalertx.trusted.nirmalhk7.com"
   widgets.yaml: |
     - greeting:
         text_size: xl

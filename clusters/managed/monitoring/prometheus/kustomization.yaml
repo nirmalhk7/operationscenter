@@ -10,6 +10,7 @@ resources:
   - tailscale_scrapeconfigs.yaml
   - docker_scrapeconfigs.yaml
   - proxbridge_scrapeconfigs.yaml
+  - homesecurity_scrapeconfigs.yaml
 
 labels:
   - pairs:

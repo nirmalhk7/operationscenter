@@ -1,0 +1,13 @@
+modules:
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4
+
+  icmp_slow:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4
+    # Used with a 5m+ Prometheus scrape interval for the router ping only.

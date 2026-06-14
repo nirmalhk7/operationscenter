@@ -1,0 +1,115 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: lan-openports
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  scrapeInterval: 5m
+  staticConfigs:
+    - labels:
+        job: lan-openports
+      targets:
+        - 172.16.0.103:9919
+  metricsPath: /metrics
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: lan-path-quality
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  scrapeInterval: 1m
+  staticConfigs:
+    - labels:
+        job: lan-path-quality
+      targets:
+        - 172.16.0.103:9427
+  metricsPath: /metrics
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: lan-speedtest
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  scrapeInterval: 6h
+  staticConfigs:
+    - labels:
+        job: lan-speedtest
+      targets:
+        - 172.16.0.103:9798
+  metricsPath: /metrics
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: lan-blackbox-exporter
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  scrapeInterval: 1m
+  staticConfigs:
+    - labels:
+        job: lan-blackbox
+      targets:
+        - 172.16.0.103:9115
+  metricsPath: /metrics
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: lan-blackbox-router-ping
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  scrapeInterval: 5m
+  metricsPath: /probe
+  params:
+    module:
+      - icmp
+  staticConfigs:
+    - labels:
+        job: lan-blackbox-router
+      targets:
+        - 10.0.0.1
+  relabelings:
+    - sourceLabels: [__address__]
+      targetLabel: __param_target
+      action: replace
+    - sourceLabels: [__param_target]
+      targetLabel: instance
+      action: replace
+    - targetLabel: __address__
+      replacement: 172.16.0.103:9115
+      action: replace
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: lan-blackbox-internet-ping
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  scrapeInterval: 1m
+  metricsPath: /probe
+  params:
+    module:
+      - icmp
+  staticConfigs:
+    - labels:
+        job: lan-blackbox-internet
+      targets:
+        - 1.1.1.1
+  relabelings:
+    - sourceLabels: [__address__]
+      targetLabel: __param_target
+      action: replace
+    - sourceLabels: [__param_target]
+      targetLabel: instance
+      action: replace
+    - targetLabel: __address__
+      replacement: 172.16.0.103:9115
+      action: replace

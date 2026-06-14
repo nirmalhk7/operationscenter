@@ -1,0 +1,9 @@
+---
+wifi_subnet: "10.0.0.0/24"
+router_ip: "10.0.0.1"
+proxmox_wifi_ip: "10.0.0.10"
+exclude_scan_ips:
+  - "10.0.0.1"
+  - "10.0.0.10"
+homesecurity_install_dir: /opt/homesecurity
+homesecurity_compose_project: homesecurity

@@ -1,0 +1,21 @@
+conf:
+  refresh: 15m
+  nameserver: 1.1.1.1:53
+
+icmp:
+  interval: 30s
+  timeout: 2s
+  count: 3
+
+mtr:
+  interval: 5m
+  timeout: 500ms
+  max-hops: 20
+  count: 5
+
+targets:
+  - name: internet-cloudflare
+    host: 1.1.1.1
+    type: ICMP+MTR
+    labels:
+      path: wan

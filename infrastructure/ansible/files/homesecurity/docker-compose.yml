@@ -1,0 +1,63 @@
+services:
+  blackbox:
+    image: prom/blackbox-exporter:v0.26.0
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+
+  network_exporter:
+    image: syepes/network_exporter:latest
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+      - SYS_PTRACE
+    sysctls:
+      net.ipv4.ping_group_range: "0 65535"
+    ports:
+      - "9427:9427"
+    volumes:
+      - ./network_exporter/network_exporter.yml:/app/cfg/network_exporter.yml:ro
+
+  openport:
+    image: ghcr.io/renatogalera/openport-exporter:v0.3.0
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+    ports:
+      - "9919:9919"
+    volumes:
+      - ./openport/config.yaml:/config.yaml:ro
+    environment:
+      CONFIG_PATH: /config.yaml
+
+  speedtest:
+    image: miguelndecarvalho/speedtest-exporter:v3.5.4
+    restart: unless-stopped
+    ports:
+      - "9798:9798"
+    environment:
+      SPEEDTEST_PORT: "9798"
+
+  netalertx:
+    image: ghcr.io/jokob-sk/netalertx:latest
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
+    volumes:
+      - netalertx_data:/data
+    environment:
+      TZ: America/Denver
+      PORT: "20211"
+
+volumes:
+  netalertx_data:
