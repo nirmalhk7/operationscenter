@@ -1,4 +1,33 @@
 ---
+- name: Allow raw network capabilities for homesecurity CT
+  hosts: proxmox
+  become: true
+  gather_facts: false
+  vars:
+    homesecurity_ct_id: 103
+  tasks:
+    - name: Clear LXC capability drops for nested network exporters
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          config="/etc/pve/lxc/{{ homesecurity_ct_id }}.conf"
+          desired="$(
+            awk '
+              !/^# (BEGIN|END) ANSIBLE MANAGED - retain caps$/ &&
+              !/^lxc\.cap\.drop:/
+            ' "$config"
+            printf 'lxc.cap.drop: \n'
+          )"
+          before="$(cat "$config")"
+          if [ "$before" != "$desired" ]; then
+            printf '%s\n' "$desired" > "$config"
+            if pct status {{ homesecurity_ct_id }} | grep -q 'status: running'; then
+              pct reboot {{ homesecurity_ct_id }}
+            fi
+          fi
+        executable: /bin/bash
+      changed_when: false
+
 - name: Deploy home WiFi monitoring stack on homesecurity LXC
   hosts: lxc_homesecurity
   become: true
@@ -54,11 +83,11 @@
         - name: Install Docker packages at requested versions
           ansible.builtin.apt:
             name:
-              - "docker-ce={{ docker_ce_version }}"
-              - "docker-ce-cli={{ docker_ce_version }}"
-              - "containerd.io={{ containerd_version }}"
-              - "docker-buildx-plugin={{ docker_buildx_plugin_version }}"
-              - "docker-compose-plugin={{ docker_compose_plugin_version }}"
+              - "docker-ce={{ homesecurity_docker_ce_version }}"
+              - "docker-ce-cli={{ homesecurity_docker_ce_cli_version }}"
+              - "containerd.io={{ homesecurity_containerd_version }}"
+              - "docker-buildx-plugin={{ homesecurity_docker_buildx_plugin_version }}"
+              - "docker-compose-plugin={{ homesecurity_docker_compose_plugin_version }}"
             update_cache: true
 
     - name: Ensure Docker service is running
@@ -72,6 +101,17 @@
         path: "{{ homesecurity_install_dir }}"
         state: directory
         mode: "0755"
+
+    - name: Ensure homesecurity config subdirectories exist
+      ansible.builtin.file:
+        path: "{{ homesecurity_install_dir }}/{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - blackbox
+        - network_exporter
+        - openport
+        - netalertx
 
     - name: Sync homesecurity stack files
       ansible.builtin.copy:

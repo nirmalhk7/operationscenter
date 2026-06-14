@@ -12,20 +12,50 @@ scanning:
   host_timeout: 300
   disable_host_discovery: true
 
-# Skip Xfinity router (10.0.0.1) and Proxmox WiFi IP (10.0.0.10).
+# CIDR blocks covering 10.0.0.0/24 while skipping 10.0.0.1 and 10.0.0.10.
 targets:
-  - name: wifi-lan-low
-    target: "10.0.0.2-10.0.0.9"
+  - name: wifi-lan-2-3
+    target: "10.0.0.2/31"
     port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
     protocol: tcp
     interval: "24h"
-  - name: wifi-lan-mid
-    target: "10.0.0.11-10.0.0.153"
+  - name: wifi-lan-4-7
+    target: "10.0.0.4/30"
     port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
     protocol: tcp
     interval: "24h"
-  - name: wifi-lan-high
-    target: "10.0.0.155-10.0.0.254"
+  - name: wifi-lan-8-9
+    target: "10.0.0.8/31"
+    port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
+    protocol: tcp
+    interval: "24h"
+  - name: wifi-lan-11
+    target: "10.0.0.11/32"
+    port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
+    protocol: tcp
+    interval: "24h"
+  - name: wifi-lan-12-15
+    target: "10.0.0.12/30"
+    port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
+    protocol: tcp
+    interval: "24h"
+  - name: wifi-lan-16-31
+    target: "10.0.0.16/28"
+    port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
+    protocol: tcp
+    interval: "24h"
+  - name: wifi-lan-32-63
+    target: "10.0.0.32/27"
+    port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
+    protocol: tcp
+    interval: "24h"
+  - name: wifi-lan-64-127
+    target: "10.0.0.64/26"
+    port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
+    protocol: tcp
+    interval: "24h"
+  - name: wifi-lan-128-255
+    target: "10.0.0.128/25"
     port_range: "22,80,443,8080,8443,5353,1883,5683,9999"
     protocol: tcp
     interval: "24h"

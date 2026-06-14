@@ -7,3 +7,9 @@ exclude_scan_ips:
   - "10.0.0.10"
 homesecurity_install_dir: /opt/homesecurity
 homesecurity_compose_project: homesecurity
+# Debian 12 LXC — bookworm Docker pins (versions.yaml targets trixie/k8docker VM).
+homesecurity_docker_ce_version: "5:29.5.3-1~debian.12~bookworm"
+homesecurity_docker_ce_cli_version: "5:29.5.3-1~debian.12~bookworm"
+homesecurity_containerd_version: "2.2.4-1~debian.12~bookworm"
+homesecurity_docker_buildx_plugin_version: "0.34.1-1~debian.12~bookworm"
+homesecurity_docker_compose_plugin_version: "5.1.4-1~debian.12~bookworm"
