@@ -57,6 +57,7 @@ services:
       - SETGID
     volumes:
       - netalertx_data:/data
+      - ./netalertx/app.conf:/data/config/app.conf:ro
     environment:
       TZ: America/Denver
       PORT: "20211"

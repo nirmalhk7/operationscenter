@@ -1,12 +1,15 @@
-# NetAlertX first-run notes
+# NetAlertX (Sentinel)
 
-After the container starts, open the UI and configure scans for `10.0.0.0/24`.
+GitOps config is rendered to `app.conf` by Ansible and bind-mounted into the container.
 
-**Exclude from all active scans (router hands-off policy):**
+**Scan target:** `10.0.0.0/24` via NMAP (`NMAPDEV`) on `net0`. WiFi is L3-routed from this wmnet LXC, so ARP-based discovery is disabled.
 
-- `10.0.0.1` — Xfinity gateway (ping only via Prometheus blackbox)
+**Excluded from inventory:**
+
+- `10.0.0.1` — Xfinity gateway (Prometheus blackbox ping only)
 - `10.0.0.10` — Proxmox WiFi address
+- `172.16.%`, `172.17.%`, `172.18.%` — wmnet and Docker bridge ranges
 
-Prefer ICMP discovery on a schedule; keep nmap infrequent.
+UI: `https://sentinel.trusted.nirmalhk7.com`
 
-Wire notifications to Telegram or ntfy when ready.
+After the first deploy with WiFi scanning, use **Maintenance → Delete all devices** once to drop wmnet/docker entries created before this config.

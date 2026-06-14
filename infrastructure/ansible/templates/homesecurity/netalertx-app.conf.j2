@@ -1,0 +1,40 @@
+# Managed by Ansible (operationscenter). WiFi LAN discovery from wmnet LXC.
+# NetAlertX uses L3 NMAP on 10.0.0.0/24; ARP cannot reach the WiFi segment.
+
+BACKEND_API_URL='/server'
+DISCOVER_PLUGINS=True
+SCAN_SUBNETS=['{{ wifi_subnet }} --interface=net0']
+TIMEZONE='America/Denver'
+REPORT_DASHBOARD_URL='https://sentinel.trusted.nirmalhk7.com'
+LOADED_PLUGINS=['NMAPDEV', 'AVAHISCAN', 'CSVBCKP', 'DBCLNP', 'DIGSCAN', 'INTRNT', 'MAINT', 'NEWDEV', 'NBTSCAN', 'NSLOOKUP', 'NTFPRCS', 'SETPWD', 'SMTP', 'SYNC', 'VNDRPDT', 'WORKFLOWS', 'UI']
+
+DAYS_TO_KEEP_EVENTS=90
+
+# Discovery: NMAP ping sweep on WiFi (routed subnet). ARP only sees wmnet/docker L2.
+ARPSCAN_RUN='disabled'
+NMAPDEV_RUN='schedule'
+NMAPDEV_RUN_SCHD='*/15 * * * *'
+NMAPDEV_RUN_TIMEOUT=300
+NMAPDEV_FAKE_MAC=True
+NMAPDEV_ARGS='sudo nmap -sn -PR -oX - '
+
+# Reachability for known devices
+INTRNT_RUN='schedule'
+INTRNT_RUN_SCHD='*/5 * * * *'
+
+NSLOOKUP_RUN='before_name_updates'
+DIGSCAN_RUN='before_name_updates'
+AVAHISCAN_RUN='before_name_updates'
+NBTSCAN_RUN='before_name_updates'
+
+# Ignore router, Proxmox WiFi, and infra/docker ranges
+NEWDEV_ignored_IPs=[{% for ip in exclude_scan_ips %}'{{ ip }}'{% if not loop.last %}, {% endif %}{% endfor %}, '172.16.%', '172.17.%', '172.18.%']
+
+SMTP_RUN='disabled'
+WEBHOOK_RUN='disabled'
+APPRISE_RUN='disabled'
+NTFY_RUN='disabled'
+PUSHSAFER_RUN='disabled'
+MQTT_RUN='disabled'
+
+GRAPHQL_PORT=20212

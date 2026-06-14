@@ -125,12 +125,28 @@
         - { src: files/homesecurity/openport/config.yaml, dest: openport/config.yaml }
         - { src: files/homesecurity/netalertx/README.md, dest: netalertx/README.md, mode: "0644" }
 
+    - name: Render NetAlertX app.conf for WiFi subnet scanning
+      ansible.builtin.template:
+        src: templates/homesecurity/netalertx-app.conf.j2
+        dest: "{{ homesecurity_install_dir }}/netalertx/app.conf"
+        mode: "0644"
+      register: netalertx_app_conf
+
     - name: Deploy homesecurity Docker Compose stack
       community.docker.docker_compose_v2:
         project_name: "{{ homesecurity_compose_project }}"
         project_src: "{{ homesecurity_install_dir }}"
         state: present
         pull: always
+
+    - name: Restart NetAlertX when app.conf changes
+      community.docker.docker_compose_v2:
+        project_name: "{{ homesecurity_compose_project }}"
+        project_src: "{{ homesecurity_install_dir }}"
+        services:
+          - netalertx
+        state: restarted
+      when: netalertx_app_conf.changed
 
     - name: Wait for exporter endpoints
       ansible.builtin.uri:

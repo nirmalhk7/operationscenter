@@ -115,8 +115,8 @@ data:
           name: NetAlertX
           icon: mdi-lan-connect
           description: Home WiFi device inventory and alerts
-          href: "https://netalertx.trusted.nirmalhk7.com"
-          siteMonitor: "https://netalertx.trusted.nirmalhk7.com"
+          href: "https://sentinel.trusted.nirmalhk7.com"
+          siteMonitor: "https://sentinel.trusted.nirmalhk7.com"
   widgets.yaml: |
     - greeting:
         text_size: xl
