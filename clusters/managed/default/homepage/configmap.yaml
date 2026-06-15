@@ -99,7 +99,6 @@ data:
           icon: mdi-lan-connect
           description: Home WiFi device inventory and alerts
           href: "https://sentinel.trusted.nirmalhk7.com"
-          siteMonitor: "https://sentinel.trusted.nirmalhk7.com"
   widgets.yaml: |
     - greeting:
         text_size: xl
