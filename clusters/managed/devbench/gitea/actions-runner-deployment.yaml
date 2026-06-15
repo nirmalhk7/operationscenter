@@ -35,7 +35,7 @@ spec:
                   key: token
           resources:
             requests:
-              cpu: 100m
+              cpu: 25m
               memory: 128Mi
             limits:
               cpu: "1"
@@ -65,7 +65,7 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              cpu: 250m
+              cpu: 100m
               memory: 512Mi
             limits:
               cpu: "2"
