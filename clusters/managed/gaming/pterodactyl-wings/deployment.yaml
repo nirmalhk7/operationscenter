@@ -42,15 +42,13 @@ spec:
             - name: tmp
               mountPath: /tmp/pterodactyl
           readinessProbe:
-            httpGet:
-              path: /api/system
+            tcpSocket:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
           startupProbe:
-            httpGet:
-              path: /api/system
+            tcpSocket:
               port: 8080
             failureThreshold: 30
             periodSeconds: 2
@@ -63,6 +61,9 @@ spec:
               memory: 4Gi
         - name: dind
           image: docker:26-dind
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
           args:
             - --host=tcp://0.0.0.0:2375
             - --tls=false
