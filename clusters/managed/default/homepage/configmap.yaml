@@ -18,7 +18,7 @@ data:
       image: https://images.unsplash.com/photo-1600104146011-ad1a8571f161
       blur: sm
       opacity: 50
-    useEqualHeights: true
+    useEqualHeights: false
     headerStyle: clean
     statusStyle: dot
     fullWidth: true
@@ -70,23 +70,6 @@ data:
           description: Openclaw Dashboard
           href: "https://robot.trusted.nirmalhk7.com"
           siteMonitor: "https://robot.trusted.nirmalhk7.com"
-    - Infrastructure:
-      - lxc_nginx:
-          name: NginX
-          description: LXC
-          href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=lxc%2F101:4::::::=consolejs"
-      - lxc_homesecurity:
-          name: Home Security
-          description: LXC — WiFi LAN monitoring
-          href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=lxc%2F103:4::::::=consolejs"
-      - lxc_tailscale:
-          name: Tailscale
-          description: LXC
-          href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=lxc%2F102:4::::::=consolejs"
-      - vm_kubernetes:
-          name: Kubernetes
-          description: VM
-          href: "https://proxmox.trusted.nirmalhk7.com/#v1:0:=qemu%2F105:4::::::=consolejs"
     - Networking:
       - Tailscale:
           id: local-tailscale
