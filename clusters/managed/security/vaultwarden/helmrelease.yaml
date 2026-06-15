@@ -15,11 +15,6 @@ spec:
   interval: 1h
   releaseName: *app
   values:
-    database:
-      type: postgresql
-      existingSecret: credentials-db
-      existingSecretKey: DATABASE_URL
-
     vaultwarden:
       allowSignups: false
       verifySignup: false
