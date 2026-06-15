@@ -16,11 +16,25 @@ spec:
   values:
     toucaApp:
       webappRoot: "https://touca.trusted.nirmalhk7.com"
+      image:
+        repository: touca/touca
+        tag: "2.0.0"
     mongo:
       embedded:
         enabled: false
       host: "172.16.0.106"
       existingSecret: touca-credentials
+      image:
+        repository: mongo
+        tag: "4.4"
+    redis:
+      image:
+        repository: redis
+        tag: 6-alpine
+    minio:
+      image:
+        repository: minio/minio
+        tag: RELEASE.2021-03-17T02-33-02Z
     volume:
       scName: milano-v2
     ingress:
