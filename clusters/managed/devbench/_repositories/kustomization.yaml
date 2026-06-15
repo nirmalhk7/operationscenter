@@ -5,6 +5,7 @@ resources:
   - appwrite-helm.yaml
   - bitnami.yaml
   - deliveryhero-helm-charts.yaml
+  - grafana.yaml
   - gitea.yaml
   - sonarqube.yaml
   - prometheus-community.yaml
