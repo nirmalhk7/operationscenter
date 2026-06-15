@@ -9,8 +9,8 @@ data:
     traefik: true
   proxmox.yaml: |
     url: https://proxmox.trusted.nirmalhk7.com:8006
-    token: ${PROXMOX_USERNAME}
-    secret: ${PROXMOX_PASSWORD}
+    token: "{{HOMEPAGE_VAR_PROXMOX_USERNAME}}"
+    secret: "{{HOMEPAGE_VAR_PROXMOX_PASSWORD}}"
   settings.yaml: |
     title: "Operations Center Boulder - MILANO"
     description: "Welcome to Milano!"
@@ -154,8 +154,8 @@ data:
           widget:
             type: proxmox
             url: https://proxmox.trusted.nirmalhk7.com:8006
-            username: ${PROXMOX_USERNAME}
-            password: ${PROXMOX_PASSWORD}
+            username: "{{HOMEPAGE_VAR_PROXMOX_USERNAME}}"
+            password: "{{HOMEPAGE_VAR_PROXMOX_PASSWORD}}"
     - Observability:
       - NetAlertX:
           id: local-netalertx
@@ -163,7 +163,6 @@ data:
           icon: mdi-lan-connect
           description: Home WiFi device inventory and alerts
           href: "https://sentinel.trusted.nirmalhk7.com"
-          siteMonitor: "https://sentinel.trusted.nirmalhk7.com"
   widgets.yaml: |
     - greeting:
         text_size: xl

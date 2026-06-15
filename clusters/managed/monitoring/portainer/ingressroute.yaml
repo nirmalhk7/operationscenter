@@ -16,7 +16,7 @@ metadata:
     gethomepage.dev/widget.url: "http://portainer.mgd-monitoring.svc.cluster.local:9000"
     gethomepage.dev/widget.env: "1"
     gethomepage.dev/widget.kubernetes: "true"
-    gethomepage.dev/widget.key: "${PORTAINER_API_KEY}"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}"
 spec:
   entryPoints:
     - websecure

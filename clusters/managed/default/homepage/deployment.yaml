@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        milano.io/homepage-config-revision: "2026-06-15b"
+        milano.io/homepage-config-revision: "2026-06-15c"
       labels:
         app.kubernetes.io/name: *app
         milano.app: *app
@@ -38,6 +38,51 @@ spec:
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
               value: "home.trusted.nirmalhk7.com,10.0.0.10"
+            - name: HOMEPAGE_VAR_GITEA_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: GITEA_API_TOKEN
+            - name: HOMEPAGE_VAR_GRAFANA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: GRAFANA_PASSWORD
+            - name: HOMEPAGE_VAR_GRAFANA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: GRAFANA_USER
+            - name: HOMEPAGE_VAR_IMMICH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: IMMICH_API_KEY
+            - name: HOMEPAGE_VAR_NEXTCLOUD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: NEXTCLOUD_TOKEN
+            - name: HOMEPAGE_VAR_PORTAINER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: PORTAINER_API_KEY
+            - name: HOMEPAGE_VAR_PROXMOX_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: PROXMOX_PASSWORD
+            - name: HOMEPAGE_VAR_PROXMOX_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: PROXMOX_USERNAME
+            - name: HOMEPAGE_VAR_PTERODACTYL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secret
+                  key: PTERODACTYL_API_KEY
           envFrom:
             - secretRef: 
                 name: homepage-secret
