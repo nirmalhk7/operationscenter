@@ -16,53 +16,6 @@ spec:
         namespace: mgd-multimedia
   interval: 10m
   values:
-    controllers:
-      main:
-        containers:
-          main:
-            image:
-              tag: v1.142.0
-            command:
-              - /bin/bash
-              - -lc
-            args:
-              - |
-                set -euo pipefail
-                oauth_secret="$(cat /secrets/immich-credentials/OAUTH_CLIENT_SECRET)"
-                smtp_password="$(cat /secrets/immich-credentials/SMTP_PASSWORD)"
-                config="/config/immich-config.yaml"
-                tmp="$(mktemp /tmp/immich-config.XXXXXX.yaml)"
-                awk -v secret="$oauth_secret" '
-                  /^  clientId: immich$/ {
-                    print
-                    print "  clientSecret: \"" secret "\""
-                    next
-                  }
-                  { print }
-                ' "$config" > "$tmp"
-                sed -i "s/__SMTP_PASSWORD__/${smtp_password}/g" "$tmp"
-                export IMMICH_CONFIG_FILE="$tmp"
-                exec /usr/src/app/server/bin/start.sh
-            env:
-              DB_HOSTNAME: 172.16.0.106
-              DB_DATABASE_NAME: *app
-              DB_USERNAME: immich_rw
-              DB_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: immich-credentials
-                    key: DB_PASSWORD
-              REDIS_HOSTNAME: immich-redis
-              REDIS_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: immich-credentials
-                    key: REDIS_PASSWORD
-              IMMICH_LOG_LEVEL: verbose
-              # Authelia is currently fronted by Traefik's default self-signed cert.
-              # Immich's OIDC discovery runs in Node, so it needs TLS verification disabled
-              # until that issuer is replaced with a trusted certificate.
-              NODE_TLS_REJECT_UNAUTHORIZED: "0"
     persistence:
       oauth-secret:
         enabled: true
@@ -72,6 +25,53 @@ spec:
           - path: /secrets/immich-credentials
             readOnly: true
     server:
+      controllers:
+        main:
+          containers:
+            main:
+              image:
+                tag: v1.142.0
+              command:
+                - /bin/bash
+                - -lc
+              args:
+                - |
+                  set -euo pipefail
+                  oauth_secret="$(cat /secrets/immich-credentials/OAUTH_CLIENT_SECRET)"
+                  smtp_password="$(cat /secrets/immich-credentials/SMTP_PASSWORD)"
+                  config="/config/immich-config.yaml"
+                  tmp="$(mktemp /tmp/immich-config.XXXXXX.yaml)"
+                  awk -v secret="$oauth_secret" '
+                    /^  clientId: immich$/ {
+                      print
+                      print "  clientSecret: \"" secret "\""
+                      next
+                    }
+                    { print }
+                  ' "$config" > "$tmp"
+                  sed -i "s/__SMTP_PASSWORD__/${smtp_password}/g" "$tmp"
+                  export IMMICH_CONFIG_FILE="$tmp"
+                  exec /usr/src/app/server/bin/start.sh
+              env:
+                DB_HOSTNAME: 172.16.0.106
+                DB_DATABASE_NAME: *app
+                DB_USERNAME: immich_rw
+                DB_PASSWORD:
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-credentials
+                      key: DB_PASSWORD
+                REDIS_HOSTNAME: immich-redis
+                REDIS_PASSWORD:
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-credentials
+                      key: REDIS_PASSWORD
+                IMMICH_LOG_LEVEL: verbose
+                # Authelia is currently fronted by Traefik's default self-signed cert.
+                # Immich's OIDC discovery runs in Node, so it needs TLS verification disabled
+                # until that issuer is replaced with a trusted certificate.
+                NODE_TLS_REJECT_UNAUTHORIZED: "0"
       persistence:
         user-content:
           enabled: true
