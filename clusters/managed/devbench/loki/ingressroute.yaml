@@ -16,6 +16,14 @@ spec:
     - websecure
     - web
   routes:
+    - match: Host(`loki.trusted.nirmalhk7.com`) && Path(`/`)
+      kind: Rule
+      services:
+        - name: loki-gateway
+          port: 80
+      middlewares:
+        - name: mgd-headervalidation
+        - name: loki-root-content-type
     - match: Host(`loki.trusted.nirmalhk7.com`)
       kind: Rule
       services:
