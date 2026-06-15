@@ -1,5 +1,8 @@
 ---
 host_ip: "10.0.0.10"
+wifi_iface: "wlp4s0"
+wifi_ssid: "WiFi-Error"
+wifi_gateway: "10.0.0.1"
 int_subnet: "172.16.0.0/24"
 nginx_ip: "172.16.0.101"
 k8s_ip: "172.16.0.105"

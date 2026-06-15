@@ -12,6 +12,7 @@
     tailscale_args: "{{ lookup('env', 'TAILSCALE_ARGS') if lookup('env', 'TAILSCALE_ARGS') else '--ssh' }}"
     homepage_proxmox_password: "{{ lookup('env', 'HOMEPAGE_PROXMOX_PASSWORD') | default('', true) }}"
     proxmox_oidc_client_secret: "{{ lookup('env', 'PROXMOX_OIDC_CLIENT_SECRET') | default('', true) }}"
+    wifi_psk: "{{ lookup('env', 'PROXMOX_WIFI_PSK') | default('', true) }}"
     proxmox_oidc_realm: authelia
     proxmox_oidc_issuer_url: https://secure.trusted.nirmalhk7.com
     proxmox_oidc_admin_user: nirmalhk7@gmail.com@authelia
@@ -55,16 +56,135 @@
             state: present
             reload: true
 
+        - name: Require Proxmox Wi-Fi PSK
+          ansible.builtin.assert:
+            that:
+              - wifi_psk | length > 0
+            fail_msg: "Set PROXMOX_WIFI_PSK before applying host Wi-Fi configuration"
+          no_log: true
+
+        - name: Ensure Proxmox Wi-Fi packages are installed
+          ansible.builtin.apt:
+            name:
+              - pve-firmware
+              - wpasupplicant
+              - iw
+            state: present
+
+        - name: Check whether Wi-Fi config exists
+          ansible.builtin.stat:
+            path: /etc/wpa_supplicant/wpa_supplicant.conf
+          register: wifi_config_stat
+
+        - name: Create Wi-Fi config when missing
+          ansible.builtin.template:
+            src: wpa_supplicant.conf.j2
+            dest: /etc/wpa_supplicant/wpa_supplicant.conf
+            owner: root
+            group: root
+            mode: '0600'
+          when: not wifi_config_stat.stat.exists
+          register: wifi_config_render
+          no_log: true
+
+        - name: Update Wi-Fi config with backup when it already exists
+          ansible.builtin.template:
+            src: wpa_supplicant.conf.j2
+            dest: /etc/wpa_supplicant/wpa_supplicant.conf
+            owner: root
+            group: root
+            mode: '0600'
+            backup: true
+          when: wifi_config_stat.stat.exists
+          register: wifi_config_update
+          no_log: true
+
+        - name: Check whether Wi-Fi systemd unit exists
+          ansible.builtin.stat:
+            path: /etc/systemd/system/wpa_supplicant.service
+          register: wifi_unit_stat
+
+        - name: Create Wi-Fi systemd unit when missing
+          ansible.builtin.template:
+            src: wpa_supplicant.service.j2
+            dest: /etc/systemd/system/wpa_supplicant.service
+            owner: root
+            group: root
+            mode: '0644'
+          when: not wifi_unit_stat.stat.exists
+          register: wifi_unit_render
+
+        - name: Update Wi-Fi systemd unit with backup when it already exists
+          ansible.builtin.template:
+            src: wpa_supplicant.service.j2
+            dest: /etc/systemd/system/wpa_supplicant.service
+            owner: root
+            group: root
+            mode: '0644'
+            backup: true
+          when: wifi_unit_stat.stat.exists
+          register: wifi_unit_update
+
+        - name: Ensure Wi-Fi systemd unit is enabled and running
+          ansible.builtin.systemd:
+            name: wpa_supplicant.service
+            enabled: true
+            daemon_reload: "{{ (wifi_unit_render.changed | default(false)) or (wifi_unit_update.changed | default(false)) }}"
+            state: >-
+              {{
+                'restarted'
+                if (wifi_config_render.changed | default(false))
+                or (wifi_config_update.changed | default(false))
+                or (wifi_unit_render.changed | default(false))
+                or (wifi_unit_update.changed | default(false))
+                else 'started'
+              }}
+
+        - name: Check whether interface config exists
+          ansible.builtin.stat:
+            path: /etc/network/interfaces
+          register: network_interfaces_stat
+
+        - name: Read current interface config
+          ansible.builtin.slurp:
+            path: /etc/network/interfaces
+          when: network_interfaces_stat.stat.exists
+          register: network_interfaces_slurp
+
+        - name: Detect whether legacy unmanaged Wi-Fi interface cleanup is needed
+          ansible.builtin.set_fact:
+            wifi_interface_cleanup_needed: >-
+              {{
+                ('# BEGIN ANSIBLE MANAGED - wmnet bridge' not in (network_interfaces_slurp.content | b64decode))
+                or (((network_interfaces_slurp.content | b64decode) | regex_findall('(?m)^auto ' ~ wifi_iface ~ '$') | length) > 1)
+                or (((network_interfaces_slurp.content | b64decode) | regex_findall('(?m)^iface ' ~ wifi_iface ~ ' inet static$') | length) > 1)
+              }}
+          when:
+            - network_interfaces_stat.stat.exists
+            - network_interfaces_slurp.content is defined
+
+        - name: Remove legacy unmanaged Wi-Fi stanzas before managing the interface
+          ansible.builtin.replace:
+            path: /etc/network/interfaces
+            regexp: '(?ms)^auto {{ wifi_iface }}\niface {{ wifi_iface }} inet static\n(?:[ \t].*\n|#.*\n|\n)*'
+            replace: ''
+            backup: true
+          when:
+            - network_interfaces_stat.stat.exists
+            - wifi_interface_cleanup_needed | default(false)
+          register: wifi_interface_cleanup
+
         - name: Configure wmnet bridge interface
           ansible.builtin.blockinfile:
             path: /etc/network/interfaces
+            backup: true
             marker: "# {mark} ANSIBLE MANAGED - wmnet bridge"
             block: |
 
-              auto wlp4s0
-              iface wlp4s0 inet static
+              auto {{ wifi_iface }}
+              iface {{ wifi_iface }} inet static
                       address {{ host_ip }}/24
-                      gateway 10.0.0.1
+                      gateway {{ wifi_gateway }}
               #Machine to Wifi interface. CRITICAL DO NOT REMOVE
               
               auto wmnet
@@ -75,9 +195,11 @@
                   bridge-fd 0
                   post-up HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-up.sh
                   post-down HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-down.sh
+          register: managed_network_interfaces
 
         - name: Reload network configuration
           ansible.builtin.command: ifreload -a
+          when: (wifi_interface_cleanup.changed | default(false)) or managed_network_interfaces.changed
           
     - name: Single node Proxmox configuration
       tags: singlenode
