@@ -27,6 +27,13 @@ spec:
         passwordKey: GRAFANA-PASSWORD
 
       defaultDashboardsEnabled: false
+      additionalDataSources:
+        - name: Loki
+          uid: loki
+          type: loki
+          access: proxy
+          url: http://loki-gateway.mgd-devbench
+          editable: false
       env:
         GF_SERVER_SERVE_FROM_SUB_PATH: "true"
         
