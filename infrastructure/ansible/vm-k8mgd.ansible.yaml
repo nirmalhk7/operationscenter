@@ -25,6 +25,7 @@
             - "{{ tls_san }}"
           disable:
             - servicelb
+            - traefik
       notify: Restart k3s
 
     - name: Check if k3s is installed
