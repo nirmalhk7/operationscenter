@@ -2,7 +2,7 @@
 # NetAlertX uses L3 NMAP on 10.0.0.0/24; ARP cannot reach the WiFi segment.
 
 BACKEND_API_URL='/server'
-DISCOVER_PLUGINS=True
+DISCOVER_PLUGINS=False
 SCAN_SUBNETS=['{{ wifi_subnet }} --interface=net0']
 TIMEZONE='America/Denver'
 REPORT_DASHBOARD_URL='https://sentinel.trusted.nirmalhk7.com'
@@ -18,7 +18,7 @@ NMAPDEV_RUN_TIMEOUT=300
 NMAPDEV_FAKE_MAC=True
 NMAPDEV_ARGS='sudo nmap -sn -PR -oX - '
 
-# Reachability for known devices
+# Internet egress IP tracking
 INTRNT_RUN='schedule'
 INTRNT_RUN_SCHD='*/5 * * * *'
 

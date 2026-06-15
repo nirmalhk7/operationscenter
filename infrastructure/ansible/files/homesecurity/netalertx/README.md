@@ -12,4 +12,4 @@ GitOps config is rendered to `app.conf` by Ansible and bind-mounted into the con
 
 UI: `https://sentinel.trusted.nirmalhk7.com`
 
-After the first deploy with WiFi scanning, use **Maintenance → Delete all devices** once to drop wmnet/docker entries created before this config.
+Ansible purges `172.16/17/18.*` devices from the NetAlertX database on each deploy. Stale wmnet entries from the pre-WiFi ARP config are not re-discovered.

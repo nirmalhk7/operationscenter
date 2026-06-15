@@ -148,6 +148,16 @@
         state: restarted
       when: netalertx_app_conf.changed
 
+    - name: Purge wmnet and docker devices from NetAlertX inventory
+      ansible.builtin.command:
+        cmd: >
+          docker exec {{ homesecurity_compose_project }}-netalertx-1
+          sqlite3 /data/db/app.db
+          "DELETE FROM Devices WHERE devLastIP GLOB '172.16.*'
+          OR devLastIP GLOB '172.17.*' OR devLastIP GLOB '172.18.*'; SELECT changes();"
+      register: netalertx_purge_infra
+      changed_when: netalertx_purge_infra.stdout | trim | int > 0
+
     - name: Wait for exporter endpoints
       ansible.builtin.uri:
         url: "{{ item }}"
