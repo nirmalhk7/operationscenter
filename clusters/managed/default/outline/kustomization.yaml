@@ -4,6 +4,8 @@ resources:
   - ingressroute.yaml
   - helmrelease.yaml
   - secrets.yaml
+  - nfs-storage.yaml
+  - backup-cronjob.yaml
 
 labels:
   - pairs:

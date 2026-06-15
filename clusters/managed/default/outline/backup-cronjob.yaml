@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: outline-backup
+spec:
+  schedule: "0 3 * * *"
+  timeZone: America/Denver
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            milano.app: outline
+        spec:
+          hostAliases:
+            - ip: "172.16.0.101"
+              hostnames:
+                - "outline.trusted.nirmalhk7.com"
+          restartPolicy: OnFailure
+          containers:
+            - name: export
+              image: ghcr.io/lrstanley/outline-export:latest
+              env:
+                - name: TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: outline-credentials
+                      key: OUTLINE_API_TOKEN
+              command:
+                - sh
+                - -c
+                - |
+                  set -euo pipefail
+                  rm -f /backup/outline-backup.zip
+                  outline-export \
+                    --url "http://outline:3000" \
+                    --export-path "/backup/outline-backup.zip" \
+                    --format markdown
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: outline-backup

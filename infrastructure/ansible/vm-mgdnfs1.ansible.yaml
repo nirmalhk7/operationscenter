@@ -24,6 +24,7 @@
       - gitea/avatars
       - gitea/repo-avatars
       - gitea/packages
+      - outline
 
   tasks:
     - name: Require device path to be set
