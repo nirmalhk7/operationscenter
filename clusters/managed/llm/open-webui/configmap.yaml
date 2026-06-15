@@ -5,7 +5,12 @@ metadata:
   namespace: mgd-llm
 data:
   TAVILY_API_KEY: "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"
+  ENABLE_PERSISTENT_CONFIG: "false"
+  ENABLE_OLLAMA_API: "true"
   OLLAMA_BASE_URL: "http://ollama.mgd-llm.svc.cluster.local:11434"
+  OLLAMA_BASE_URLS: "http://ollama.mgd-llm.svc.cluster.local:11434;http://open-webui-pipelines.mgd-llm.svc.cluster.local:9099"
+  ENABLE_OPENAI_API: "true"
+  OPENAI_API_BASE_URLS: "https://generativelanguage.googleapis.com/v1beta/openai;https://openrouter.ai/api/v1"
   ENABLE_RAG_WEB_SEARCH: "true"
   RAG_WEB_SEARCH_ENGINE: "brave"
   RAG_EMBEDDING_ENGINE: "ollama"
