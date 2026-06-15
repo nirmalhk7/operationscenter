@@ -50,6 +50,7 @@ graph TD
 - `/nginx/`: Configuration files for the Nginx LXC proxy.
 - `/charts/`: Custom Helm charts for services.
 - `/Makefile`: Central hub for operational tasks (encryption, backup, applying infra).
+- [`AGENTS.md`](AGENTS.md): Conventions, workflows, and Renovate policy for AI agents and contributors editing this repo.
 
 ## 📂 Resource Tiers
 1. **Managed Tier (`managed`)**: 
