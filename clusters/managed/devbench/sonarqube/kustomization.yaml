@@ -5,6 +5,7 @@ namespace: mgd-devbench
 
 resources:
   - helmrelease.yaml
+  - pvc.yaml
   - secret.yaml
   - ingressroute.yaml
 
