@@ -33,7 +33,10 @@
     "fileMatch": [
       "clusters/.+/.*deployment\\.yaml$",
       "clusters/.+/.*statefulset\\.yaml$",
-      "clusters/managed/kube-systems/sealedsecrets.yaml",
+      "clusters/.+/.*cronjob\\.yaml$",
+      "clusters/.+/.*deploy\\.yaml$",
+      "clusters/managed/kube-system/sealedsecrets/controller\\.yaml$",
+      "clusters/managed/security/authelia/oidc-proxy\\.yaml$",
       "clusters/managed/flux-system/fluxcd/gotk-components.yaml"
     ]
   },
