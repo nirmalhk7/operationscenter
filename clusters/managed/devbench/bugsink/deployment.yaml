@@ -29,6 +29,9 @@ spec:
           httpGet:
             path: /
             port: 8000
+            httpHeaders:
+              - name: Host
+                value: bugs.trusted.nirmalhk7.com
           initialDelaySeconds: 15
           periodSeconds: 10
           failureThreshold: 3
