@@ -49,7 +49,7 @@ spec:
           resources:
             requests:
               memory: "3Gi"   # Enough for the model + base overhead
-              cpu: "2"        # "Guarantees" 2 cores so the AI doesn't stutter
+              cpu: "1"        # Reserve one core while allowing bursts on the single-node cluster
             limits:
               memory: "5Gi"   # Room for 32k context window and spikes
               cpu: "4"        # Let it burst to 4 cores for faster initial "thinking"
