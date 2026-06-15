@@ -16,7 +16,7 @@ spec:
         app: {{ .Release.Name }}-touca-app
     spec:
       containers:
-      - image: {{ .Values.toucaApp.dockerRepoName | default "touca" | lower }}/{{ .Values.toucaApp.dockerImageName }}:{{ .Values.toucaApp.dockerImageTag }}
+      - image: {{ .Values.toucaApp.image.repository }}:{{ .Values.toucaApp.image.tag }}
         name: {{ .Release.Name }}-touca-app
         imagePullPolicy: Always
         ports:

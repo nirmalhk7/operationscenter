@@ -16,7 +16,7 @@ spec:
         app: {{ .Release.Name }}-touca-redis
     spec:
       containers:
-      - image: redis:6-alpine
+      - image: {{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}
         name: {{ .Release.Name }}-touca-redis
         volumeMounts:
         - mountPath: /data/redis

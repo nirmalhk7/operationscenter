@@ -1,7 +1,7 @@
 toucaApp:
-  dockerRepoName: "touca"
-  dockerImageName: "touca"
-  dockerImageTag: "2.0.0"
+  image:
+    repository: touca/touca
+    tag: "2.0.0"
   webappRoot: "http://localhost:8080"
 
 mongo:
@@ -9,6 +9,19 @@ mongo:
     enabled: true
   host: ""
   existingSecret: ""
+  image:
+    repository: mongo
+    tag: "4.4"
+
+redis:
+  image:
+    repository: redis
+    tag: 6-alpine
+
+minio:
+  image:
+    repository: minio/minio
+    tag: RELEASE.2021-03-17T02-33-02Z
 
 volume:
   scName: "milano-v2"
