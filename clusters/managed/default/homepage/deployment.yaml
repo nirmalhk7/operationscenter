@@ -24,6 +24,9 @@ spec:
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
       hostAliases:
+        - ip: "10.0.0.10"
+          hostnames:
+            - proxmox.trusted.nirmalhk7.com
         - ip: "172.16.0.101"
           hostnames:
             - robot.trusted.nirmalhk7.com
