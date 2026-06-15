@@ -13,6 +13,7 @@ spec:
         name: gitea
         namespace: mgd-devbench
   interval: 10m
+  timeout: 10m
   releaseName: *app
   values:
     strategy:
@@ -63,6 +64,8 @@ spec:
         attachment:
           STORAGE_TYPE: local
           PATH: /data-nfs/attachments
+        actions:
+          ENABLED: true
         picture:
           AVATAR_UPLOAD_PATH: /data-nfs/avatars
           REPOSITORY_AVATAR_UPLOAD_PATH: /data-nfs/repo-avatars

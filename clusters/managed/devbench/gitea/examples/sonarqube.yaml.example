@@ -1,0 +1,27 @@
+name: SonarQube
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sonarqube:
+    runs-on: sonarqube
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.3
+        with:
+          fetch-depth: 0
+
+      # Add the repository's test and coverage command here.
+
+      - name: Scan and enforce quality gate
+        uses: SonarSource/sonarqube-scan-action@v8.2.0
+        env:
+          SONAR_HOST_URL: http://sonarqube-sonarqube.mgd-devbench.svc.cluster.local.:9000
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
+            -Dsonar.qualitygate.wait=true

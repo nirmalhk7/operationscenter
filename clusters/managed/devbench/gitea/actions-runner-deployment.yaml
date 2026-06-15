@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea-actions-runner
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gitea-actions-runner
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gitea-actions-runner
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: runner
+          image: docker.io/gitea/act_runner:1.0.8
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DOCKER_HOST
+              value: tcp://127.0.0.1:2375
+            - name: GITEA_INSTANCE_URL
+              value: http://gitea-http:3000
+            - name: GITEA_RUNNER_LABELS
+              value: sonarqube:docker://docker.gitea.com/runner-images:ubuntu-latest
+            - name: GITEA_RUNNER_NAME
+              value: mgd-devbench-sonarqube
+            - name: GITEA_RUNNER_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-actions-runner
+                  key: token
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: runner-data
+              mountPath: /data
+        - name: docker
+          image: docker.io/library/docker:27.5.1-dind
+          imagePullPolicy: IfNotPresent
+          args:
+            - --host=tcp://0.0.0.0:2375
+            - --host=unix:///var/run/docker.sock
+            - --dns=10.43.0.10
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          readinessProbe:
+            tcpSocket:
+              port: 2375
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: docker-data
+              mountPath: /var/lib/docker
+      volumes:
+        - name: docker-data
+          emptyDir: {}
+        - name: runner-data
+          persistentVolumeClaim:
+            claimName: gitea-actions-runner

@@ -6,6 +6,9 @@ resources:
   - nfs-storage.yaml
   - helmrelease.yaml
   - secret.yaml
+  - actions-runner-deployment.yaml
+  - actions-runner-pvc.yaml
+  - actions-runner-secret.yaml
 
 
 labels:
