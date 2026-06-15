@@ -9,7 +9,7 @@ data:
     traefik: true
   proxmox.yaml: |
     url: https://proxmox.trusted.nirmalhk7.com:8006
-    token: homepage.bot@pve!homepage
+    token: ${PROXMOX_USERNAME}
     secret: ${PROXMOX_PASSWORD}
   settings.yaml: |
     title: "Operations Center Boulder - MILANO"
@@ -39,8 +39,72 @@ data:
       Devbench: {}
       Gaming: {}
       Quick Links: {}
-  custom.css: ""
+  custom.css: |
+    #oc-status-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      align-items: center;
+      margin-top: 0.35rem;
+    }
+
+    #oc-status-badges a img {
+      display: block;
+      height: 20px;
+      width: auto;
+    }
   custom.js: |
+    (function mountStatusBadges() {
+      const badges = [
+        {
+          href: "https://github.com/nirmalhk7/operationscenter/actions",
+          src: "https://img.shields.io/github/checks-status/nirmalhk7/operationscenter/main?label=CI&logo=githubactions&logoColor=white",
+          alt: "CI status",
+        },
+        {
+          href: "https://github.com/nirmalhk7/operationscenter/tree/main/clusters/managed",
+          src: "https://img.shields.io/github/actions/workflow/status/nirmalhk7/operationscenter/test-k8s.yaml?branch=main&label=GitOps&logo=fluxcd&logoColor=white",
+          alt: "GitOps status",
+        },
+      ];
+
+      const render = () => {
+        if (document.getElementById("oc-status-badges")) return;
+
+        const anchor =
+          document.querySelector("#information-widgets") ||
+          document.querySelector("header") ||
+          document.body;
+
+        const container = document.createElement("div");
+        container.id = "oc-status-badges";
+
+        badges.forEach(({ href, src, alt }) => {
+          const link = document.createElement("a");
+          link.href = href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+
+          const image = document.createElement("img");
+          image.src = src;
+          image.alt = alt;
+          image.loading = "lazy";
+
+          link.appendChild(image);
+          container.appendChild(link);
+        });
+
+        anchor.appendChild(container);
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", render);
+      } else {
+        render();
+      }
+    })();
+
     if(window.location.host === '10.0.0.10'){
       Array.from(document.querySelectorAll('.services-list')).map(e=>{
         Array.from(e.children).forEach(el => {
@@ -90,7 +154,7 @@ data:
           widget:
             type: proxmox
             url: https://proxmox.trusted.nirmalhk7.com:8006
-            username: homepage.bot@pve!homepage
+            username: ${PROXMOX_USERNAME}
             password: ${PROXMOX_PASSWORD}
     - Observability:
       - NetAlertX:
@@ -99,6 +163,7 @@ data:
           icon: mdi-lan-connect
           description: Home WiFi device inventory and alerts
           href: "https://sentinel.trusted.nirmalhk7.com"
+          siteMonitor: "https://sentinel.trusted.nirmalhk7.com"
   widgets.yaml: |
     - greeting:
         text_size: xl

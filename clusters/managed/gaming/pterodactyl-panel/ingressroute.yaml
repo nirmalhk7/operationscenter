@@ -16,6 +16,8 @@ metadata:
     gethomepage.dev/widget.type: pterodactyl
     gethomepage.dev/widget.url: "http://pterodactyl.mgd-gaming.svc.cluster.local:80"
     gethomepage.dev/widget.key: "${PTERODACTYL_API_KEY}"
+    gethomepage.dev/widget.headers.Host: "gaming.trusted.nirmalhk7.com"
+    gethomepage.dev/widget.headers.X-Forwarded-Proto: "https"
   labels:
     milano.level: managed
 spec:

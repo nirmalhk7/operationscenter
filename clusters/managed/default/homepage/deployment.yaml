@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        milano.io/homepage-config-revision: "2026-06-12a"
+        milano.io/homepage-config-revision: "2026-06-15b"
       labels:
         app.kubernetes.io/name: *app
         milano.app: *app
@@ -23,6 +23,11 @@ spec:
       automountServiceAccountToken: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
+      hostAliases:
+        - ip: "172.16.0.101"
+          hostnames:
+            - robot.trusted.nirmalhk7.com
+            - sentinel.trusted.nirmalhk7.com
       containers:
         - name: *app
           image: "ghcr.io/gethomepage/homepage:v1.13.1"
