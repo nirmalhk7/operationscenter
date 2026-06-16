@@ -13,11 +13,6 @@ metadata:
     gethomepage.dev/name: Pterodactyl
     gethomepage.dev/weight: "10"
     gethomepage.dev/pod-selector: "milano.app=pterodactyl"
-    gethomepage.dev/widget.type: pterodactyl
-    gethomepage.dev/widget.url: "http://pterodactyl.mgd-gaming.svc.cluster.local.:80"
-    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_PTERODACTYL_API_KEY}}"
-    gethomepage.dev/widget.headers.Host: "gaming.trusted.nirmalhk7.com"
-    gethomepage.dev/widget.headers.X-Forwarded-Proto: "https"
   labels:
     milano.level: managed
 spec:
