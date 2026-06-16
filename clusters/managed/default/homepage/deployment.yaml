@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        milano.io/homepage-config-revision: "2026-06-15c"
+        milano.io/homepage-config-revision: "2026-06-15d"
       labels:
         app.kubernetes.io/name: *app
         milano.app: *app

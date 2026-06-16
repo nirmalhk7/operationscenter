@@ -133,7 +133,6 @@ data:
           icon: openclaw
           description: Openclaw Dashboard
           href: "https://robot.trusted.nirmalhk7.com"
-          siteMonitor: "https://robot.trusted.nirmalhk7.com"
     - Networking:
       - Tailscale:
           id: local-tailscale
