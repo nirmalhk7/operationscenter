@@ -7,6 +7,9 @@ on:
     paths:
       - 'charts/touca/**'
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
