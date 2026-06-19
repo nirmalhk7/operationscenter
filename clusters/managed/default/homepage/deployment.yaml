@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        milano.io/homepage-config-revision: "2026-06-15d"
+        milano.io/homepage-config-revision: "2026-06-17d"
       labels:
         app.kubernetes.io/name: *app
         milano.app: *app
@@ -132,6 +132,12 @@ spec:
             - mountPath: /app/config/widgets.yaml
               name: homepage-config
               subPath: widgets.yaml
+            - mountPath: /app/public/images/homepage
+              name: homepage-wallpapers
+              readOnly: true
+            - mountPath: /app/public/icons
+              name: homepage-logo
+              readOnly: true
             - mountPath: /app/config/logs
               name: logs
             - mountPath: /app/secret
@@ -141,6 +147,12 @@ spec:
         - name: homepage-config
           configMap:
             name: *app
+        - name: homepage-wallpapers
+          configMap:
+            name: homepage-wallpapers
+        - name: homepage-logo
+          configMap:
+            name: homepage-logo
         - name: logs
           emptyDir: {}
         - name: homepage-secret

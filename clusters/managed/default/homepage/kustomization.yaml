@@ -13,6 +13,24 @@ resources:
   - serviceaccount.yaml
   - secret-svc-token.yaml
 
+configMapGenerator:
+  - name: homepage-wallpapers
+    files:
+      - images/README.md
+      - images/dawn.webp
+      - images/morning.webp
+      - images/afternoon.webp
+      - images/evening.webp
+      - images/twilight.webp
+      - images/night.webp
+      # Optional legacy fallbacks still supported by custom.js:
+      # - images/sunrise.webp
+      # - images/day.webp
+      # - images/sunset.webp
+  - name: homepage-logo
+    files:
+      - images/logo.svg
+
 labels:
   - pairs:
       milano.app: homepage

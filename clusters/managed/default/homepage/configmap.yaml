@@ -54,7 +54,214 @@ data:
       height: 20px;
       width: auto;
     }
+
+    #background {
+      background-position: center center;
+      background-size: cover;
+      transition: opacity 250ms ease-in-out, background-image 700ms ease-in-out;
+    }
+
+    html[data-oc-wallpaper-phase="night"] #background {
+      opacity: 0.88;
+    }
+
+    html[data-oc-wallpaper-phase="dawn"] #background,
+    html[data-oc-wallpaper-phase="evening"] #background,
+    html[data-oc-wallpaper-phase="twilight"] #background {
+      opacity: 0.94;
+    }
+
+    html[data-oc-wallpaper-phase="morning"] #background,
+    html[data-oc-wallpaper-phase="afternoon"] #background {
+      opacity: 1;
+    }
   custom.js: |
+    (function manageBoulderWallpaper() {
+      const cacheKey = "oc:boulder-solar:v1";
+      const cacheTtlMs = 60 * 60 * 1000;
+      const minuteMs = 60 * 1000;
+      const staleRetryMs = 15 * minuteMs;
+      const fallbackImage = "https://images.unsplash.com/photo-1600104146011-ad1a8571f161";
+      const apiUrl =
+        "https://api.open-meteo.com/v1/forecast?latitude=40.0150&longitude=-105.2705&daily=sunrise,sunset&timezone=America%2FDenver&forecast_days=1";
+      let refreshTimer;
+
+      const wallpapers = {
+        dawn: ["/images/homepage/dawn.webp", "/images/homepage/sunrise.webp", fallbackImage],
+        morning: ["/images/homepage/morning.webp", "/images/homepage/sunrise.webp", fallbackImage],
+        afternoon: ["/images/homepage/afternoon.webp", "/images/homepage/day.webp", fallbackImage],
+        evening: ["/images/homepage/evening.webp", "/images/homepage/sunset.webp", fallbackImage],
+        twilight: ["/images/homepage/twilight.webp", "/images/homepage/sunset.webp", fallbackImage],
+        night: ["/images/homepage/night.webp", fallbackImage],
+      };
+
+      function readCache() {
+        try {
+          const cached = JSON.parse(localStorage.getItem(cacheKey));
+          if (!cached || !cached.fetchedAt || !cached.sunrise || !cached.sunset) return null;
+
+          const sunrise = new Date(cached.sunrise);
+          const sunset = new Date(cached.sunset);
+          if (Number.isNaN(sunrise.getTime()) || Number.isNaN(sunset.getTime())) return null;
+
+          return cached;
+        } catch {
+          return null;
+        }
+      }
+
+      function writeCache(data) {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+        } catch {
+          // Browser storage is best effort; wallpaper selection can still use this fetch result.
+        }
+      }
+
+      async function fetchSolarTimes() {
+        const cached = readCache();
+        if (cached && Date.now() - cached.fetchedAt < cacheTtlMs) return cached;
+
+        try {
+          const response = await fetch(apiUrl, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Open-Meteo returned ${response.status}`);
+
+          const payload = await response.json();
+          const sunrise = payload?.daily?.sunrise?.[0];
+          const sunset = payload?.daily?.sunset?.[0];
+          if (!sunrise || !sunset) throw new Error("Open-Meteo response did not include sunrise/sunset");
+
+          const fresh = {
+            fetchedAt: Date.now(),
+            date: payload?.daily?.time?.[0],
+            latitude: payload?.latitude,
+            longitude: payload?.longitude,
+            timezone: payload?.timezone,
+            sunrise,
+            sunset,
+          };
+
+          writeCache(fresh);
+          return fresh;
+        } catch (error) {
+          console.warn("Using cached Boulder solar times", error);
+          return cached;
+        }
+      }
+
+      function choosePhase(solarTimes) {
+        if (!solarTimes) return null;
+
+        const now = Date.now();
+        const times = getSolarEpochs(solarTimes);
+        if (!times) return null;
+
+        if (now < times.sunrise - 60 * minuteMs) return "night";
+        if (now < times.sunrise) return "dawn";
+        if (now < times.sunrise + 3 * 60 * minuteMs) return "morning";
+        if (now < times.sunset - 2 * 60 * minuteMs) return "afternoon";
+        if (now < times.sunset) return "evening";
+        if (now < times.sunset + 90 * minuteMs) return "twilight";
+        return "night";
+      }
+
+      function getSolarEpochs(solarTimes) {
+        if (!solarTimes) return null;
+
+        const sunrise = new Date(solarTimes.sunrise).getTime();
+        const sunset = new Date(solarTimes.sunset).getTime();
+        if (Number.isNaN(sunrise) || Number.isNaN(sunset)) return null;
+
+        return { sunrise, sunset };
+      }
+
+      function getNextPhaseBoundary(solarTimes) {
+        const times = getSolarEpochs(solarTimes);
+        if (!times) return null;
+
+        const now = Date.now();
+        return [
+          times.sunrise - 60 * minuteMs,
+          times.sunrise,
+          times.sunrise + 3 * 60 * minuteMs,
+          times.sunset - 2 * 60 * minuteMs,
+          times.sunset,
+          times.sunset + 90 * minuteMs,
+        ].find((boundary) => boundary > now + 1000);
+      }
+
+      function getNextRefreshDelay(solarTimes) {
+        const now = Date.now();
+
+        if (!solarTimes?.fetchedAt) return staleRetryMs;
+
+        const cacheRefreshAt =
+          now - solarTimes.fetchedAt >= cacheTtlMs
+            ? now + staleRetryMs
+            : solarTimes.fetchedAt + cacheTtlMs;
+        const phaseBoundary = getNextPhaseBoundary(solarTimes);
+        const nextRunAt = Math.min(cacheRefreshAt, phaseBoundary || cacheRefreshAt);
+
+        return Math.max(1000, nextRunAt - now);
+      }
+
+      function scheduleNextRefresh(solarTimes) {
+        window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(applyWallpaper, getNextRefreshDelay(solarTimes));
+      }
+
+      function resolveImage(candidates) {
+        return new Promise((resolve) => {
+          const [candidate, ...rest] = candidates;
+          if (!candidate) {
+            resolve(fallbackImage);
+            return;
+          }
+
+          const image = new Image();
+          image.onload = () => resolve(candidate);
+          image.onerror = () => resolveImage(rest).then(resolve);
+          image.src = candidate;
+        });
+      }
+
+      async function applyWallpaper() {
+        const solarTimes = await fetchSolarTimes();
+        const phase = choosePhase(solarTimes);
+        const image = await resolveImage(phase ? wallpapers[phase] || [fallbackImage] : [fallbackImage]);
+        const background = document.getElementById("background");
+        const backgroundImage = `linear-gradient(rgb(var(--bg-color) / 0.5), rgb(var(--bg-color) / 0.5)), url('${image}')`;
+
+        document.documentElement.dataset.ocWallpaperPhase = phase || "unavailable";
+        document.documentElement.style.setProperty("--oc-wallpaper-image", `url('${image}')`);
+
+        if (background) {
+          background.style.backgroundImage = backgroundImage;
+        } else {
+          document.body.style.backgroundImage = backgroundImage;
+          document.body.style.backgroundAttachment = "fixed";
+          document.body.style.backgroundPosition = "center center";
+          document.body.style.backgroundSize = "cover";
+        }
+
+        scheduleNextRefresh(solarTimes);
+      }
+
+      const start = () => {
+        applyWallpaper();
+        window.addEventListener("focus", applyWallpaper);
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) applyWallpaper();
+        });
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start, { once: true });
+      } else {
+        start();
+      }
+    })();
+
     (function mountStatusBadges() {
       const badges = [
         {
@@ -105,19 +312,29 @@ data:
       }
     })();
 
-    if(window.location.host === '10.0.0.10'){
-      Array.from(document.querySelectorAll('.services-list')).map(e=>{
-        Array.from(e.children).forEach(el => {
-            if (!el.id.startsWith('local-')) {
-              el.remove();
+    (function filterLocalHomepage() {
+      if (window.location.host !== "10.0.0.10") return;
+
+      const render = () => {
+        Array.from(document.querySelectorAll(".services-list")).forEach((list) => {
+          Array.from(list.children).forEach((item) => {
+            if (!item.id.startsWith("local-")) {
+              item.remove();
             }
+          });
+
+          if (list.children.length === 0) {
+            list?.parentElement?.parentElement?.remove();
+          }
         });
-        if(e.children.length===0){
-          // console.log(e?.parentElement?.parentElement)
-          return e?.parentElement?.parentElement?.remove()
-        }
-      })
-    }
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", render, { once: true });
+      } else {
+        render();
+      }
+    })();
   bookmarks.yaml: |
     - Quick Links:
         - Operations Center Agile:
@@ -163,6 +380,8 @@ data:
           description: Home WiFi device inventory and alerts
           href: "https://sentinel.trusted.nirmalhk7.com"
   widgets.yaml: |
+    - logo:
+        icon: /icons/logo.svg
     - greeting:
         text_size: xl
         text: Operations Center Boulder
