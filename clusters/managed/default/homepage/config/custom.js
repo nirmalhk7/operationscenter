@@ -268,11 +268,6 @@
 (function mountStatusBadges() {
   const badges = [
     {
-      href: "https://github.com/nirmalhk7/operationscenter/actions",
-      src: "https://img.shields.io/github/checks-status/nirmalhk7/operationscenter/main?label=CI&logo=githubactions&logoColor=white",
-      alt: "CI status",
-    },
-    {
       href: "https://github.com/nirmalhk7/operationscenter/tree/main/clusters/managed",
       src: "https://img.shields.io/github/actions/workflow/status/nirmalhk7/operationscenter/test-k8s.yaml?branch=main&label=GitOps&logo=fluxcd&logoColor=white",
       alt: "GitOps status",
