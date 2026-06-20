@@ -1,0 +1,35 @@
+#oc-status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+#oc-status-badges a img {
+  display: block;
+  height: 20px;
+  width: auto;
+}
+
+#background {
+  background-position: center center;
+  background-size: cover;
+  transition: opacity 250ms ease-in-out, background-image 700ms ease-in-out;
+}
+
+html[data-oc-wallpaper-phase="night"] #background {
+  opacity: 0.88;
+}
+
+html[data-oc-wallpaper-phase="dawn"] #background,
+html[data-oc-wallpaper-phase="evening"] #background,
+html[data-oc-wallpaper-phase="twilight"] #background {
+  opacity: 0.94;
+}
+
+html[data-oc-wallpaper-phase="morning"] #background,
+html[data-oc-wallpaper-phase="afternoon"] #background {
+  opacity: 1;
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Locust</title>
+  <desc id="desc">Local icon for Locust dashboard tile</desc>
+  <rect width="128" height="128" rx="24" fill="#1f2937"/>
+  <circle cx="64" cy="64" r="38" fill="none" stroke="#7dd3fc" stroke-width="10"/>
+  <path d="M52 38v52h24" fill="none" stroke="#22c55e" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

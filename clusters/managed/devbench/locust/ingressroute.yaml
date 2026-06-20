@@ -7,7 +7,7 @@ metadata:
     gethomepage.dev/href: "https://locust.trusted.nirmalhk7.com"
     gethomepage.dev/group: Devbench
     gethomepage.dev/description: "Load testing"
-    gethomepage.dev/icon: https://locust.io/static/img/locust-cloud-logo.png
+    gethomepage.dev/icon: /icons/locust.svg
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Locust
     gethomepage.dev/weight: "50"

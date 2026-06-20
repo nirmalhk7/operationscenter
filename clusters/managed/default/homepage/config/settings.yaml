@@ -1,0 +1,27 @@
+title: "Operations Center Boulder - MILANO"
+description: "Welcome to Milano!"
+background:
+  image: https://images.unsplash.com/photo-1600104146011-ad1a8571f161
+  blur: sm
+  opacity: 50
+useEqualHeights: false
+headerStyle: clean
+statusStyle: dot
+fullWidth: true
+maxGroupColumns: 6
+bookmarksStyle: icons
+iconStyle: theme
+disableIndexing: true
+target: _blank
+layout:
+  Observability: {}
+  Networking: {}
+  Infrastructure: {}
+  Security: {}
+  Automation: {}
+  LLM: {}
+  Productivity: {}
+  Media: {}
+  Devbench: {}
+  Gaming: {}
+  Quick Links: {}

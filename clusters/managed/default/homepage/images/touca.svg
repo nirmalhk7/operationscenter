@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Touca</title>
+  <desc id="desc">Local icon for Touca dashboard tile</desc>
+  <rect width="128" height="128" rx="24" fill="#111827"/>
+  <path d="M28 40h72v16H72v40H56V56H28z" fill="#f97316"/>
+  <circle cx="94" cy="88" r="10" fill="#fb7185"/>
+</svg>
