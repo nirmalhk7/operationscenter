@@ -73,6 +73,26 @@
     return Math.floor((Date.UTC(parts.year, parts.month - 1, parts.day) - Date.UTC(parts.year, 0, 0)) / (24 * hourMs));
   }
 
+  function compareDateParts(left, right) {
+    const leftDate = Date.UTC(left.year, left.month - 1, left.day);
+    const rightDate = Date.UTC(right.year, right.month - 1, right.day);
+    return Math.sign(leftDate - rightDate);
+  }
+
+  function alignEventToZonedDate(timestamp, parts) {
+    let aligned = timestamp;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const eventParts = getZonedDateParts(new Date(aligned), timeZone);
+      const comparison = compareDateParts(eventParts, parts);
+
+      if (comparison === 0) return aligned;
+      aligned -= comparison * 24 * hourMs;
+    }
+
+    return aligned;
+  }
+
   function calculateSolarEvent(parts, isSunrise) {
     const zenith = 90.8333;
     const lngHour = longitude / 15;
@@ -110,7 +130,8 @@
 
     const localMeanTime = hourAngle + rightAscension - 0.06571 * t - 6.622;
     const universalTime = normalizeHours(localMeanTime - lngHour);
-    return Date.UTC(parts.year, parts.month - 1, parts.day, 0, 0, 0) + universalTime * hourMs;
+    const timestamp = Date.UTC(parts.year, parts.month - 1, parts.day, 0, 0, 0) + universalTime * hourMs;
+    return alignEventToZonedDate(timestamp, parts);
   }
 
   function getSolarTimes(now = new Date()) {
@@ -188,6 +209,7 @@
     const backgroundImage = buildBackgroundImage(image);
 
     document.documentElement.dataset.ocWallpaperPhase = phase || "unavailable";
+    document.documentElement.dataset.ocWallpaperUpdatedAt = new Date().toISOString();
     document.documentElement.style.setProperty("--oc-wallpaper-image", `url('${image}')`);
 
     document.body.style.backgroundImage = backgroundImage;
