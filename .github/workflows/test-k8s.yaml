@@ -35,7 +35,12 @@ jobs:
           yamllint -d "{extends: relaxed, rules: {line-length: disable, document-start: disable, truthy: disable, empty-lines: disable, comments: disable, trailing-spaces: disable, indentation: disable, new-line-at-end-of-file: disable, key-duplicates: enable}}" clusters/managed/
       - name: Run kubeconform
         run: |
-          find clusters/managed/ -name "*.yaml" | xargs kubeconform -summary -ignore-missing-schemas -schema-location default -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
+          while IFS= read -r -d '' file; do
+            if grep -qE '^apiVersion:' "$file" && grep -qE '^kind:' "$file"; then
+              printf '%s\0' "$file"
+            fi
+          done < <(git ls-files -z 'clusters/managed/**/*.yaml') | \
+            xargs -0 kubeconform -summary -ignore-missing-schemas -schema-location default -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
       - name: Run kube-score
         run: |
           find clusters/managed/ -name "deployment.yaml" -o -name "statefulset.yaml" | \
