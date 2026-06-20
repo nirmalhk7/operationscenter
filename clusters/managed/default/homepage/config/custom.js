@@ -173,25 +173,7 @@
     refreshTimer = window.setTimeout(applyWallpaper, getNextRefreshDelay(solarTimes));
   }
 
-  function resolveImage(candidates) {
-    return new Promise((resolve) => {
-      const [candidate, ...rest] = candidates;
-      if (!candidate) {
-        resolve(fallbackImage);
-        return;
-      }
-
-      const image = new Image();
-      image.onload = () => resolve(candidate);
-      image.onerror = () => resolveImage(rest).then(resolve);
-      image.src = candidate;
-    });
-  }
-
-  async function applyWallpaper() {
-    const solarTimes = getSolarTimes();
-    const phase = choosePhase(solarTimes);
-    const image = await resolveImage(phase ? wallpapers[phase] || [fallbackImage] : [fallbackImage]);
+  function applyWallpaperImage(image, phase) {
     const background = document.getElementById("background");
     const backgroundImage = `linear-gradient(rgb(var(--bg-color) / 0.5), rgb(var(--bg-color) / 0.5)), url('${image}')`;
 
@@ -206,6 +188,24 @@
       document.body.style.backgroundPosition = "center center";
       document.body.style.backgroundSize = "cover";
     }
+  }
+
+  function warmImages(candidates) {
+    candidates.forEach((candidate) => {
+      if (!candidate) return;
+      const image = new Image();
+      image.src = candidate;
+    });
+  }
+
+  function applyWallpaper() {
+    const solarTimes = getSolarTimes();
+    const phase = choosePhase(solarTimes);
+    const candidates = phase ? wallpapers[phase] || [fallbackImage] : [fallbackImage];
+    const image = candidates[0] || fallbackImage;
+
+    applyWallpaperImage(image, phase);
+    warmImages(candidates.slice(1));
 
     scheduleNextRefresh(solarTimes);
   }

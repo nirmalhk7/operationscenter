@@ -1,7 +1,7 @@
 title: "Operations Center Boulder - MILANO"
 description: "Welcome to Milano!"
 background:
-  image: https://images.unsplash.com/photo-1600104146011-ad1a8571f161
+  image: /images/homepage/night.webp
   blur: sm
   opacity: 50
 useEqualHeights: false
