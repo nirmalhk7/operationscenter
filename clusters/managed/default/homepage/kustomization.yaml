@@ -39,7 +39,6 @@ configMapGenerator:
       # - images/sunset.webp
   - name: homepage-logo
     files:
-      - images/logo.svg
       - images/locust.svg
       - images/touca.svg
 

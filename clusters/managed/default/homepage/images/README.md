@@ -13,6 +13,4 @@ as `/images/homepage/<name>`:
 - `twilight.webp`
 - `night.webp`
 
-The on-page logo is mounted separately at `/app/public/icons/logo.svg` and
-referenced from `widgets.yaml` as `/icons/logo.svg`. Keep `logo.png` out of the
-ConfigMap unless it is heavily compressed; the current SVG is the deployed logo.
+Local tile icons are mounted separately under `/app/public/icons`.
