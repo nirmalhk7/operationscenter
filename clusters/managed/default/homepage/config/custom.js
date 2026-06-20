@@ -7,6 +7,9 @@
   const latitude = 40.0150;
   const longitude = -105.2705;
   let refreshTimer;
+  let currentWallpaper;
+  let observerStarted = false;
+  let syncQueued = false;
 
   const wallpapers = {
     dawn: ["/images/homepage/dawn.webp", "/images/homepage/sunrise.webp", fallbackImage],
@@ -173,21 +176,56 @@
     refreshTimer = window.setTimeout(applyWallpaper, getNextRefreshDelay(solarTimes));
   }
 
-  function applyWallpaperImage(image, phase) {
+  function buildBackgroundImage(image) {
+    return `linear-gradient(rgb(var(--bg-color) / 0.5), rgb(var(--bg-color) / 0.5)), url('${image}')`;
+  }
+
+  function syncWallpaperTarget() {
+    if (!currentWallpaper) return;
+
+    const { image, phase } = currentWallpaper;
     const background = document.getElementById("background");
-    const backgroundImage = `linear-gradient(rgb(var(--bg-color) / 0.5), rgb(var(--bg-color) / 0.5)), url('${image}')`;
+    const backgroundImage = buildBackgroundImage(image);
 
     document.documentElement.dataset.ocWallpaperPhase = phase || "unavailable";
     document.documentElement.style.setProperty("--oc-wallpaper-image", `url('${image}')`);
 
-    if (background) {
+    document.body.style.backgroundImage = backgroundImage;
+    document.body.style.backgroundAttachment = "fixed";
+    document.body.style.backgroundPosition = "center center";
+    document.body.style.backgroundSize = "cover";
+
+    if (background && background.style.backgroundImage !== backgroundImage) {
       background.style.backgroundImage = backgroundImage;
-    } else {
-      document.body.style.backgroundImage = backgroundImage;
-      document.body.style.backgroundAttachment = "fixed";
-      document.body.style.backgroundPosition = "center center";
-      document.body.style.backgroundSize = "cover";
     }
+  }
+
+  function queueWallpaperSync() {
+    if (syncQueued) return;
+
+    syncQueued = true;
+    window.requestAnimationFrame(() => {
+      syncQueued = false;
+      syncWallpaperTarget();
+    });
+  }
+
+  function observeWallpaperTarget() {
+    if (observerStarted || !document.body) return;
+    observerStarted = true;
+
+    const observer = new MutationObserver(queueWallpaperSync);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  function applyWallpaperImage(image, phase) {
+    currentWallpaper = { image, phase };
+    syncWallpaperTarget();
   }
 
   function warmImages(candidates) {
@@ -211,7 +249,9 @@
   }
 
   const start = () => {
+    observeWallpaperTarget();
     applyWallpaper();
+    window.addEventListener("pageshow", applyWallpaper);
     window.addEventListener("focus", applyWallpaper);
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) applyWallpaper();
