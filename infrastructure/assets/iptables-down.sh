@@ -38,6 +38,8 @@ iptables -D OUTPUT -o "$LAN_IFACE" -p icmp -j ACCEPT
 # 4. Remove LAN Port Forwards
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443
+# Port 2222 -> Nginx (Gitea SSH)
+iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 2222 -j DNAT --to-destination "$NGINX_IP":2222 2>/dev/null
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901 2>/dev/null
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 3306 -j DNAT --to-destination "$NGINX_IP":3306 2>/dev/null
 iptables -t nat -D PREROUTING -d "$HOST_IP" -p tcp --dport 5432 -j DNAT --to-destination "$NGINX_IP":5432 2>/dev/null
@@ -51,6 +53,7 @@ iptables -t nat -D PREROUTING -p udp --dport 111 -j DNAT --to-destination "$NFS_
 
 iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 80 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 2222 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
 iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 6901 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
 iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 3306 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
 iptables -D FORWARD -p tcp -d "$NGINX_IP" --dport 5432 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
