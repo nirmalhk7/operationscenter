@@ -97,6 +97,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
+    dport   = "2222"
+    comment = "Allow Gitea SSH ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
     dport   = "6901"
     comment = "Allow robot stream proxy ingress"
     iface   = "net0"

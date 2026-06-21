@@ -41,23 +41,25 @@ spec:
       enabled: false
     gitea:
       oauth:
-      - name: authelia
-        provider: openidConnect
-        existingSecret: gitea-credentials
-        useCustomUrls: true
-        autoDiscoverUrl: http://authelia-oidc.mgd-security.svc/.well-known/openid-configuration
-        customAuthUrl: https://secure.trusted.nirmalhk7.com/api/oidc/authorization
-        customTokenUrl: http://authelia-oidc.mgd-security.svc/api/oidc/token
-        customProfileUrl: http://authelia-oidc.mgd-security.svc/api/oidc/userinfo
-        scopes: openid email profile groups
-        groupClaimName: groups
-        adminGroup: admins
+        - name: authelia
+          provider: openidConnect
+          existingSecret: gitea-credentials
+          useCustomUrls: true
+          autoDiscoverUrl: http://authelia-oidc.mgd-security.svc/.well-known/openid-configuration
+          customAuthUrl: https://secure.trusted.nirmalhk7.com/api/oidc/authorization
+          customTokenUrl: http://authelia-oidc.mgd-security.svc/api/oidc/token
+          customProfileUrl: http://authelia-oidc.mgd-security.svc/api/oidc/userinfo
+          scopes: openid email profile groups
+          groupClaimName: groups
+          adminGroup: admins
       config:
         server:
           DOMAIN: git.trusted.nirmalhk7.com
           ROOT_URL: https://git.trusted.nirmalhk7.com/
           PROTOCOL: http
           SSH_DOMAIN: git.trusted.nirmalhk7.com
+          SSH_PORT: 2222
+          SSH_LISTEN_PORT: 2222
         repository:
           ROOT: /data-nfs/repositories
         lfs:
@@ -90,24 +92,29 @@ spec:
           USER: nestor@nirmalhk7.com
           SUBJECT_PREFIX: "Nirmal - "
       additionalConfigFromEnvs:
-      - name: GITEA__database__DB_TYPE
-        value: mysql
-      - name: GITEA__database__NAME
-        value: *app
-      - name: GITEA__database__HOST
-        value: 172.16.0.106:3306
-      - name: GITEA__database__USER
-        valueFrom:
-          secretKeyRef:
-            name: gitea-credentials
-            key: DB_USER
-      - name: GITEA__database__PASSWD
-        valueFrom:
-          secretKeyRef:
-            name: gitea-credentials
-            key: DB_PASSWORD
-      - name: GITEA__mailer__PASSWD
-        valueFrom:
-          secretKeyRef:
-            name: gitea-credentials
-            key: SMTP_PASSWORD
+        - name: GITEA__database__DB_TYPE
+          value: mysql
+        - name: GITEA__database__NAME
+          value: *app
+        - name: GITEA__database__HOST
+          value: 172.16.0.106:3306
+        - name: GITEA__database__USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-credentials
+              key: DB_USER
+        - name: GITEA__database__PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: gitea-credentials
+              key: DB_PASSWORD
+        - name: GITEA__mailer__PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: gitea-credentials
+              key: SMTP_PASSWORD
+    service:
+      ssh:
+        type: NodePort
+        port: 2222
+        nodePort: 32222

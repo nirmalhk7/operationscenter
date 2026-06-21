@@ -109,6 +109,17 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     iface   = "net0"
     enabled = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "32222"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow Nginx to reach Gitea SSH on k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "vm-k8mgd-config" {
