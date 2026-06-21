@@ -1,0 +1,23 @@
+---
+- name: Ensure git.trusted.nirmalhk7.com SSH config exists locally
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Ensure ~/.ssh exists
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/.ssh"
+        state: directory
+        mode: "0700"
+
+    - name: Add Gitea SSH host stanza
+      ansible.builtin.blockinfile:
+        path: "{{ lookup('env', 'HOME') }}/.ssh/config"
+        create: true
+        mode: "0600"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK git.trusted.nirmalhk7.com"
+        block: |
+          Host git.trusted.nirmalhk7.com
+            HostName 10.0.0.10
+            User git
+            Port 2222
