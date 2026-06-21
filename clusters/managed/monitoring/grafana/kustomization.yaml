@@ -48,3 +48,15 @@ configMapGenerator:
     options:
       labels:
         milano_grafana_dashboard: "true"
+  - name: grafana-dash-prometheus-scrape-health
+    files:
+      - dashboards/prometheus-scrape-health.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
+  - name: grafana-dash-proxbridge
+    files:
+      - dashboards/proxbridge.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
