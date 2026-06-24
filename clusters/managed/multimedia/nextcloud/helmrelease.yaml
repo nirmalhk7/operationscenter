@@ -38,6 +38,10 @@ spec:
       enabled: true
       size: 20Gi
       storageClass: milano-v2
+      nextcloudData:
+        enabled: true
+        existingClaim: nextcloud-nfs-facility
+        storageClass: milano-v3
 
     nextcloud:
       host: drive.trusted.nirmalhk7.com
