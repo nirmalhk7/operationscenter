@@ -14,5 +14,10 @@ spec:
       targetPort: 6901
       nodePort: 30901
       protocol: TCP
+    - name: bedrock-udp
+      port: 6901
+      targetPort: 6901
+      nodePort: 30902
+      protocol: UDP
   selector:
     milano.app: pterodactyl-wings

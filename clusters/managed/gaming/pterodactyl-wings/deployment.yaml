@@ -59,6 +59,26 @@ spec:
             limits:
               cpu: "2"
               memory: 4Gi
+        - name: minecraft-bedrock
+          # renovate: depName=itzg/minecraft-bedrock-server
+          image: itzg/minecraft-bedrock-server:latest
+          env:
+            - name: EULA
+              value: "TRUE"
+            - name: SERVER_NAME
+              value: "Milano Bedrock"
+            - name: SERVER_PORT
+              value: "6901"
+            - name: ALLOW_LIST
+              value: "false"
+          ports:
+            - name: bedrock
+              containerPort: 6901
+              protocol: UDP
+          volumeMounts:
+            - name: volumes
+              mountPath: /data
+              subPath: minecraft-bedrock
         - name: dind
           image: docker:26-dind
           env:

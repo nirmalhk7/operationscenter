@@ -64,6 +64,7 @@ iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 443 -j DNAT --to-dest
 iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 2222 -j DNAT --to-destination "$NGINX_IP":2222
 # Port 6901 -> Nginx (Minecraft Wings Stream Proxy)
 iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
+iptables -t nat -A PREROUTING -d "$HOST_IP" -p udp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
 # Ports 3306/5432/27017 -> Nginx (Database Stream Proxy)
 iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 3306 -j DNAT --to-destination "$NGINX_IP":3306
 iptables -t nat -A PREROUTING -d "$HOST_IP" -p tcp --dport 5432 -j DNAT --to-destination "$NGINX_IP":5432
@@ -83,6 +84,7 @@ iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 80 -m state --state NEW,ESTABL
 iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 2222 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 6901 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -p udp -d "$NGINX_IP" --dport 6901 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 3306 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 5432 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p tcp -d "$NGINX_IP" --dport 27017 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
@@ -97,6 +99,7 @@ iptables -A FORWARD -p tcp -s "$K8S_IP" -m state --state ESTABLISHED,RELATED -j 
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
+iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p udp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 3306 -j DNAT --to-destination "$NGINX_IP":3306
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 5432 -j DNAT --to-destination "$NGINX_IP":5432
 iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 27017 -j DNAT --to-destination "$NGINX_IP":27017
@@ -110,6 +113,7 @@ iptables -t nat -A PREROUTING -i "$VPN_IFACE" -p tcp --dport 6443 -j DNAT --to-d
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 80 -j DNAT --to-destination "$NGINX_IP":80
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 443 -j DNAT --to-destination "$NGINX_IP":443
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
+iptables -t nat -A OUTPUT -d "$VPN_IP" -p udp --dport 6901 -j DNAT --to-destination "$NGINX_IP":6901
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 3306 -j DNAT --to-destination "$NGINX_IP":3306
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 5432 -j DNAT --to-destination "$NGINX_IP":5432
 iptables -t nat -A OUTPUT -d "$VPN_IP" -p tcp --dport 27017 -j DNAT --to-destination "$NGINX_IP":27017
