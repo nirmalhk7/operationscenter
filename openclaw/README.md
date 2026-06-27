@@ -9,16 +9,30 @@ This inventory reflects the deployed OpenClaw runtime configuration in
 ### Configured agents
 
 - `main`: default Operations Center coordinator. Runtime workspace:
-  `/root/.openclaw/workspace`. External access: Discord `main`, Telegram
-  `main`.
+  `/root/.openclaw/workspace`. External access: Discord `main`.
 - `rahul`: Proxmox, Kubernetes monitoring, Flux repo troubleshooting, YAML
-  fixes, and PR-oriented ops work. Runtime workspace:
-  `/root/.openclaw/workspace-rahul`. External access: Discord `rahul`.
+  fixes, and PR-oriented ops work. His 5-minute heartbeat checks the managed
+  cluster through the Kubernetes MCP server, then opens a PR for repo-local
+  fixes or escalates to the forum channel when human action is needed. When
+  the cluster is quiet, he still looks for one bounded improvement worth
+  proposing. His outcome type is one of `fix-now`, `propose-improvement`,
+  `escalate`, or `all-clear`.
+  He also has the Rahul-only `fix-that-thang` package for repeatable
+  maintenance analysis and PR drafting.
+  Runtime workspace: `/root/.openclaw/workspace-rahul`. External access:
+  Discord `rahul`.
 - `victor`: MountainValue final value analyst and publisher. Owns Lobster
   equity research runs, coordinates the configured review profiles,
   enforces the evidence bar, and posts the final Discord forum artifact.
   Runtime workspace: `/root/.openclaw/workspace-victor`. External access:
   Discord `victor`.
+- `alexa`: technical storyteller and blog-draft writer for Rahul's solved
+  cluster problems. Turns validated, blog-worthy fixes into publish-ready
+  posts that cover the problem, why it happened, the options considered, the
+  chosen fix, and the validation path. She returns either `blog-worthy` or
+  `needs-more-evidence`. Runtime workspace:
+  `/root/.openclaw/workspace-alexa`. External access: none yet; draft-only
+  agent.
 
 ## Discord Operating Guide
 
@@ -26,6 +40,10 @@ This inventory reflects the deployed OpenClaw runtime configuration in
 - Use `rahul` for Proxmox, Kubernetes, Flux, YAML, and PR-oriented ops work.
 - Use `victor` for MountainValue status, runs, and final equity research
   publishing.
+- Use `alexa` for postmortem-style engineering blogs about Rahul's solved
+  cluster issues, but only when the fix is validated and worth a real writeup.
+- Discord-facing agents can inspect image and GIF attachments, and may reply
+  with GIF/image attachments using `MEDIA:` when that is the natural response.
 - Start work in the relevant server channel or thread when the context should
   remain visible. OpenClaw keeps thread bindings active for up to 48 idle hours
   and 168 total hours.
@@ -43,6 +61,18 @@ Rahul, check the Flux health for the managed cluster and summarize blockers.
 ```
 
 ```text
+Rahul, inspect managed-cluster errors, make bounded live edits to validate the fix, open a PR if the fix is repo-local, and escalate to Discord forum channel 1504282224789295134 only if I need to intervene.
+```
+
+```text
+Rahul, run fix-that-thang on this maintenance bundle and draft the PR if it stays within the fixed decision rules.
+```
+
+```text
+Alexa, turn Rahul's latest validated fix into a publish-ready blog draft with the problem, root cause, options, chosen fix, and validation.
+```
+
+```text
 Victor, run MountainValue.
 ```
 
@@ -52,8 +82,8 @@ Main, route this to the right agent and keep status updates in this thread.
 
 ### Configured subagents
 
-These profiles are also active in `agents.list`, but they have no Discord or
-Telegram bindings. The `eq_*` profiles are MountainValue equity workers.
+These profiles are also active in `agents.list`, but they have no Discord
+bindings. The `eq_*` profiles are MountainValue equity workers.
 `newswire` is a reusable news-context worker currently allowlisted only for
 Victor. The Lobster CLI may call these profiles directly for synchronous JSON
 review stages.
@@ -113,11 +143,12 @@ default OAuth 1.0a flow. Populate these environment variables before using it:
 - `OPENCLAW_X_ACCESS_TOKEN`
 - `OPENCLAW_X_ACCESS_TOKEN_SECRET`
 
-### Mapbox MCP
+### Kubernetes MCP
 
-OpenClaw registers `@mapbox/mcp-server` as `mapbox`. Populate:
-
-- `OPENCLAW_MAPBOX_ACCESS_TOKEN`
+OpenClaw registers `kubectl-mcp-tool` as `kubernetes` through a dedicated
+Python virtualenv at `/root/.local/share/kubectl-mcp-server-venv`. It uses the
+service `KUBECONFIG` and is the path Rahul's heartbeat uses to inspect the
+managed cluster for fresh errors.
 
 ### Workspace docs present but not configured
 
@@ -143,7 +174,7 @@ The LXC deployment copies `mountainvalue.lobster` to:
 Run the pipeline from Discord or the OpenClaw UI by telling Victor exactly:
 
 ```text
-Use the Lobster tool with action "run" and pipeline "/root/.openclaw/mountainvalue.lobster". Set cwd to "/root/.openclaw", timeoutMs to 1800000, and maxStdoutBytes to 1048576. Do not read the path as a directory.
+Use the Lobster tool with action "run" and pipeline "/root/.openclaw/mountainvalue.lobster". Set cwd to ".." so it resolves to "/root/.openclaw" from Victor's workspace, timeoutMs to 1800000, and maxStdoutBytes to 1048576. Do not read the path as a directory.
 ```
 
 Victor's Lobster tool call should be:
@@ -152,7 +183,7 @@ Victor's Lobster tool call should be:
 {
   "action": "run",
   "pipeline": "/root/.openclaw/mountainvalue.lobster",
-  "cwd": "/root/.openclaw",
+  "cwd": "..",
   "timeoutMs": 1800000,
   "maxStdoutBytes": 1048576
 }
@@ -192,7 +223,7 @@ openclaw cron add \
   --session isolated \
   --agent victor \
   --no-deliver \
-  --message 'Use the Lobster tool with action "run" and pipeline "/root/.openclaw/mountainvalue.lobster". Set cwd to "/root/.openclaw", timeoutMs to 1800000, and maxStdoutBytes to 1048576. Do not read the path as a directory. After the workflow completes, publish exactly one final Discord forum artifact or docket when the configured forum channel id is real.'
+  --message 'Use the Lobster tool with action "run" and pipeline "/root/.openclaw/mountainvalue.lobster". Set cwd to ".." so it resolves to "/root/.openclaw" from Victor''s workspace, timeoutMs to 1800000, and maxStdoutBytes to 1048576. Do not read the path as a directory. After the workflow completes, publish exactly one final Discord forum artifact or docket when the configured forum channel id is real.'
 ```
 
 To run that scheduled job immediately:
