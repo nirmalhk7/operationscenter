@@ -5,6 +5,8 @@ metadata:
   namespace: mgd-gaming
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       milano.app: *app
@@ -13,6 +15,10 @@ spec:
       labels:
         milano.app: *app
     spec:
+      hostAliases:
+        - ip: "172.16.0.105"
+          hostnames:
+            - wings.trusted.nirmalhk7.com
       containers:
         - name: *app
           # renovate: depName=ghcr.io/pterodactyl/panel
