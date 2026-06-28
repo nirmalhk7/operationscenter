@@ -31,7 +31,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: '10.34.3'
+          version: '10.34.4'
           run_install: |
             - args: [--global, 'openclaw@2026.4.23', promptfoo, '@buape/carbon', '@larksuiteoapi/node-sdk', grammy]
 
