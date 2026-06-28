@@ -112,7 +112,7 @@ spec:
       enabled: true
       image:
         repository: bitnamilegacy/redis
-        tag: 7.2.3-debian-11-r1
+        tag: 7.2.4-debian-11-r1
       metrics:
         enabled: false
       auth:
