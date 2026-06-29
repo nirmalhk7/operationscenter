@@ -88,10 +88,42 @@ spec:
         existingSecretPasswordKey: _APP_DB_PASS
     redis:
       enabled: true
-      standalone:
+      image:
+        repository: bitnamilegacy/redis
+        tag: 7.2.4-debian-11-r1
+      metrics:
+        enabled: false
+      auth:
+        enabled: false
+      replica:
+        replicaCount: 0
+      master:
         persistence:
           enabled: true
           storageClass: milano-v2
           size: 8Gi
-    cache:
-      mode: auto
+    influxdb:
+      enabled: true
+      image:
+        repository: bitnamilegacy/influxdb
+        tag: 2.7.5-debian-11-r0
+      auth:
+        admin:
+          password: supersecret-influx-password
+          token: supersecret-influx-token
+          org: appwrite
+          bucket: telegraf
+      persistence:
+        enabled: true
+        storageClass: milano-v2
+        size: 8Gi
+    telegraf:
+      enabled: true
+      config:
+        outputs:
+          - influxdb_v2:
+              urls:
+                - http://appwrite-influxdb:8086
+              token: supersecret-influx-token
+              bucket: telegraf
+              organization: appwrite

@@ -16,7 +16,7 @@ spec:
         milano.app: *app
     spec:
       hostAliases:
-        - ip: "172.16.0.101"
+        - ip: "172.16.0.105"
           hostnames:
             - wings.trusted.nirmalhk7.com
       containers:

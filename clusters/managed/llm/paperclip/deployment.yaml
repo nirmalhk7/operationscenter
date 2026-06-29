@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app paperclip
+  namespace: mgd-llm
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: *app
+  template:
+    metadata:
+      labels:
+        app: *app
+        milano.app: *app
+        milano.level: managed
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: fix-data-permissions
+          image: busybox:1.38
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /paperclip
+          securityContext:
+            runAsUser: 0
+            runAsNonRoot: false
+          volumeMounts:
+            - name: data
+              mountPath: /paperclip
+      containers:
+        - name: *app
+          # renovate: depName=tuyenvd/paperclip
+          image: tuyenvd/paperclip:latest
+          ports:
+            - containerPort: 3100
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: paperclip-env
+            - secretRef:
+                name: paperclip-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /paperclip
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3100
+              httpHeaders:
+                - name: Host
+                  value: paperclip.trusted.nirmalhk7.com
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: paperclip-data
