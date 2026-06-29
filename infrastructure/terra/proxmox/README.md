@@ -72,7 +72,7 @@ flowchart LR
 - OpenClaw network device has `firewall = true` so its guest firewall rules are enforced.
 - Outbound policy is `DROP`.
 - Outbound: allow SSH reply traffic with `tcp/sport 22` so inbound SSH can complete the banner and session after the initial connection.
-- Outbound: allow `172.16.0.105:6443`, drop RFC1918 and CGNAT/Tailscale ranges with `info` logging, then allow public `80/tcp`, `443/tcp`, alternate HTTPS `2083/tcp` and `8443/tcp`, DNS, and NTP.
+- Outbound: allow `172.16.0.105:6443`, drop RFC1918 and CGNAT/Tailscale ranges with `info` logging, then allow public `80/tcp`, `443/tcp`, UDP high ports for Discord voice RTP media, alternate HTTPS `2083/tcp` and `8443/tcp`, DNS, and NTP.
 
 ### Guest Attachments
 - Most guest network devices have `firewall = false`; NIC-level firewalling remains disabled where enabling it previously blocked LXC outbound traffic.

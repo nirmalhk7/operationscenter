@@ -29,6 +29,14 @@ resource "discord_channel_permission" "voice_deny_everyone" {
   deny         = 1024 # VIEW_CHANNEL
 }
 
+# Let only NestorBot into the voice category so the main agent can listen and speak in General.
+resource "discord_channel_permission" "voice_allow_nestor" {
+  channel_id   = discord_category_channel.voice.channel_id
+  type         = "user"
+  overwrite_id = local.nestor_bot_user_id
+  allow        = 3146752 # VIEW_CHANNEL | CONNECT | SPEAK
+}
+
 # Restrict Team Software to SWE only
 resource "discord_channel_permission" "software_deny_everyone" {
   channel_id   = discord_category_channel.software.channel_id

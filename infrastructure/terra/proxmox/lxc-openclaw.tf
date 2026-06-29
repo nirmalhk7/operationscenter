@@ -189,6 +189,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   rule {
     action  = "ACCEPT"
     type    = "out"
+    proto   = "udp"
+    dport   = "1024:65535"
+    comment = "Allow outbound Discord voice RTP media to public internet"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
     proto   = "tcp"
     dport   = "2083"
     comment = "Allow outbound alternate HTTPS for Discord media latency checks"
