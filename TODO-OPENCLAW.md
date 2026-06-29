@@ -35,8 +35,11 @@
   - Update infrastructure/terra/proxmox/README.md:34 so the traffic diagram matches actual OpenClaw egress policy instead of saying
     OpenClaw can reach Nginx/K8s broadly.
 
-  - Review clusters/managed/kube-system/bot-openclaw/clusterrole.yaml:7: keep broad write permissions only if Rahul/OpenClaw needs
-    active cluster remediation; otherwise split read-only diagnostics from narrowly scoped mutation permissions.
+  - TODO: recreate or migrate `lxc-homesecurity` before shrinking the root disk from 20 GiB to 10 GiB; Proxmox does not support
+    shrinking the existing container rootfs in place.
+
+  - Review clusters/managed/kube-system/bot-openclaw/clusterrole.yaml:7: keep bounded write permissions for managed workloads only;
+    isolate any future secrets or cluster-scoped mutation into a separate role.
 
   ## Test Plan
 

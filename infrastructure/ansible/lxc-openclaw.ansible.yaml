@@ -198,7 +198,15 @@
             path: "{{ openclaw_home }}/.local/bin/polymarket-mcp"
             state: absent
 
-        - name: Install OpenClaw globally using pnpm
+        - name: Remove incompatible OpenClaw extensions from newer releases
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - "{{ openclaw_home }}/.openclaw/extensions/discord"
+            - "{{ openclaw_home }}/.openclaw/extensions/exa"
+
+        - name: Install OpenClaw companion packages globally using pnpm
           ansible.builtin.shell:
             cmd: |
               pnpm setup
@@ -590,13 +598,13 @@
             force: yes
           notify: Restart OpenClaw service
 
-        - name: Remove IDENTITY.md and BOOTSTRAP.md from mainAgent workspace
+        - name: Remove stale generated files from mainAgent workspace
           ansible.builtin.file:
             path: "{{ openclaw_home }}/.openclaw/workspace/{{ item }}"
             state: absent
           loop:
-            - IDENTITY.md
             - BOOTSTRAP.md
+            - MEMORY.md
           notify: Restart OpenClaw service
 
     - name: Reconcile OpenClaw runtime state

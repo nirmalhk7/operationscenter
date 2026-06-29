@@ -3,20 +3,17 @@ kind: ClusterRole
 metadata:
   name: openclaw-bot-role
 rules:
-  # App Deployments - Full Read/Update
+  # Managed workload remediation - bounded write access, no secrets or cluster-scoped mutation.
   - apiGroups: [""]
     resources:
       - pods
-      - pods/exec
       - pods/log
-      - pods/portforward
       - services
       - configmaps
-      - secrets
       - endpoints
       - replicationcontrollers
       - persistentvolumeclaims
-    verbs: ["get", "list", "watch", "update", "patch", "create", "delete", "deletecollection"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
 
   - apiGroups:
       - apps
@@ -24,7 +21,7 @@ rules:
       - batch
       - autoscaling
     resources: ["*"]
-    verbs: ["get", "list", "watch", "update", "patch", "create", "delete", "deletecollection"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
 
   # Cluster Management - Read Only
   - apiGroups: [""]
