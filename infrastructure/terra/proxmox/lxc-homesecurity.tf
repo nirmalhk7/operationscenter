@@ -34,7 +34,7 @@ resource "proxmox_virtual_environment_container" "lxc-homesecurity" {
   }
 
   memory {
-    dedicated = 1024 * 2
+    dedicated = 1024
   }
 
   cpu {

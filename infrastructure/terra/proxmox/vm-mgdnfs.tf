@@ -27,8 +27,8 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
   }
 
   memory {
-    dedicated = 1024 * 3
-    floating  = 1024 * 1
+    dedicated = 2048
+    floating  = 1024
   }
 
   disk {
