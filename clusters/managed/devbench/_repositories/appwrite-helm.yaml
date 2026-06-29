@@ -4,5 +4,5 @@ metadata:
   name: &app appwrite-helm
   namespace: mgd-devbench
 spec:
-  url: https://schneidermr.github.io/appwrite-helm
+  url: https://repo.helmforge.dev
   interval: 1h
