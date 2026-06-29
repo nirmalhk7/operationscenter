@@ -36,7 +36,7 @@ spec:
             - name: GITEA_INSTANCE_URL
               value: http://gitea-http:3000
             - name: GITEA_RUNNER_LABELS
-              value: sonarqube:docker://docker.gitea.com/runner-images:ubuntu-latest
+              value: devbench:docker://docker.gitea.com/runner-images:ubuntu-latest,sonarqube:docker://docker.gitea.com/runner-images:ubuntu-latest
             - name: GITEA_RUNNER_NAME
               value: mgd-devbench-sonarqube
             - name: GITEA_RUNNER_REGISTRATION_TOKEN

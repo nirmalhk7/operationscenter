@@ -11,7 +11,7 @@ metadata:
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Bugs
     gethomepage.dev/description: "Error tracking"
-    gethomepage.dev/weight: "20"
+    gethomepage.dev/weight: "30"
     gethomepage.dev/pod-selector: "app=bugsink"
 spec:
   entryPoints:

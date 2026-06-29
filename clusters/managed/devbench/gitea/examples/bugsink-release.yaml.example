@@ -1,0 +1,27 @@
+name: Bugsink Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  release-metadata:
+    runs-on: devbench
+    env:
+      BUGSINK_DSN: ${{ secrets.BUGSINK_DSN }}
+      RELEASE_VERSION: ${{ github.ref_name }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.3
+
+      - name: Validate Bugsink configuration
+        run: |
+          test -n "$BUGSINK_DSN"
+          test -n "$RELEASE_VERSION"
+
+      - name: Build with release metadata
+        run: |
+          echo "Inject BUGSINK_DSN and RELEASE_VERSION in the app build or deploy step."
+

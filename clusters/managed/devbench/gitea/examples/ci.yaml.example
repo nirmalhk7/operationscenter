@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: devbench
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.3
+
+      - name: Install dependencies
+        run: |
+          echo "Install project dependencies here."
+
+      - name: Test
+        run: |
+          echo "Run the project's test suite here."
+
+      - name: Build
+        run: |
+          echo "Run the project's build here."
+

@@ -6,11 +6,11 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://sonarqube.trusted.nirmalhk7.com"
     gethomepage.dev/group: Devbench
-    gethomepage.dev/description: "Code quality"
+    gethomepage.dev/description: "Quality gates"
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Sonarqube
-    gethomepage.dev/weight: "30"
+    gethomepage.dev/weight: "40"
     gethomepage.dev/pod-selector: "app=sonarqube"
 spec:
   entryPoints:

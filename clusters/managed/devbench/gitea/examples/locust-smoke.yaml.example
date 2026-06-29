@@ -1,0 +1,38 @@
+name: Locust Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: devbench
+    env:
+      LOCUST_HOST: ${{ vars.LOCUST_HOST }}
+    steps:
+      - name: Validate target
+        run: |
+          test -n "$LOCUST_HOST"
+
+      - name: Run smoke load test
+        run: |
+          cat > locustfile.py <<'PY'
+          from locust import HttpUser, task, between
+
+          class SmokeUser(HttpUser):
+              wait_time = between(1, 2)
+
+              @task
+              def get_index(self):
+                  self.client.get("/")
+          PY
+
+          docker run --rm \
+            -v "$PWD:/mnt/locust" \
+            locustio/locust:2.44.3 \
+            -f /mnt/locust/locustfile.py \
+            -H "$LOCUST_HOST" \
+            --headless \
+            --users 2 \
+            --spawn-rate 1 \
+            --run-time 1m \
+            --only-summary

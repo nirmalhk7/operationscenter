@@ -6,11 +6,11 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://loki.trusted.nirmalhk7.com"
     gethomepage.dev/group: Devbench
-    gethomepage.dev/description: "Log aggregation API"
+    gethomepage.dev/description: "Log aggregation"
     gethomepage.dev/icon: loki
     gethomepage.dev/app: loki
     gethomepage.dev/name: Loki
-    gethomepage.dev/weight: "40"
+    gethomepage.dev/weight: "60"
 spec:
   entryPoints:
     - websecure

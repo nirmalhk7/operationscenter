@@ -6,7 +6,7 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://git.trusted.nirmalhk7.com"
     gethomepage.dev/group: Devbench
-    gethomepage.dev/description: "Gitea"
+    gethomepage.dev/description: "Source, planning, and CI"
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Git

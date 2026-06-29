@@ -1,8 +1,15 @@
-# Gitea Actions and SonarQube
+# Gitea Actions
 
-Gitea Actions runs SonarQube analysis through the `sonarqube` runner in
-`mgd-devbench`. Repositories opt in by adding a workflow based on
-`examples/sonarqube.yaml.example`.
+Gitea Actions runs Devbench automation through the `gitea-actions-runner`
+deployment in `mgd-devbench`.
+
+The runner exposes two labels:
+
+- `devbench` for general build, test, release, and smoke-test workflows.
+- `sonarqube` for SonarQube analysis workflows.
+
+Repositories opt in by copying workflow examples from `examples/` into
+`.gitea/workflows/`.
 
 ## Runner registration
 
@@ -36,12 +43,17 @@ make encrypt FILE=clusters/managed/devbench/gitea/actions-runner-secret.px.yaml
 
 ## Repository onboarding
 
-1. In SonarQube, create a project and a project-analysis token.
-2. In the Gitea repository, add the Actions secret `SONAR_TOKEN`.
-3. Add the Actions variable `SONAR_PROJECT_KEY` with the SonarQube project key.
-4. Copy `examples/sonarqube.yaml.example` to
+1. Copy `examples/ci.yaml.example` to `.gitea/workflows/ci.yaml`.
+2. In SonarQube, create a project and a project-analysis token.
+3. In the Gitea repository, add the Actions secret `SONAR_TOKEN`.
+4. Add the Actions variable `SONAR_PROJECT_KEY` with the SonarQube project key.
+5. Copy `examples/sonarqube.yaml.example` to
    `.gitea/workflows/sonarqube.yaml` in the application repository.
-5. Add the repository's test and coverage command before the scan step.
+6. Add the repository's test and coverage command before the scan step.
+7. If the app reports runtime errors to Bugsink, add the Actions secret
+   `BUGSINK_DSN` and adapt `examples/bugsink-release.yaml.example`.
+8. If the app has a reachable environment, add the Actions variable
+   `LOCUST_HOST` and adapt `examples/locust-smoke.yaml.example`.
 
 The workflow targets the `sonarqube` runner, scans the default branch, and
 fails when the SonarQube quality gate fails. SonarQube Community does not
