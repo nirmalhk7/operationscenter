@@ -3,6 +3,6 @@ kind: Kustomization
 
 resources:
   - fluxcd
-  - notify-telegram
+  - notify-discord
 
 namespace: flux-system

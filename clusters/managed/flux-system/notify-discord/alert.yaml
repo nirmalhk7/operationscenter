@@ -1,11 +1,11 @@
 apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Alert
 metadata:
-  name: &app telegram-alert
+  name: &app discord-alert
 spec:
   providerRef:
-    name: telegram-bot
-  eventSeverity: info
+    name: discord
+  eventSeverity: error
   eventSources:
     - kind: HelmRepository
       name: '*'

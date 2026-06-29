@@ -81,10 +81,10 @@ spec:
           secretKeyRef:
             name: grafana-credentials
             key: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
-        TELEGRAM_TOKEN:
+        DISCORD_WEBHOOK_URL:
           secretKeyRef:
             name: grafana-credentials
-            key: token
+            key: DISCORD_WEBHOOK_URL
         GF_SMTP_PASSWORD:
           secretKeyRef:
             name: grafana-credentials
@@ -95,29 +95,18 @@ spec:
           apiVersion: 1
           contactPoints:
             - orgId: 1
-              name: email
+              name: discord
               receivers:
-                - uid: email_1
-                  type: email
+                - uid: discord_1
+                  type: discord
                   disableResolveMessage: false
                   settings:
-                    addresses: nirmalhk7@gmail.com
-                    singleEmail: false
-            - orgId: 1
-              name: telegram
-              receivers:
-                - uid: telegram_1
-                  type: telegram
-                  disableResolveMessage: false
-                  settings:
-                    bottoken: $TELEGRAM_TOKEN
-                    chatid: "-1003812665515"
-                    message_thread_id: "204"
+                    url: $DISCORD_WEBHOOK_URL
         policies.yaml:
           apiVersion: 1
           policies:
             - orgId: 1
-              receiver: email
+              receiver: discord
               group_by:
                 - namespace
                 - alertname
