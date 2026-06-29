@@ -60,3 +60,15 @@ configMapGenerator:
     options:
       labels:
         milano_grafana_dashboard: "true"
+  - name: grafana-dash-docker
+    files:
+      - dashboards/docker.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
+  - name: grafana-dash-sentinel
+    files:
+      - dashboards/sentinel.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"
