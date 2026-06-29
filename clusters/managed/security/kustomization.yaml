@@ -8,7 +8,5 @@ resources:
   - namespace.yaml
   - authelia
   - vaultwarden
-  - velero
-  - hashivault
 
 namespace: mgd-security
