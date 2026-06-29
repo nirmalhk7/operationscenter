@@ -114,18 +114,18 @@ spec:
           apiVersion: 1
           groups:
             - orgId: 1
-              name: Sample External Alerts
+              name: Managed App Failures
               folder: Infrastructure
               interval: 1m
               rules:
-                - uid: example_up_alert
-                  title: Endpoint Down (up == 0)
+                - uid: managed_pod_crashlooping
+                  title: Managed Pod CrashLoopBackOff
                   condition: C
                   data:
                     - refId: A
                       datasourceUid: prometheus
                       model:
-                        expr: up == 0
+                        expr: sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{namespace=~"mgd-.*",reason="CrashLoopBackOff"}) > 0
                       relativeTimeRange:
                         from: 300
                         to: 0
@@ -142,13 +142,106 @@ spec:
                         expression: $B > 0
                   noDataState: OK
                   execErrState: Alerting
-                  for: 1m
+                  for: 5m
                   annotations:
-                    summary: "Nirmal - A monitored endpoint is down or unreachable."
+                    summary: "Managed pod is stuck in CrashLoopBackOff."
+                  labels:
+                    severity: critical
+                    namespace: managed
+                    alertname: ManagedPodCrashLoopBackOff
+                - uid: managed_pod_restarts_spike
+                  title: Managed Pod Restart Spike
+                  condition: C
+                  data:
+                    - refId: A
+                      datasourceUid: prometheus
+                      model:
+                        expr: sum by (namespace, pod, container) (increase(kube_pod_container_status_restarts_total{namespace=~"mgd-.*"}[10m])) > 3
+                      relativeTimeRange:
+                        from: 600
+                        to: 0
+                    - refId: B
+                      datasourceUid: __expr__
+                      model:
+                        type: reduce
+                        reducer: last
+                        expression: A
+                    - refId: C
+                      datasourceUid: __expr__
+                      model:
+                        type: math
+                        expression: $B > 0
+                  noDataState: OK
+                  execErrState: Alerting
+                  for: 5m
+                  annotations:
+                    summary: "Managed pod restart count is spiking."
                   labels:
                     severity: warning
-                    namespace: sample
-                    alertname: EndpointDown
+                    namespace: managed
+                    alertname: ManagedPodRestartSpike
+                - uid: managed_pod_unready
+                  title: Managed Pod Unready
+                  condition: C
+                  data:
+                    - refId: A
+                      datasourceUid: prometheus
+                      model:
+                        expr: sum by (namespace, pod) (kube_pod_status_ready{namespace=~"mgd-.*",condition="true"} == 0) > 0
+                      relativeTimeRange:
+                        from: 300
+                        to: 0
+                    - refId: B
+                      datasourceUid: __expr__
+                      model:
+                        type: reduce
+                        reducer: last
+                        expression: A
+                    - refId: C
+                      datasourceUid: __expr__
+                      model:
+                        type: math
+                        expression: $B > 0
+                  noDataState: OK
+                  execErrState: Alerting
+                  for: 5m
+                  annotations:
+                    summary: "Managed pod is not ready."
+                  labels:
+                    severity: warning
+                    namespace: managed
+                    alertname: ManagedPodUnready
+                - uid: managed_pod_oomkilled
+                  title: Managed Pod OOMKilled
+                  condition: C
+                  data:
+                    - refId: A
+                      datasourceUid: prometheus
+                      model:
+                        expr: sum by (namespace, pod, container) (kube_pod_container_status_last_terminated_reason{namespace=~"mgd-.*",reason="OOMKilled"}) > 0
+                      relativeTimeRange:
+                        from: 300
+                        to: 0
+                    - refId: B
+                      datasourceUid: __expr__
+                      model:
+                        type: reduce
+                        reducer: last
+                        expression: A
+                    - refId: C
+                      datasourceUid: __expr__
+                      model:
+                        type: math
+                        expression: $B > 0
+                  noDataState: OK
+                  execErrState: Alerting
+                  for: 5m
+                  annotations:
+                    summary: "Managed pod was OOMKilled."
+                  labels:
+                    severity: critical
+                    namespace: managed
+                    alertname: ManagedPodOOMKilled
     prometheus:
       prometheusSpec:
         externalUrl: https://prometheus.trusted.nirmalhk7.com
