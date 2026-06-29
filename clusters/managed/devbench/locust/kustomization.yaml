@@ -6,6 +6,8 @@ namespace: mgd-devbench
 resources:
   - helmrelease.yaml
   - ingressroute.yaml
+  - locustfile-configmap.yaml
+  - lib-configmap.yaml
 
 labels:
   - pairs:

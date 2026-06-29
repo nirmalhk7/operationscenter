@@ -17,6 +17,15 @@ spec:
         namespace: mgd-devbench
   interval: 10m
   values:
+    hostAliases:
+      - ip: "172.16.0.101"
+        hostnames:
+          - home.trusted.nirmalhk7.com
+    loadtest:
+      name: example
+      locust_host: https://home.trusted.nirmalhk7.com
+      locust_locustfile_configmap: homepage-locustfile
+      locust_lib_configmap: homepage-locust-lib
     image:
       repository: locustio/locust
       tag: 2.44.3

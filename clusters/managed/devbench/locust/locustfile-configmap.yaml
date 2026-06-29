@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-locustfile
+  labels:
+    milano.app: locust
+    milano.level: managed
+data:
+  main.py: |
+    from locust import HttpUser, task, between
+
+    HOMEPAGE_HOST = "home.trusted.nirmalhk7.com"
+
+    class HomepageUser(HttpUser):
+        wait_time = between(1, 2)
+
+        def on_start(self):
+            self.client.headers.update({
+                "Host": HOMEPAGE_HOST,
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            })
+
+        @task
+        def get_index(self):
+            self.client.get("/")
