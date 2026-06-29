@@ -78,3 +78,5 @@ Most operational tasks are managed through the `Makefile`:
 ---
 
 https://deepai.org/machine-learning-model/text2img
+
+agent --resume=8ffe5abf-a7f8-4775-ba46-101d577e9360
