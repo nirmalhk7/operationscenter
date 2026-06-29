@@ -85,6 +85,7 @@ flowchart LR
 
 ## Notes
 
+- For operator setup and platform-specific client instructions, see [TAILSCALE.md](../../../TAILSCALE.md).
 - The managed tier uses `172.16.0.100-199`.
 - The dev tier uses `172.16.0.200-255`.
 - `ipset-mgd.tf` and `ipset-dev.tf` define the IP sets referenced by the `+dc/ipset-*` rules.

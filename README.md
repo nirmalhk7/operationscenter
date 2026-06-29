@@ -50,6 +50,7 @@ graph TD
 - `/nginx/`: Configuration files for the Nginx LXC proxy.
 - `/charts/`: Custom Helm charts for services.
 - `/Makefile`: Central hub for operational tasks (encryption, backup, applying infra).
+- [`TAILSCALE.md`](TAILSCALE.md): Authorized operator guide for joining the tailnet and reaching private services.
 - [`AGENTS.md`](AGENTS.md): Conventions, workflows, and Renovate policy for AI agents and contributors editing this repo.
 
 ## 📂 Resource Tiers
@@ -66,6 +67,7 @@ graph TD
 - **Monitoring**: Full Prometheus & Grafana stack for observability. Proxmox host disk health is tracked by [Scrutiny](https://github.com/AnalogJ/scrutiny) (`scrutiny.trusted.nirmalhk7.com`); SMART data is collected from the privileged `proxbridge` LXC (CT 102) via Ansible, not from in-cluster pods.
 - **Storage**: Mixed storage types including NFS (`vm-mgdnfs`) and CSI drivers.
 - **Security**: Authelia OIDC SSO (`secure.trusted.nirmalhk7.com`) with an in-cluster OIDC proxy for backend token exchange, plus Sealed Secrets for encryption.
+- **Remote Access**: [Tailscale access guide](TAILSCALE.md) for approved operator access from macOS, Windows, and Android.
 
 ## 🚀 Getting Started
 Most operational tasks are managed through the `Makefile`:
@@ -73,6 +75,7 @@ Most operational tasks are managed through the `Makefile`:
 - `make ansible-run`: Configure VMs/LXCs.
 - `make encrypt FILE=<path>`: Encrypt a `.px.yaml` secret.
 - `make nginx-build`: Sync Nginx configurations.
+- [TAILSCALE.md](TAILSCALE.md): Use Tailscale to reach the private network and admin surfaces.
 
 
 ---
