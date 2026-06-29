@@ -471,27 +471,6 @@
               ]
             }
           },
-          "voice": {
-            "enabled": true,
-            "autoJoin": [
-              {
-                "guildId": "1487714737964716084",
-                "channelId": "1504282230875230329"
-              }
-            ],
-            "daveEncryption": false,
-            "decryptionFailureTolerance": 24,
-            "tts": {
-              "provider": "microsoft",
-              "providers": {
-                "microsoft": {
-                  "voice": "en-US-JennyNeural",
-                  "lang": "en-US",
-                  "outputFormat": "audio-24khz-48kbitrate-mono-mp3"
-                }
-              }
-            }
-          },
           "activity": "Coordinating Operations Center",
           "autoPresence": {
             "enabled": true
