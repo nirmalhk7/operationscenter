@@ -299,6 +299,11 @@
       src: "https://img.shields.io/github/v/release/nirmalhk7/operationscenter?filter=equity-research-v*&label=equity-research&display_name=tag&sort=semver&logo=npm&logoColor=white",
       alt: "Equity Research version",
     },
+    {
+      href: "https://github.com/nirmalhk7/operationscenter/releases?q=fix-that-thang-v&expanded=true",
+      src: "https://img.shields.io/github/v/release/nirmalhk7/operationscenter?filter=fix-that-thang-v*&label=fix-that-thang&display_name=tag&sort=semver&logo=npm&logoColor=white",
+      alt: "Fix That Thang version",
+    },
   ];
 
   const render = () => {

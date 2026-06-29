@@ -10,8 +10,8 @@ resources:
   - gitea
   - locust
   - loki
+  - renovate
   - sonarqube
   - tools
-  - touca
 
 namespace: mgd-devbench
