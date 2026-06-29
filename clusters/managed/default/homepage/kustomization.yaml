@@ -40,7 +40,6 @@ configMapGenerator:
   - name: homepage-logo
     files:
       - images/locust.svg
-      - images/touca.svg
 
 labels:
   - pairs:
