@@ -10,6 +10,5 @@ resources:
   - prometheus
   - scrutiny
   - kasa
-  - portainer
 
 namespace: mgd-monitoring
