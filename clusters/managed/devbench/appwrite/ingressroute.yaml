@@ -17,6 +17,11 @@ spec:
     - websecure
     - web
   routes:
+    - match: Host(`dev.trusted.nirmalhk7.com`) && PathPrefix(`/v1/realtime`)
+      kind: Rule
+      services:
+        - name: appwrite-realtime
+          port: 80
     - match: Host(`dev.trusted.nirmalhk7.com`) && PathPrefix(`/console`)
       kind: Rule
       services:
@@ -25,5 +30,5 @@ spec:
     - match: Host(`dev.trusted.nirmalhk7.com`)
       kind: Rule
       services:
-        - name: appwrite-core
+        - name: appwrite-api
           port: 80
