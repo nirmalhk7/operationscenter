@@ -9,143 +9,89 @@ spec:
   timeout: 15m
   chart:
     spec:
-      chart: appwrite-helm
-      version: 0.3.4
+      chart: appwrite
+      version: 1.2.2
       sourceRef:
         kind: HelmRepository
         name: appwrite-helm
         namespace: mgd-devbench
   values:
-    global:
-      storageClass: milano-v3
-      security:
-        allowInsecureImages: true
-    podLabels:
-      milano.app: *app
-    environments:
-      domain:
-        app: dev.trusted.nirmalhk7.com
-        target: dev.trusted.nirmalhk7.com
-        functions: functions.dev.trusted.nirmalhk7.com
-      database:
-        host: 172.16.0.106
-        port: 3306
-        schema: appwrite
-        username: appwrite_rw
-      redis:
-        # PHP Redis extension fails DNS lookup on *.svc.cluster.local FQDNs.
-        host: appwrite-redis-master
-      influxdb:
-        host: appwrite-influxdb
-      statsd:
-        host: appwrite-telegraf
-      usage:
-        stats: enabled
-      console:
-        whitelist:
-          emails: nirmalhk7@gmail.com
-      options:
-        forceHttps: disabled
-        functions:
-          forceHttps: disabled
+    commonLabels:
+      milano.app: appwrite
+    appwrite:
+      domain: dev.trusted.nirmalhk7.com
+      existingSecret: appwrite-env
+      existingSecretOpenSslKey: _APP_OPENSSL_KEY_V1
+      usageStats: enabled
       storage:
-        device: Local
-    components:
-      core:
-        test: []
-        ingress:
-          enabled: false
-        podLabels:
-          milano.app: *app
-      console:
-        ingress:
-          enabled: false
-        podLabels:
-          milano.app: *app
-      realtime:
-        test: []
-        ingress:
-          enabled: false
-        podLabels:
-          milano.app: *app
-      tasks:
-        maintenance:
-          test: []
-      schedulers:
-        functions:
-          replicaCount: 0
-          test: []
-        executions:
-          test: []
-        messages:
-          test: []
-      workers:
-        usage:
-          test: []
-        usagedump:
-          test: []
-        audits:
-          test: []
-        builds:
-          replicaCount: 0
-          test: []
-        certificates:
-          test: []
-        databases:
-          test: []
-        deletes:
-          test: []
-        functions:
-          replicaCount: 0
-          test: []
-        mails:
-          test: []
-        messaging:
-          test: []
-        migrations:
-          test: []
-        webhooks:
-          test: []
+        limit: "30000000"
+      extraEnv:
+        - name: _APP_OPTIONS_FORCE_HTTPS
+          value: disabled
+        - name: _APP_OPTIONS_ROUTER_FORCE_HTTPS
+          value: disabled
+        - name: _APP_CONSOLE_WHITELIST_EMAILS
+          value: nirmalhk7@gmail.com
+        - name: _APP_STORAGE_DEVICE
+          value: Local
+    api:
+      podAnnotations:
+        milano.app: appwrite
+    realtime:
+      podAnnotations:
+        milano.app: appwrite
+    workers:
+      audits:
+        enabled: true
+      builds:
+        enabled: false
+      certificates:
+        enabled: true
+      functions:
+        enabled: false
+      statsResources:
+        enabled: false
+      statsUsage:
+        enabled: true
+    schedulers:
+      executions:
+        enabled: true
+      functions:
+        enabled: false
+      messages:
+        enabled: true
+    persistence:
+      enabled: true
+      storageClass: milano-v3
+      uploads:
+        size: 10Gi
+      cache:
+        size: 2Gi
+      certificates:
+        size: 1Gi
+      functions:
+        size: 5Gi
+      builds:
+        size: 5Gi
+      sites:
+        size: 5Gi
     mariadb:
       enabled: false
+    database:
+      mode: external
+      external:
+        host: 172.16.0.106
+        port: 3306
+        rootUser: appwrite_rw
+        name: appwrite
+        existingSecret: appwrite-env
+        existingSecretPasswordKey: _APP_DB_PASS
     redis:
       enabled: true
-      image:
-        repository: bitnamilegacy/redis
-        tag: 7.2.3-debian-11-r1
-      metrics:
-        enabled: false
-      auth:
-        enabled: false
-      replica:
-        replicaCount: 0
-      master:
+      standalone:
         persistence:
           enabled: true
           storageClass: milano-v2
           size: 8Gi
-    influxdb:
-      enabled: true
-      image:
-        repository: bitnamilegacy/influxdb
-        tag: 2.7.4-debian-11-r0
-      auth:
-        admin:
-          password: supersecret-influx-password
-          token: supersecret-influx-token
-          org: appwrite
-          bucket: telegraf
-      persistence:
-        enabled: true
-        storageClass: milano-v2
-        size: 8Gi
-    telegraf:
-      enabled: true
-      config:
-        outputs:
-          - influxdb_v2:
-              urls:
-                - http://appwrite-influxdb:8086
-              token: supersecret-influx-token
-              bucket: telegraf
-              organization: appwrite
+    cache:
+      mode: auto
