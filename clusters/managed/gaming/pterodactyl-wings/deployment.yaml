@@ -16,6 +16,47 @@ spec:
       annotations:
         milano.nirmalhk7.com/config-revision: bedrock-mtu-1400
     spec:
+      initContainers:
+        - name: apply-minecraft-settings
+          image: busybox:1.37.0
+          command:
+            - sh
+            - -ec
+            - |
+              server_dir="/var/lib/pterodactyl/volumes/49df4544-3f70-49f5-b890-7882e0b5bf1b"
+              target="${server_dir}/server.properties"
+              desired="/etc/minecraft-settings/server.properties"
+
+              if [ ! -f "${target}" ]; then
+                echo "No server.properties found at ${target}; skipping Minecraft settings overlay."
+                exit 0
+              fi
+
+              cp "${target}" "${target}.gitops.bak"
+
+              while IFS= read -r line || [ -n "${line}" ]; do
+                case "${line}" in
+                  ""|\#*) continue ;;
+                  *=*) ;;
+                  *) echo "Ignoring invalid Minecraft property: ${line}"; continue ;;
+                esac
+
+                key="${line%%=*}"
+                value="${line#*=}"
+                escaped_value="$(printf '%s' "${value}" | sed 's/[\/&]/\\&/g')"
+
+                if grep -q "^${key}=" "${target}"; then
+                  sed -i "s/^${key}=.*/${key}=${escaped_value}/" "${target}"
+                else
+                  printf '%s=%s\n' "${key}" "${value}" >> "${target}"
+                fi
+              done < "${desired}"
+          volumeMounts:
+            - name: volumes
+              mountPath: /var/lib/pterodactyl/volumes
+            - name: minecraft-settings
+              mountPath: /etc/minecraft-settings
+              readOnly: true
       containers:
         - name: wings
           # renovate: depName=ghcr.io/pterodactyl/wings
@@ -93,6 +134,9 @@ spec:
         - name: volumes
           persistentVolumeClaim:
             claimName: pterodactyl-wings-pvc
+        - name: minecraft-settings
+          configMap:
+            name: pterodactyl-minecraft-settings
         - name: dockerlib
           emptyDir: {}
         - name: tmp
