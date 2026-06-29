@@ -78,9 +78,12 @@ test("workflow stays JSON command steps", () => {
   const config = repoJson(join("openclaw", "openclaw.json"));
   const workflow = repoJson(join("openclaw", "mountainvalue.lobster"));
   const steps = workflow.steps as Array<Record<string, unknown>>;
+  const defaults = (config.agents as Record<string, unknown>).defaults as Record<string, unknown>;
+  const defaultsModel = defaults.model as Record<string, unknown>;
 
   assert.equal((config.meta as Record<string, unknown>).lastTouchedVersion, "2026.4.23");
   assert.equal(workflow.name, "mountainvalue-daily-equity-research");
+  assert.equal(defaultsModel.primary, "openai-codex/gpt-5.5");
   assert.deepEqual(
     steps.map((step) => step.id),
     [
@@ -121,8 +124,10 @@ test("workflow stays JSON command steps", () => {
   ]) {
     const profile = agents.find((agent) => agent.id === worker);
     assert.ok(profile, `${worker} should be a configured non-Discord profile`);
+    const profileModel = profile.model as Record<string, unknown>;
     assert.equal(profile.workspace, `/root/.openclaw/subAgents/${worker}`);
     assert.equal(profile.agentDir, `/root/.openclaw/subAgents/${worker}`);
+    assert.equal(profileModel.primary, "openai-codex/gpt-5.5");
     assert.equal(bindings.includes(worker), false, `${worker} must not be Discord-bound`);
     assert.match(repoText(join("openclaw", "subAgents", worker, "AGENTS.md")), /subagent/i);
     assert.equal(existsSync(resolve(process.cwd(), "../../..", "openclaw", "subAgents", worker, "SOUL.md")), false);
@@ -132,6 +137,7 @@ test("workflow stays JSON command steps", () => {
   assert.equal(victorTools.profile, "minimal");
   assert.deepEqual(victorTools.allow, [
     "message",
+    "image",
     "lobster",
     "subagents",
     "sessions_spawn",
@@ -144,6 +150,8 @@ test("workflow stays JSON command steps", () => {
   assert.equal((victorTools.allow as string[]).includes("exec"), false);
   assert.ok((victorTools.deny as string[]).includes("group:runtime"));
   assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "TOOLS.md")), /Lobster tool unavailable/u);
+  assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "TOOLS.md")), /"cwd": "\.\."/u);
+  assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "AGENTS.md")), /"cwd": "\.\."/u);
   const victorSubagents = (victor.subagents as Record<string, unknown> | undefined)
     ?? (((config.agents as Record<string, unknown>).defaults as Record<string, unknown>).subagents as Record<string, unknown>);
   const defaultSubagents = (((config.agents as Record<string, unknown>).defaults as Record<string, unknown>)
@@ -163,6 +171,8 @@ test("workflow stays JSON command steps", () => {
     "exa__web_fetch_exa",
     "exa__web_search_advanced_exa",
   ]);
+  const plugins = (config.plugins as Record<string, unknown>).entries as Record<string, Record<string, unknown>>;
+  assert.equal(plugins.exa?.enabled, true);
 });
 
 test("worker turns target configured role profiles directly", () => {
@@ -189,5 +199,22 @@ test("worker turns target configured role profiles directly", () => {
   assert.equal(envelope.role, "eq_quantsieve");
   assert.equal(envelope.role_profile, "/root/.openclaw/subAgents/eq_quantsieve");
   assert.equal(envelope.output_contract, "ReviewBatch");
+  assert.ok(Array.isArray((envelope.input as Record<string, unknown>).candidates));
   assert.doesNotMatch(capturedArgs[4], /Use the OpenClaw subagent tool/u);
+  assert.ok(capturedArgs[4].length < 120_000);
+});
+
+test("worker turns tolerate missing stderr on failure", () => {
+  assert.throws(
+    () => configuredAgentTurn(
+      "eq_quantsieve",
+      { candidates: [] },
+      () => ({
+        status: 1,
+        stdout: "",
+        stderr: undefined as unknown as string,
+      }),
+    ),
+    /no stdout\/stderr/u,
+  );
 });

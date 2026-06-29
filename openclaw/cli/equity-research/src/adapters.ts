@@ -530,11 +530,23 @@ function appendUnique(target: unknown[], additions: unknown[]): void {
   }
 }
 
+const FINVIZ_TICKER_PATTERNS = [
+  /quote\.ashx\?t=([A-Z0-9.-]+)/gi,
+  /stock\?t=([A-Z0-9.-]+)/gi,
+  /data-boxover-ticker="([A-Z0-9.-]+)"/gi,
+] as const;
+
+const FINVIZ_ROW_PATTERNS = [
+  /<tr[^>]*>[\s\S]*?quote\.ashx\?t=([A-Z0-9.-]+)[\s\S]*?<\/tr>/gi,
+  /<tr[^>]*>[\s\S]*?data-boxover-ticker="([A-Z0-9.-]+)"[\s\S]*?<\/tr>/gi,
+] as const;
+
 export function parseFinvizTickers(html: string): string[] {
   const tickers = new Set<string>();
-  const quoteLinks = html.matchAll(/quote\.ashx\?t=([A-Z0-9.-]+)/gi);
-  for (const quoteLink of quoteLinks) {
-    tickers.add(quoteLink[1].toUpperCase());
+  for (const pattern of FINVIZ_TICKER_PATTERNS) {
+    for (const match of html.matchAll(pattern)) {
+      tickers.add(match[1].toUpperCase());
+    }
   }
   if (tickers.size === 0) {
     throw new Error("Finviz screener response has no quote tickers");
@@ -544,37 +556,54 @@ export function parseFinvizTickers(html: string): string[] {
 
 export function parseFinvizCandidates(html: string, provider: string, reason: string): Candidate[] {
   const candidates: Candidate[] = [];
-  const rows = html.matchAll(/<tr[^>]*>[\s\S]*?quote\.ashx\?t=([A-Z0-9.-]+)[\s\S]*?<\/tr>/gi);
-  for (const row of rows) {
-    const ticker = row[1].toUpperCase();
-    if (candidates.some((candidate) => candidate.ticker === ticker)) {
-      continue;
-    }
-    const cells = tableCells(row[0]);
-    const tickerIndex = cells.findIndex((cell) => cell.toUpperCase() === ticker);
-    const candidate = blankCandidate(ticker, tickerIndex >= 0 ? cells[tickerIndex + 1] ?? "" : "");
-    candidate.sources = [provider];
-    candidate.screen_reasons = [reason];
-    candidate.evidence_gaps = [
-      "Finviz seed values are discovery context and require primary-source checks.",
-    ];
-    if (tickerIndex >= 0) {
-      const marketCap = parseFinvizNumber(cells[tickerIndex + 5]);
-      const peRatio = parsePlainNumber(cells[tickerIndex + 6]);
-      const price = parsePlainNumber(cells[tickerIndex + 7]);
-      if (marketCap !== null) {
-        candidate.metrics.market_cap = marketCap;
-      }
-      if (peRatio !== null) {
-        candidate.metrics.pe_ratio = peRatio;
-      }
-      if (price !== null) {
-        candidate.metrics.price = price;
+  for (const rows of FINVIZ_ROW_PATTERNS) {
+    for (const row of html.matchAll(rows)) {
+      const candidate = finvizCandidateFromRow(row[0], row[1], provider, reason);
+      if (candidate && !candidates.some((entry) => entry.ticker === candidate.ticker)) {
+        candidates.push(candidate);
       }
     }
-    candidates.push(candidate);
+    if (candidates.length > 0) {
+      return candidates;
+    }
   }
   return candidates;
+}
+
+function finvizCandidateFromRow(
+  rowHtml: string,
+  tickerRaw: string,
+  provider: string,
+  reason: string,
+): Candidate | null {
+  const ticker = tickerRaw.toUpperCase();
+  const companyMatch = rowHtml.match(/data-boxover-company="([^"]+)"/i);
+  const valueMatch = rowHtml.match(/data-boxover-value="([^"]+)"/i);
+  const cells = tableCells(rowHtml);
+  const tickerIndex = cells.findIndex((cell) => cell.toUpperCase() === ticker);
+  const candidate = blankCandidate(
+    ticker,
+    companyMatch?.[1] ?? (tickerIndex >= 0 ? cells[tickerIndex + 1] ?? "" : ""),
+  );
+  candidate.sources = [provider];
+  candidate.screen_reasons = [reason];
+  candidate.evidence_gaps = [
+    "Finviz seed values are discovery context and require primary-source checks.",
+  ];
+  const marketCap = parseFinvizNumber(valueMatch?.[1])
+    ?? parseFinvizNumber(tickerIndex >= 0 ? cells[tickerIndex + 5] : undefined);
+  const peRatio = parsePlainNumber(tickerIndex >= 0 ? cells[tickerIndex + 6] : undefined);
+  const price = parsePlainNumber(tickerIndex >= 0 ? cells[tickerIndex + 7] : undefined);
+  if (marketCap !== null) {
+    candidate.metrics.market_cap = marketCap;
+  }
+  if (peRatio !== null) {
+    candidate.metrics.pe_ratio = peRatio;
+  }
+  if (price !== null) {
+    candidate.metrics.price = price;
+  }
+  return candidate;
 }
 
 function tableCells(rowHtml: string): string[] {

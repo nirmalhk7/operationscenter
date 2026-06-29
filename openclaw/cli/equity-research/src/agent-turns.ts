@@ -5,12 +5,14 @@ import {
   Candidate,
   ContractError,
   FinalReport,
+  MetricValue,
   ReviewVerdict,
   normalizeCandidate,
   validateEventBatch,
   validateFinalReport,
   validateReviewBatch,
 } from "./contracts.js";
+import { rankOpportunities } from "./value-engine.js";
 
 const TASK_ENVELOPES = {
   eq_quantsieve: {
@@ -104,8 +106,81 @@ export interface AgentResult {
 
 type AgentRunner = (args: string[]) => AgentResult;
 
+const AGENT_METRIC_KEYS = new Set([
+  "earnings_yield_scorecard",
+  "balance_sheet_safety",
+  "owner_earnings_quality",
+  "opportunity_scorecard",
+  "value_composite",
+  "market_cap",
+  "pe_ratio",
+  "price",
+  "sec_cik",
+]);
+
+function agentReviewLimit(): number {
+  const parsed = Number.parseInt(process.env.OPENCLAW_EQUITY_DEEP_REVIEW_LIMIT ?? "8", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 8;
+}
+
+function slimCandidateForAgent(candidate: Candidate): Candidate {
+  const normalized = normalizeCandidate(candidate);
+  const metrics: Record<string, MetricValue> = {};
+  for (const key of AGENT_METRIC_KEYS) {
+    if (key in normalized.metrics) {
+      metrics[key] = normalized.metrics[key];
+    }
+  }
+  return {
+    ...normalized,
+    metrics,
+    filing_refs: normalized.filing_refs.slice(0, 4),
+    news_refs: normalized.news_refs.slice(0, 4),
+    polymarket_context: normalized.polymarket_context.slice(0, 2),
+  };
+}
+
+function compactAgentInput(inputPayload: unknown): Record<string, unknown> {
+  if (!isRecord(inputPayload)) {
+    return {};
+  }
+  const pool = inputPayload as ReviewedPayload;
+  const limit = agentReviewLimit();
+  let candidates = Array.isArray(pool.candidates)
+    ? pool.candidates.map((candidate) => slimCandidateForAgent(normalizeCandidate(candidate)))
+    : [];
+  if (candidates.length > limit) {
+    const ranked = rankOpportunities({ ...pool, candidates }, limit);
+    candidates = ranked.candidates.map((candidate) => slimCandidateForAgent(normalizeCandidate(candidate)));
+  }
+  const compact: Record<string, unknown> = {
+    candidates,
+    provider_errors: pool.provider_errors ?? [],
+  };
+  for (const field of [
+    "first_pass_reviews",
+    "news_reviews",
+    "catalyst_reviews",
+    "thesis_depth_reviews",
+    "risk_reviews",
+    "excluded_after_narrowing",
+  ] as const) {
+    if (Array.isArray(pool[field])) {
+      compact[field] = pool[field];
+    }
+  }
+  return compact;
+}
+
+function resolveOpenClawBin(): string {
+  return process.env.OPENCLAW_BIN ?? "/usr/local/bin/openclaw";
+}
+
 const runAgent: AgentRunner = (args) => {
-  const completed = spawnSync("openclaw", args, { encoding: "utf8" });
+  const completed = spawnSync(resolveOpenClawBin(), args, { encoding: "utf8" });
+  if (completed.error) {
+    throw new Error(`openclaw MountainValue role launch failed: ${completed.error.message}`);
+  }
   return {
     status: completed.status,
     stdout: completed.stdout,
@@ -159,25 +234,33 @@ export function configuredAgentTurn(
         "missing_evidence",
       ],
     },
-    input: inputPayload,
+    input: compactAgentInput(inputPayload),
   };
   if (agent === "victor") {
     const channel = process.env.OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID
       ?? "REPLACE_WITH_DISCORD_FORUM_CHANNEL_ID";
     envelope.discord_forum_channel_id = channel;
   }
+  const message = JSON.stringify(envelope);
+  if (message.length > 120_000) {
+    throw new ContractError(
+      `MountainValue ${agent} input exceeds OpenClaw CLI message limits (${message.length} chars).`,
+    );
+  }
   const completed = runner([
     "agent",
     "--agent",
     agent,
     "--message",
-    JSON.stringify(envelope),
+    message,
     "--timeout",
     process.env.OPENCLAW_EQUITY_AGENT_TIMEOUT_SECONDS ?? "900",
     "--json",
   ]);
   if (completed.status !== 0) {
-    throw new Error(`openclaw MountainValue role ${agent} failed: ${completed.stderr.trim() || "no stderr"}`);
+    const stderr = (completed.stderr ?? "").trim();
+    const stdout = (completed.stdout ?? "").trim();
+    throw new Error(`openclaw MountainValue role ${agent} failed: ${stderr || stdout || "no stdout/stderr"}`);
   }
   return parseAgentJson(JSON.parse(completed.stdout) as unknown);
 }

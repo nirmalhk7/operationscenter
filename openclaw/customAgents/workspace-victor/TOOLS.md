@@ -9,7 +9,7 @@ with:
 {
   "action": "run",
   "pipeline": "/root/.openclaw/mountainvalue.lobster",
-  "cwd": "/root/.openclaw",
+  "cwd": "..",
   "timeoutMs": 1800000,
   "maxStdoutBytes": 1048576
 }

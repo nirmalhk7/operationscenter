@@ -90,6 +90,15 @@ test("Finviz quote links become seed tickers", () => {
   );
 });
 
+test("Finviz stock links and boxover tickers become seed tickers", () => {
+  assert.deepEqual(
+    parseFinvizTickers(
+      "<a href=\"stock?t=abcb&ty=c&p=d&b=1\">ABCB</a><td data-boxover-ticker=\"ADUS\">",
+    ),
+    ["ABCB", "ADUS"],
+  );
+});
+
 test("Finviz screener rows add discovery market metrics", () => {
   const html = `
     <tr>
@@ -107,9 +116,30 @@ test("Finviz screener rows add discovery market metrics", () => {
   assert.equal(candidate.metrics.price, 14.2);
 });
 
+test("Finviz redesigned screener rows add discovery market metrics", () => {
+  const html = `
+    <tr class="styled-row">
+      <td>2</td>
+      <td data-boxover-ticker="ABCB" data-boxover-company="Ameris Bancorp" data-boxover-value="5.88B">
+        <a href="stock?t=ABCB&ty=c&p=d&b=1" class="tab-link">ABCB</a>
+      </td>
+      <td><a href="stock?t=ABCB&ty=c&p=d&b=1">Ameris Bancorp</a></td>
+      <td>Financial</td><td>Banks - Regional</td><td>USA</td>
+      <td>5.88B</td><td>13.74</td><td>87.36</td><td>-0.26%</td><td>461,482</td>
+    </tr>`;
+
+  const [candidate] = parseFinvizCandidates(html, "finviz", "value seed");
+
+  assert.equal(candidate.ticker, "ABCB");
+  assert.equal(candidate.company, "Ameris Bancorp");
+  assert.equal(candidate.metrics.market_cap, 5_880_000_000);
+  assert.equal(candidate.metrics.pe_ratio, 13.74);
+  assert.equal(candidate.metrics.price, 87.36);
+});
+
 test("Finviz technical seed stays a separate discovery source", async () => {
   const result = await new FinvizTechnicalProvider(async () => (
-    "<a href=\"quote.ashx?t=TREND\">TREND</a>"
+    "<a href=\"stock?t=TREND&ty=c&p=d&b=1\">TREND</a>"
   )).seed();
 
   assert.deepEqual(result.candidates[0].sources, ["finviz_technical"]);
