@@ -11,7 +11,7 @@ metadata:
     gethomepage.dev/icon: mdi-chart-timeline-variant
     gethomepage.dev/href: "https://langfuse.trusted.nirmalhk7.com"
     gethomepage.dev/weight: "15"
-    gethomepage.dev/app: "langfuse"
+    gethomepage.dev/app: "langfuse-prod"
 spec:
   entryPoints:
     - websecure
@@ -25,5 +25,5 @@ spec:
         - name: mgd-headervalidation
           namespace: default
       services:
-        - name: langfuse-web
+        - name: langfuse-prod-web
           port: 3000
