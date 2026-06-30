@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app langfuse
+  name: &app langfuse-app
   namespace: mgd-llm
 spec:
   interval: 10m
