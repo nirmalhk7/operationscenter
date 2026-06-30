@@ -8,6 +8,9 @@ resources:
   - clickhouse-service.yaml
   - clickhouse-deployment.yaml
   - clickhouse-pvc.yaml
+  - s3-pvc.yaml
+  - s3-service.yaml
+  - s3-deployment.yaml
   - helmrelease.yaml
   - ingressroute.yaml
 

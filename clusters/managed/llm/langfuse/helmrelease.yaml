@@ -55,10 +55,20 @@ spec:
         existingSecret: langfuse-subchart-secrets
         existingSecretPasswordKey: REDIS_PASSWORD
     s3:
-      auth:
-        existingSecret: langfuse-subchart-secrets
-        rootUserSecretKey: S3_ROOT_USER
-        rootPasswordSecretKey: S3_ROOT_PASSWORD
+      deploy: false
+      storageProvider: s3
+      bucket: langfuse
+      endpoint: http://langfuse-s3:9000
+      region: auto
+      forcePathStyle: true
+      accessKeyId:
+        secretKeyRef:
+          name: langfuse-subchart-secrets
+          key: S3_ROOT_USER
+      secretAccessKey:
+        secretKeyRef:
+          name: langfuse-subchart-secrets
+          key: S3_ROOT_PASSWORD
     postgresql:
       deploy: false
       host: 172.16.0.106
