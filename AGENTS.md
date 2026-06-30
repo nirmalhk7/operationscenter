@@ -56,7 +56,7 @@ Feature-local READMEs explain operator procedures; **`AGENTS.md` holds cross-cut
 | `infrastructure/terra/` | Terraform — Proxmox, Discord, etc. |
 | `infrastructure/ansible/` | Inventory, vars, roles, `*.ansible.yaml` playbooks |
 | `nginx/` | Reverse-proxy source of truth (`make nginx-build` syncs to Nginx LXC) |
-| `charts/` | Local Helm charts (e.g. Touca) referenced by Flux `HelmRelease` |
+| `charts/` | Local Helm charts referenced by Flux `HelmRelease` |
 | `renovate.json` | Automated dependency updates (Flux, Kubernetes, Ansible versions) |
 | `Makefile` | Operational entry points — treat as privileged |
 
@@ -110,7 +110,7 @@ Namespace tiers aggregate:
 |---|---|---|
 | Flux `HelmRelease` + in-repo `HelmRepository` | Third-party charts (default for new apps) | `flux` |
 | Raw `Deployment` / `StatefulSet` | Simple single-image apps, sidecars, agents | `kubernetes` |
-| Local chart via `GitRepository` | Custom packaging (Touca) — images must still be in scanned YAML | `flux` (values images) + chart discipline |
+| Local chart via `GitRepository` | Custom packaging — images must still be in scanned YAML | `flux` (values images) + chart discipline |
 | K3s `HelmChartConfig` | **Avoid for new work** — not Renovate-upgradeable | — |
 
 ---
@@ -149,7 +149,7 @@ Non-Kubernetes regex updates are **major-only** (minor/patch/pin/digest disabled
 
 5. If `HelmRepository` lives outside Git, add `flux.registryAliases` in `renovate.json`.
 
-**GitRepository + local chart** (Touca): Flux does not bump a chart version field. Pin **all images in `HelmRelease` values**; chart templates must read from values — never hardcode `image:` strings in `charts/*/templates/`. Reference: [`clusters/managed/devbench/touca/helmrelease.yaml`](clusters/managed/devbench/touca/helmrelease.yaml), [`charts/touca/`](charts/touca/).
+**GitRepository + local chart:** Flux does not bump a chart version field. Pin **all images in `HelmRelease` values**; chart templates must read from values — never hardcode `image:` strings in `charts/*/templates/`.
 
 ### Raw Kubernetes (kubernetes) checklist
 
@@ -160,7 +160,6 @@ Manifests must match a pattern in `renovate.json` → `kubernetes.fileMatch`:
 | `clusters/.+/.*deployment\.yaml$` | Most app Deployments |
 | `clusters/.+/.*statefulset\.yaml$` | StatefulSets |
 | `clusters/.+/.*cronjob\.yaml$` | Outline backup |
-| `clusters/.+/.*deploy\.yaml$` | Portainer agent (`agent-deploy.yaml`) |
 | `clusters/managed/kube-system/sealedsecrets/controller\.yaml$` | Sealed Secrets controller |
 | `clusters/managed/security/authelia/oidc-proxy\.yaml$` | Authelia OIDC proxy (multi-doc file) |
 | `clusters/managed/flux-system/fluxcd/gotk-components.yaml` | Flux controllers |
@@ -319,8 +318,6 @@ Changing Traefik requires both Git (Flux) and, on first migration, Ansible on th
 | OIDC split URLs | `clusters/managed/devbench/gitea/helmrelease.yaml`, `clusters/managed/default/outline/` |
 | HelmRelease + `_repositories` | `clusters/managed/default/n8n/helmrelease.yaml` + `default/_repositories/` |
 | Helm values image overrides | `clusters/managed/devbench/locust/helmrelease.yaml`, `clusters/managed/multimedia/immich/helmrelease.yaml` |
-| Local chart, Renovate-friendly images | `clusters/managed/devbench/touca/helmrelease.yaml`, `charts/touca/` |
 | Raw Deployment + `# renovate: depName` | `clusters/managed/devbench/tools/deployment.yaml` |
-| Multi-workload feature (Helm + sidecar) | `clusters/managed/monitoring/portainer/` (HelmRelease + `agent-deploy.yaml`) |
 | Flux-managed Traefik | `clusters/managed/kube-system/traefik/` |
 | Gitea Actions + SonarQube | `clusters/managed/devbench/gitea/README.md` |
