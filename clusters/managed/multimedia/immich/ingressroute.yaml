@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/app: immich
-    gethomepage.dev/group: Media
+    gethomepage.dev/group: Multimedia and Entertainment
     gethomepage.dev/href: https://immich.trusted.nirmalhk7.com
     gethomepage.dev/icon: immich
     gethomepage.dev/name: Immich

@@ -1,9 +1,10 @@
 #oc-status-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
+  gap: 0.55rem;
+  justify-content: flex-end;
   align-items: center;
+  width: 100%;
   margin-top: 0.35rem;
 }
 
@@ -17,6 +18,29 @@
   background-position: center center;
   background-size: cover;
   transition: opacity 250ms ease-in-out, background-image 700ms ease-in-out;
+}
+
+#information-widgets {
+  border-bottom-width: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+#information-widgets .widget-container {
+  opacity: 0.96;
+}
+
+#page_wrapper h2,
+#page_wrapper h3 {
+  letter-spacing: 0;
+}
+
+#page_wrapper h2 {
+  text-transform: uppercase;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: rgb(226 232 240 / 0.94);
 }
 
 html[data-oc-wallpaper-phase="night"] #background {

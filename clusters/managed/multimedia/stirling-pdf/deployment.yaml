@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app stirling-pdf
+  namespace: mgd-multimedia
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: *app
+  template:
+    metadata:
+      labels:
+        app: *app
+        milano.app: *app
+        milano.level: managed
+    spec:
+      containers:
+        - name: *app
+          image: stirlingtools/stirling-pdf:latest
+          imagePullPolicy: Always
+          env:
+            - name: SECURITY_ENABLELOGIN
+              value: "false"
+            - name: SECURITY_OAUTH2_ENABLED
+              value: "false"
+            - name: SECURITY_SAML2_ENABLED
+              value: "false"
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /configs
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1536Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: stirling-pdf-config

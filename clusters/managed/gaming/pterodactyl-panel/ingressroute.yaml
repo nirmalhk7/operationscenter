@@ -6,7 +6,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://gaming.trusted.nirmalhk7.com"
-    gethomepage.dev/group: Gaming
+    gethomepage.dev/group: Multimedia and Entertainment
     gethomepage.dev/description: "Game server panel"
     gethomepage.dev/icon: pterodactyl
     gethomepage.dev/app: *app

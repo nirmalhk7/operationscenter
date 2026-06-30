@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://loki.trusted.nirmalhk7.com"
-    gethomepage.dev/group: Devbench
+    gethomepage.dev/group: Observability
     gethomepage.dev/description: "Log aggregation"
     gethomepage.dev/icon: loki
     gethomepage.dev/app: loki

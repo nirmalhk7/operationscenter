@@ -8,5 +8,6 @@ resources:
   - namespace.yaml
   - immich
   - nextcloud
+  - stirling-pdf
 
 namespace: mgd-multimedia

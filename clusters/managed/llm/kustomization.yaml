@@ -7,6 +7,6 @@ resources:
   - namespace.yaml
   - ollama
   - open-webui
-  - paperclip
+  - searxng
 
 namespace: mgd-llm

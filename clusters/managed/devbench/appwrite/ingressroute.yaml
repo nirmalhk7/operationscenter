@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://dev.trusted.nirmalhk7.com"
-    gethomepage.dev/group: Devbench
+    gethomepage.dev/group: DevBench
     gethomepage.dev/description: "Backend platform"
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app

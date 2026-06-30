@@ -16,9 +16,9 @@
     mariadb_db_names: [nextcloud, gitea, sonarqube, bugsink, authelia, pterodactyl, appwrite]
     vectorchord_pg_password: "{{ lookup('env', 'VECTORCHORD_PG_PASSWORD') }}" 
     vectorchord_image: "tensorchord/vchord-postgres:pg17-v0.4.3"
-    vectorchord_db_names: [immich, authentik, sonarqube, outline, n8n]
+    vectorchord_db_names: [immich, authentik, sonarqube, outline, n8n, langfuse]
     mongodb_root_password: "{{ lookup('env', 'MONGODB_ROOT_PASSWORD') }}"
-    mongodb_db_names: [touca]
+    mongodb_db_names: []
     # External access via nginx stream proxy (db.trusted.nirmalhk7.com:<port>)
     db_proxy_hostname: db.trusted.nirmalhk7.com
     db_proxy_ports:

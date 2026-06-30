@@ -1,0 +1,27 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: searxng-ingressroute
+  namespace: mgd-llm
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: LLMs and AI
+    gethomepage.dev/name: SearXNG
+    gethomepage.dev/description: "Private metasearch"
+    gethomepage.dev/icon: mdi-magnify
+    gethomepage.dev/href: "https://xng.trusted.nirmalhk7.com"
+    gethomepage.dev/weight: "10"
+    gethomepage.dev/pod-selector: "app=searxng"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`xng.trusted.nirmalhk7.com`)
+      kind: Rule
+      middlewares:
+        - name: mgd-ratelimit
+        - name: mgd-headervalidation
+      services:
+        - name: searxng
+          port: 8080

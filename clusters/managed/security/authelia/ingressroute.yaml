@@ -5,7 +5,7 @@ metadata:
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://secure.trusted.nirmalhk7.com"
-    gethomepage.dev/group: Security
+    gethomepage.dev/group: Networking
     gethomepage.dev/icon: *app
     gethomepage.dev/app: *app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
     gethomepage.dev/name: Secure

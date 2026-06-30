@@ -7,21 +7,28 @@ background:
 useEqualHeights: false
 headerStyle: clean
 statusStyle: dot
-fullWidth: true
-maxGroupColumns: 6
+fullWidth: false
+maxGroupColumns: 3
 bookmarksStyle: icons
 iconStyle: theme
 disableIndexing: true
 target: _blank
 layout:
-  Observability: {}
-  Networking: {}
-  Infrastructure: {}
-  Security: {}
-  Automation: {}
-  LLM: {}
-  Productivity: {}
-  Media: {}
-  Devbench: {}
-  Gaming: {}
-  Quick Links: {}
+  Observability:
+    style: row
+    columns: 4
+  Networking:
+    style: row
+    columns: 4
+  LLMs and AI:
+    style: row
+    columns: 4
+  Tools:
+    style: row
+    columns: 4
+  Multimedia and Entertainment:
+    style: row
+    columns: 4
+  DevBench:
+    style: row
+    columns: 4
