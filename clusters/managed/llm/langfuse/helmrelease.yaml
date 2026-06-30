@@ -1,0 +1,56 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app langfuse
+  namespace: mgd-llm
+spec:
+  interval: 10m
+  timeout: 15m
+  chart:
+    spec:
+      chart: langfuse
+      version: 1.5.37
+      sourceRef:
+        kind: HelmRepository
+        name: langfuse
+        namespace: mgd-llm
+  values:
+    fullnameOverride: *app
+    langfuse:
+      nextauth:
+        url: https://langfuse.trusted.nirmalhk7.com
+        secret:
+          secretKeyRef:
+            name: langfuse-secrets
+            key: LANGFUSE_NEXTAUTH_SECRET
+      encryptionKey:
+        secretKeyRef:
+          name: langfuse-secrets
+          key: LANGFUSE_ENCRYPTION_KEY
+      salt:
+        secretKeyRef:
+          name: langfuse-secrets
+          key: LANGFUSE_SALT
+      features:
+        signUpDisabled: true
+        telemetryEnabled: false
+      additionalEnvFrom:
+        - secretRef:
+            name: langfuse-secrets
+      pod:
+        labels:
+          milano.app: *app
+          milano.level: managed
+      ingress:
+        enabled: false
+    postgresql:
+      deploy: false
+      host: 172.16.0.106
+      port: 5432
+      auth:
+        username: langfuse_rw
+        database: langfuse
+        existingSecret: langfuse-secrets
+        secretKeys:
+          userPasswordKey: POSTGRES_PASSWORD
+          adminPasswordKey: POSTGRES_PASSWORD

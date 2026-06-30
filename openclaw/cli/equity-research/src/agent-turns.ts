@@ -13,6 +13,7 @@ import {
   validateReviewBatch,
 } from "./contracts.js";
 import { rankOpportunities } from "./value-engine.js";
+import { observeLangfuse } from "./langfuse.js";
 
 const TASK_ENVELOPES = {
   eq_quantsieve: {
@@ -247,22 +248,35 @@ export function configuredAgentTurn(
       `MountainValue ${agent} input exceeds OpenClaw CLI message limits (${message.length} chars).`,
     );
   }
-  const completed = runner([
-    "agent",
-    "--agent",
-    agent,
-    "--message",
-    message,
-    "--timeout",
-    process.env.OPENCLAW_EQUITY_AGENT_TIMEOUT_SECONDS ?? "900",
-    "--json",
-  ]);
-  if (completed.status !== 0) {
-    const stderr = (completed.stderr ?? "").trim();
-    const stdout = (completed.stdout ?? "").trim();
-    throw new Error(`openclaw MountainValue role ${agent} failed: ${stderr || stdout || "no stdout/stderr"}`);
-  }
-  return parseAgentJson(JSON.parse(completed.stdout) as unknown);
+  return observeLangfuse(
+    `openclaw-agent-${agent}`,
+    {
+      agent,
+      workflow: envelope.workflow,
+      task: envelope.task,
+      contract: envelope.output_contract,
+      review_focus: envelope.review_focus,
+      input_summary: summarizeAgentInput(inputPayload),
+    },
+    () => {
+      const completed = runner([
+        "agent",
+        "--agent",
+        agent,
+        "--message",
+        message,
+        "--timeout",
+        process.env.OPENCLAW_EQUITY_AGENT_TIMEOUT_SECONDS ?? "900",
+        "--json",
+      ]);
+      if (completed.status !== 0) {
+        const stderr = (completed.stderr ?? "").trim();
+        const stdout = (completed.stdout ?? "").trim();
+        throw new Error(`openclaw MountainValue role ${agent} failed: ${stderr || stdout || "no stdout/stderr"}`);
+      }
+      return parseAgentJson(JSON.parse(completed.stdout) as unknown);
+    },
+  );
 }
 
 export function parseAgentJson(output: unknown): Record<string, unknown> {
@@ -315,6 +329,34 @@ function parseJsonText(text: string): unknown {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function summarizeAgentInput(inputPayload: unknown): Record<string, unknown> {
+  if (!isRecord(inputPayload)) {
+    return { type: typeof inputPayload };
+  }
+  const summary: Record<string, unknown> = {
+    keys: Object.keys(inputPayload).slice(0, 12),
+  };
+  if (Array.isArray(inputPayload.candidates)) {
+    summary.candidate_count = inputPayload.candidates.length;
+  }
+  if (Array.isArray(inputPayload.first_pass_reviews)) {
+    summary.first_pass_review_count = inputPayload.first_pass_reviews.length;
+  }
+  if (Array.isArray(inputPayload.news_reviews)) {
+    summary.news_review_count = inputPayload.news_reviews.length;
+  }
+  if (Array.isArray(inputPayload.catalyst_reviews)) {
+    summary.catalyst_review_count = inputPayload.catalyst_reviews.length;
+  }
+  if (Array.isArray(inputPayload.thesis_depth_reviews)) {
+    summary.thesis_depth_review_count = inputPayload.thesis_depth_reviews.length;
+  }
+  if (Array.isArray(inputPayload.risk_reviews)) {
+    summary.risk_review_count = inputPayload.risk_reviews.length;
+  }
+  return summary;
 }
 
 export function firstPassReview(seedPool: ReviewedPayload): ReviewedPayload {

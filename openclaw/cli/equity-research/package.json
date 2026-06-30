@@ -34,6 +34,11 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
+  "dependencies": {
+    "@langfuse/otel": "^5.9.1",
+    "@langfuse/tracing": "^5.9.1",
+    "@opentelemetry/sdk-node": "^0.219.0"
+  },
   "engines": {
     "node": ">=22.22.2 <23"
   },

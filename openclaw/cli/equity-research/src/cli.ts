@@ -31,6 +31,7 @@ import {
   scoreEarningsYield,
   rankOpportunities,
 } from "./value-engine.js";
+import { observeLangfuse, shutdownLangfuse } from "./langfuse.js";
 
 interface ParsedArgs {
   command: string;
@@ -41,7 +42,15 @@ interface ParsedArgs {
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
   try {
-    const output = await commandOutput(args);
+    const output = await observeLangfuse(
+      "equity-research-cli",
+      {
+        command: args.command,
+        options: Object.fromEntries(args.options.entries()),
+        positionals: args.positionals,
+      },
+      () => commandOutput(args),
+    );
     process.stdout.write(`${JSON.stringify(output)}\n`);
     return 0;
   } catch (error) {
@@ -50,6 +59,8 @@ async function main(): Promise<number> {
       return 2;
     }
     throw error;
+  } finally {
+    await shutdownLangfuse();
   }
 }
 

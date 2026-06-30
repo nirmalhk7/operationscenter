@@ -150,6 +150,21 @@ Python virtualenv at `/root/.local/share/kubectl-mcp-server-venv`. It uses the
 service `KUBECONFIG` and is the path Rahul's heartbeat uses to inspect the
 managed cluster for fresh errors.
 
+### Langfuse tracing
+
+OpenClaw can emit Langfuse traces when these environment variables are present
+on the OpenClaw host:
+
+- `OPENCLAW_LANGFUSE_BASE_URL`
+- `OPENCLAW_LANGFUSE_PUBLIC_KEY`
+- `OPENCLAW_LANGFUSE_SECRET_KEY`
+
+`infrastructure/ansible/lxc-openclaw.ansible.yaml` copies `OPENCLAW_*`
+environment variables into `/root/.openclaw/.env`, so exporting those values
+before running the OpenClaw deployment makes the equity-research CLI and its
+agent turns trace into Langfuse automatically. If `OPENCLAW_LANGFUSE_BASE_URL`
+is omitted, the runtime defaults to `https://langfuse.trusted.nirmalhk7.com`.
+
 ### Workspace docs present but not configured
 
 The LXC playbook copies every directory under `openclaw/customAgents/` to

@@ -83,7 +83,7 @@ test("workflow stays JSON command steps", () => {
 
   assert.equal((config.meta as Record<string, unknown>).lastTouchedVersion, "2026.4.23");
   assert.equal(workflow.name, "mountainvalue-daily-equity-research");
-  assert.equal(defaultsModel.primary, "openai-codex/gpt-5.5");
+  assert.equal(defaultsModel.primary, "openai/gpt-5.5");
   assert.deepEqual(
     steps.map((step) => step.id),
     [
@@ -127,7 +127,7 @@ test("workflow stays JSON command steps", () => {
     const profileModel = profile.model as Record<string, unknown>;
     assert.equal(profile.workspace, `/root/.openclaw/subAgents/${worker}`);
     assert.equal(profile.agentDir, `/root/.openclaw/subAgents/${worker}`);
-    assert.equal(profileModel.primary, "openai-codex/gpt-5.5");
+    assert.equal(profileModel.primary, "openai/gpt-5.5");
     assert.equal(bindings.includes(worker), false, `${worker} must not be Discord-bound`);
     assert.match(repoText(join("openclaw", "subAgents", worker, "AGENTS.md")), /subagent/i);
     assert.equal(existsSync(resolve(process.cwd(), "../../..", "openclaw", "subAgents", worker, "SOUL.md")), false);
@@ -137,7 +137,6 @@ test("workflow stays JSON command steps", () => {
   assert.equal(victorTools.profile, "minimal");
   assert.deepEqual(victorTools.allow, [
     "message",
-    "image",
     "lobster",
     "subagents",
     "sessions_spawn",
@@ -172,7 +171,7 @@ test("workflow stays JSON command steps", () => {
     "exa__web_search_advanced_exa",
   ]);
   const plugins = (config.plugins as Record<string, unknown>).entries as Record<string, Record<string, unknown>>;
-  assert.equal(plugins.exa?.enabled, true);
+  assert.ok(plugins.openai?.enabled);
 });
 
 test("worker turns target configured role profiles directly", () => {

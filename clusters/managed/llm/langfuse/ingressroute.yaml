@@ -1,0 +1,29 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: langfuse-ingressroute
+  namespace: mgd-llm
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: DevBench
+    gethomepage.dev/name: Langfuse
+    gethomepage.dev/description: "LLM observability, prompts, and evaluations"
+    gethomepage.dev/icon: mdi-chart-timeline-variant
+    gethomepage.dev/href: "https://langfuse.trusted.nirmalhk7.com"
+    gethomepage.dev/weight: "15"
+    gethomepage.dev/app: "langfuse"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`langfuse.trusted.nirmalhk7.com`)
+      kind: Rule
+      middlewares:
+        - name: mgd-ratelimit
+          namespace: default
+        - name: mgd-headervalidation
+          namespace: default
+      services:
+        - name: langfuse-web
+          port: 3000
