@@ -48,7 +48,7 @@ spec:
       host: langfuse-clickhouse
       auth:
         username: default
-        existingSecret: langfuse-subchart-secrets
+        existingSecret: langfuse-clickhouse-auth
         existingSecretKey: CLICKHOUSE_PASSWORD
     redis:
       auth:

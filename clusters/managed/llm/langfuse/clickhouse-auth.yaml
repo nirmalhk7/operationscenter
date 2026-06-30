@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: langfuse-clickhouse-auth
+  namespace: mgd-llm
+spec:
+  encryptedData:
+    CLICKHOUSE_PASSWORD: AgCUsTQ2ctPJG7HIH9RNkmHWlcFA/jsRQBHsEPijujIcaYWTMBQa6cvEiu+CAUXQLboOmALt5yfRtaVKRRrIoqSamoWPWeGbZiJ6hXAyxYa8CwlGlXP6YB9DbZiKh/T66Zrctf0QYvT7T1qdkSd0BWxtLMH3tfSOlXsB+bSCUD1V0Mk9LPnrBETvIF6nlEiAeShX6BhIN0sHICFv3ox7Hd/NcYSFF9txg/bfNLByk3hL7xCAbrcIPFBZqEf+Rn8War86qFz8sDJWNpLItZeAvTY1qQmPWhKIkt+skR17n7s0fzhe8nnyVuQPTviMIm80BGSpK/+HuAxonbMLnzXmbuGROqmWkn/Jrf+nfzlLU+2as8WisGGK4FAebjS5zWqxco5xJOokqWUwmZlQswRMSfom0hb/1ASqoClNeIIfqNYwJdY0fS1e+Fk8juaIQD49+b3ynnIcGmXWKVyjzoa1lt4GSUbWy3y12KG2xHASioxnlf2Ss6GwlgaoxQ/ZlMUHiSorVuxKUClmEhdaO1noWd4MYDi862XZ2SHMd8vu1w0Jo3J2ausqbA2pE6GHKI/igPw1uoQK1fKvZxkq51RmLswfvCvPg0PBksdUY3uqLHiW7EkE0cK4M8rVVLbmayuKHupSSo8Es7qptnjz5Avt7GEt56JIo5ZMnAYMGHLvhsbO6JHK7StPkvtZr+//6irFNU20K0TiDmXKBpDWJHGAMcwjALIMvoVslKXAHF0veYDN0w==
+  template:
+    metadata:
+      name: langfuse-clickhouse-auth
+      namespace: mgd-llm
+    type: Opaque
