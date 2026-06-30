@@ -40,7 +40,6 @@ Use the closest doc for the area you are changing; do not duplicate long runbook
 | [`renovate.json`](renovate.json) | Renovate bot | Manager file patterns and package rules |
 | [`nginx/README.md`](nginx/README.md) | Operators | Nginx layout (note: paths in that file may lag `nginx/` — trust the tree) |
 | [`clusters/managed/devbench/gitea/README.md`](clusters/managed/devbench/gitea/README.md) | Operators | Gitea Actions runner + SonarQube onboarding |
-| [`clusters/managed/llm/paperclip/PAPERCLIP.md`](clusters/managed/llm/paperclip/PAPERCLIP.md) | Operators | Paperclip-specific notes |
 | [`infrastructure/terra/proxmox/README.md`](infrastructure/terra/proxmox/README.md) | Operators | Proxmox Terraform |
 | [`openclaw/README.md`](openclaw/README.md) | OpenClaw runtime | Separate agent fleet; not repo-development defaults |
 
@@ -74,11 +73,11 @@ Each tier under `clusters/managed/` has a top-level kustomization wired from [`c
 | Directory | K8s namespace | Apps (representative) |
 |---|---|---|
 | `default/` | `mgd-default` | homepage, n8n, outline, nfsprovisioner |
-| `devbench/` | `mgd-devbench` | gitea, loki, sonarqube, appwrite, bugsink, tools, touca, locust |
+| `devbench/` | `mgd-devbench` | gitea, loki, sonarqube, appwrite, bugsink, tools, locust |
 | `security/` | `mgd-security` | authelia, vaultwarden, hashivault |
 | `multimedia/` | `mgd-multimedia` | immich, nextcloud |
-| `monitoring/` | `mgd-monitoring` | prometheus (incl. Grafana), scrutiny, portainer, kasa |
-| `llm/` | `mgd-llm` | ollama, open-webui, paperclip |
+| `monitoring/` | `mgd-monitoring` | prometheus (incl. Grafana), scrutiny, kasa |
+| `llm/` | `mgd-llm` | ollama, open-webui, searxng |
 | `gaming/` | `mgd-gaming` | pterodactyl-panel, pterodactyl-wings |
 | `kube-system/` | `kube-system` | traefik, coredns, sealed-secrets, bot-openclaw RBAC |
 | `flux-system/` | `flux-system` | Flux controllers, Telegram notifications |
