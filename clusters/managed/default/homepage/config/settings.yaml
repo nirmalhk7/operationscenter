@@ -21,13 +21,14 @@ layout:
     style: row
     columns: 4
   LLMs and AI:
-    style: row
-    columns: 4
+    style: column
+    columns: 1
   Tools:
-    style: row
-    columns: 4
+    style: column
+    columns: 1
   Multimedia and Entertainment:
     style: row
+    iconsOnly: true
     columns: 4
   DevBench:
     style: row

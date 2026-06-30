@@ -44,12 +44,12 @@ spec:
       ingress:
         enabled: false
     clickhouse:
+      deploy: false
+      host: langfuse-clickhouse
       auth:
+        username: default
         existingSecret: langfuse-subchart-secrets
         existingSecretKey: CLICKHOUSE_PASSWORD
-      clusterEnabled: false
-      replicaCount: 1
-      resourcesPreset: nano
     redis:
       auth:
         existingSecret: langfuse-subchart-secrets

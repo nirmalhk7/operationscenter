@@ -4,6 +4,9 @@ kind: Kustomization
 resources:
   - secret.yaml
   - subchart-secrets.yaml
+  - clickhouse-config.yaml
+  - clickhouse-service.yaml
+  - clickhouse-deployment.yaml
   - helmrelease.yaml
   - ingressroute.yaml
 
