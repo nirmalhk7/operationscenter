@@ -47,6 +47,9 @@ spec:
       auth:
         existingSecret: langfuse-subchart-secrets
         existingSecretKey: CLICKHOUSE_PASSWORD
+      clusterEnabled: false
+      replicaCount: 1
+      resourcesPreset: nano
     redis:
       auth:
         existingSecret: langfuse-subchart-secrets
