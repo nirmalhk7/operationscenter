@@ -13,3 +13,4 @@ configMapGenerator:
   - name: pterodactyl-minecraft-settings
     files:
       - server.properties=minecraft-server.properties
+      - permissions.json=minecraft-permissions.json

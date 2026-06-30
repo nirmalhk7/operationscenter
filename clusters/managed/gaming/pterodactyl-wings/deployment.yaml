@@ -26,6 +26,8 @@ spec:
               server_dir="/var/lib/pterodactyl/volumes/49df4544-3f70-49f5-b890-7882e0b5bf1b"
               target="${server_dir}/server.properties"
               desired="/etc/minecraft-settings/server.properties"
+              permissions_target="${server_dir}/permissions.json"
+              permissions_desired="/etc/minecraft-settings/permissions.json"
 
               if [ ! -f "${target}" ]; then
                 echo "No server.properties found at ${target}; skipping Minecraft settings overlay."
@@ -51,6 +53,15 @@ spec:
                   printf '%s=%s\n' "${key}" "${value}" >> "${target}"
                 fi
               done < "${desired}"
+
+              if [ -f "${permissions_desired}" ]; then
+                if [ -f "${permissions_target}" ]; then
+                  cp "${permissions_target}" "${permissions_target}.gitops.bak"
+                fi
+                cp "${permissions_desired}" "${permissions_target}"
+                chown 988:988 "${permissions_target}"
+                chmod 664 "${permissions_target}"
+              fi
           volumeMounts:
             - name: volumes
               mountPath: /var/lib/pterodactyl/volumes
