@@ -7,6 +7,7 @@ resources:
   - clickhouse-config.yaml
   - clickhouse-service.yaml
   - clickhouse-deployment.yaml
+  - clickhouse-pvc.yaml
   - helmrelease.yaml
   - ingressroute.yaml
 
