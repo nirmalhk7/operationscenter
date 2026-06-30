@@ -43,6 +43,19 @@ spec:
           milano.level: managed
       ingress:
         enabled: false
+    clickhouse:
+      auth:
+        existingSecret: langfuse-subchart-secrets
+        existingSecretKey: CLICKHOUSE_PASSWORD
+    redis:
+      auth:
+        existingSecret: langfuse-subchart-secrets
+        existingSecretPasswordKey: REDIS_PASSWORD
+    s3:
+      auth:
+        existingSecret: langfuse-subchart-secrets
+        rootUserSecretKey: S3_ROOT_USER
+        rootPasswordSecretKey: S3_ROOT_PASSWORD
     postgresql:
       deploy: false
       host: 172.16.0.106

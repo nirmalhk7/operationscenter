@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - secret.yaml
+  - subchart-secrets.yaml
   - helmrelease.yaml
   - ingressroute.yaml
 
