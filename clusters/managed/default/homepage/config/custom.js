@@ -342,6 +342,85 @@
   }
 })();
 
+(function splitHomepageSections() {
+  const railGroups = new Set(["Tools", "LLMs and AI"]);
+  const mainGroupOrder = new Map([
+    ["Observability", "10"],
+    ["Networking", "20"],
+    ["Multimedia and Entertainment", "30"],
+    ["DevBench", "40"],
+  ]);
+  const railGroupOrder = new Map([
+    ["Tools", "1"],
+    ["LLMs and AI", "2"],
+  ]);
+  let queued = false;
+
+  function findGroupRoot(heading) {
+    let current = heading.parentElement;
+
+    while (current && current !== document.body) {
+      if (current.querySelector(".services-list")) return current;
+      current = current.parentElement;
+    }
+
+    return null;
+  }
+
+  function tagSections() {
+    const sections = [];
+
+    Array.from(document.querySelectorAll("h2, h3")).forEach((heading) => {
+      const groupName = heading.textContent.trim();
+      const isRail = railGroups.has(groupName);
+      const isMain = mainGroupOrder.has(groupName);
+      if (!isRail && !isMain) return;
+
+      const section = findGroupRoot(heading);
+      if (!section) return;
+
+      section.classList.toggle("oc-homepage-rail-section", isRail);
+      section.classList.toggle("oc-homepage-main-section", isMain);
+      section.dataset.ocHomepageGroup = groupName;
+      section.style.order = isRail ? railGroupOrder.get(groupName) : mainGroupOrder.get(groupName);
+      sections.push(section);
+    });
+
+    const parent = sections[0]?.parentElement;
+    if (!parent) return;
+
+    if (sections.every((section) => section.parentElement === parent)) {
+      parent.classList.add("oc-homepage-split-grid");
+    }
+  }
+
+  function scheduleTagging() {
+    if (queued) return;
+
+    queued = true;
+    window.requestAnimationFrame(() => {
+      queued = false;
+      tagSections();
+    });
+  }
+
+  function start() {
+    tagSections();
+
+    const observer = new MutationObserver(scheduleTagging);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
+})();
+
 (function filterLocalHomepage() {
   if (window.location.host !== "10.0.0.10") return;
 

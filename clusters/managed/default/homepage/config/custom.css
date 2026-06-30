@@ -43,6 +43,38 @@
   color: rgb(226 232 240 / 0.94);
 }
 
+.oc-homepage-split-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(230px, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.oc-homepage-main-section {
+  grid-column: span 1;
+  min-width: 0;
+}
+
+.oc-homepage-rail-section {
+  grid-column: 4;
+  min-width: 0;
+}
+
+.oc-homepage-rail-section .services-list {
+  grid-template-columns: 1fr !important;
+}
+
+@media (max-width: 1100px) {
+  .oc-homepage-split-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .oc-homepage-main-section,
+  .oc-homepage-rail-section {
+    grid-column: 1 !important;
+  }
+}
+
 html[data-oc-wallpaper-phase="night"] #background {
   opacity: 0.88;
 }
