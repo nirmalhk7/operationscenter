@@ -7,6 +7,5 @@ resources:
   - _repositories
   - namespace.yaml
   - authelia
-  - vaultwarden
 
 namespace: mgd-security

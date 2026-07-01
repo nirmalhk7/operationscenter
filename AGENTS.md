@@ -74,7 +74,7 @@ Each tier under `clusters/managed/` has a top-level kustomization wired from [`c
 |---|---|---|
 | `default/` | `mgd-default` | homepage, n8n, outline, nfsprovisioner |
 | `devbench/` | `mgd-devbench` | gitea, loki, sonarqube, appwrite, bugsink, tools, locust |
-| `security/` | `mgd-security` | authelia, vaultwarden, hashivault |
+| `security/` | `mgd-security` | authelia, hashivault |
 | `multimedia/` | `mgd-multimedia` | immich, nextcloud |
 | `monitoring/` | `mgd-monitoring` | prometheus (incl. Grafana), scrutiny, kasa |
 | `llm/` | `mgd-llm` | ollama, open-webui, searxng |
