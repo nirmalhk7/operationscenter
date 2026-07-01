@@ -16,9 +16,11 @@ providers:
   finnhub: "{{HOMEPAGE_VAR_FINNHUB_API_KEY}}"
 layout:
   Center:
+    header: false
     style: row
     columns: 2
     Main:
+      header: false
       style: column
       columns: 1
       Networking:
@@ -34,6 +36,7 @@ layout:
         style: row
         columns: 3
     Right:
+      header: false
       style: column
       columns: 1
       LLMs and AI:
