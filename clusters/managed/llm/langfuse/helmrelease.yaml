@@ -45,7 +45,8 @@ spec:
         enabled: false
     clickhouse:
       deploy: false
-      host: langfuse-clickhouse
+      host: 172.16.0.106
+      clusterEnabled: false
       auth:
         username: default
         existingSecret: langfuse-clickhouse-auth

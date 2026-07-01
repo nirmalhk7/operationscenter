@@ -21,9 +21,7 @@ spec:
       kind: Rule
       middlewares:
         - name: mgd-ratelimit
-          namespace: default
         - name: mgd-headervalidation
-          namespace: default
       services:
         - name: langfuse-prod-web
           port: 3000

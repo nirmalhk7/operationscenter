@@ -11,6 +11,9 @@
     docker_repo: "https://download.docker.com/linux/debian"
     docker_gpg: "/etc/apt/keyrings/docker.asc"
     repo_list: "/etc/apt/sources.list.d/docker.list"
+    clickhouse_password: "{{ lookup('env', 'CLICKHOUSE_PASSWORD') }}"
+    clickhouse_password_xml: /root/operationscenter-artifacts/langfuse-clickhouse-default-password.xml
+    clickhouse_db_name: langfuse
     mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
     mariadb_rw_password: "{{ lookup('env', 'MARIADB_RW_PASSWORD') }}"
     mariadb_db_names: [nextcloud, gitea, sonarqube, bugsink, authelia, pterodactyl, appwrite]
@@ -35,7 +38,7 @@
     - name: Ensure DB management dependencies are installed
       ansible.builtin.apt:
         update_cache: true
-        name: [python3-pymysql, python3-psycopg2, python3-pymongo]
+        name: [python3-pymysql, python3-psycopg2, python3-pymongo, python3-clickhouse-driver]
 
     - name: Docker setup
       block:
@@ -88,6 +91,28 @@
             path: /root/operationscenter-artifacts
             state: directory
             mode: '0755'
+
+        - name: Render ClickHouse password XML on the host
+          ansible.builtin.copy:
+            dest: "{{ clickhouse_password_xml }}"
+            mode: '0644'
+            content: |
+              <clickhouse>
+                <users>
+                  <default remove="remove">
+                  </default>
+                  <default>
+                    <password_sha256_hex>{{ clickhouse_password | hash('sha256') }}</password_sha256_hex>
+                    <networks>
+                      <ip>127.0.0.1</ip>
+                      <ip>::1</ip>
+                      <ip>172.16.0.0/24</ip>
+                    </networks>
+                    <profile>default</profile>
+                    <quota>default</quota>
+                  </default>
+                </users>
+              </clickhouse>
 
     - name: Perform docker deployments
       tags: [deployments]
@@ -200,6 +225,58 @@
                 login_host: 127.0.0.1
               loop: "{{ vectorchord_db_names | product(['vchord', 'earthdistance']) | list }}"
               when: item.0 == 'immich'
+
+        - name: ClickHouse deployment
+          tags: clickhouse
+          block:
+            - name: Ensure ClickHouse container is running
+              community.docker.docker_container:
+                name: langfuse-clickhouse
+                image: "clickhouse/clickhouse-server:{{ clickhouse_server_version }}"
+                state: started
+                restart_policy: unless-stopped
+                # External: 172.16.0.106:9000 for Langfuse and clickhouse-driver modules
+                published_ports:
+                  - "8123:8123"
+                  - "9000:9000"
+                volumes:
+                  - langfuse_clickhouse_data:/var/lib/clickhouse
+                  - "{{ clickhouse_password_xml }}:/etc/clickhouse-server/users.d/default-password.xml:ro"
+                env:
+                  CLICKHOUSE_SKIP_USER_SETUP: "1"
+                  CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+                healthcheck:
+                  test:
+                    - CMD
+                    - clickhouse-client
+                    - --user
+                    - default
+                    - --password
+                    - "{{ clickhouse_password }}"
+                    - --query
+                    - SELECT 1
+                  interval: 30s
+                  timeout: 10s
+                  retries: 10
+
+            - name: Wait for ClickHouse healthy
+              ansible.builtin.shell: >
+                {% raw %}docker inspect --format '{{.State.Health.Status}}' langfuse-clickhouse{% endraw %}
+              register: clickhouse_health
+              retries: 20
+              delay: 5
+              until: clickhouse_health.stdout == "healthy"
+              changed_when: false
+
+            - name: Ensure Langfuse ClickHouse database exists
+              community.clickhouse.clickhouse_db:
+                login_host: 172.16.0.106
+                login_port: 9000
+                login_user: default
+                login_password: "{{ clickhouse_password }}"
+                login_db: default
+                name: "{{ clickhouse_db_name }}"
+                state: present
 
         - name: MongoDB deployment
           tags: mongodb
