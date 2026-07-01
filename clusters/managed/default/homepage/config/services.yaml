@@ -1,9 +1,3 @@
-- LLMs and AI:
-  - Robot:
-      name: Robot
-      icon: openclaw
-      description: Openclaw Dashboard
-      href: "https://robot.trusted.nirmalhk7.com"
 - Main:
     - Networking:
         - Tailscale:
@@ -34,15 +28,22 @@
             icon: mdi-lan-connect
             description: Home WiFi device inventory and alerts
             href: "https://sentinel.trusted.nirmalhk7.com"
-- Utilities:
-    - Calendar:
-        widget:
-          type: calendar
-          firstDayInWeek: sunday
-          view: monthly
-          maxEvents: 10
-          showTime: true
-          integrations:
+- Right:
+    - LLMs and AI:
+        - Robot:
+            name: Robot
+            icon: openclaw
+            description: Openclaw Dashboard
+            href: "https://robot.trusted.nirmalhk7.com"
+    - Utilities:
+        - Calendar:
+            widget:
+            type: calendar
+            firstDayInWeek: monday
+            view: monthly
+            maxEvents: 10
+            showTime: false
+            integrations:
             - type: ical
               name: Islam Holidays
               url: https://ics.calendarlabs.com/52/d6c36f4b/Islam_Holidays.ics
