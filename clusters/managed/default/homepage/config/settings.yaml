@@ -7,7 +7,7 @@ background:
 useEqualHeights: false
 headerStyle: clean
 statusStyle: dot
-fullWidth: false
+fullWidth: true
 iconStyle: theme
 disableIndexing: true
 target: _blank
