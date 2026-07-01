@@ -15,32 +15,36 @@ maxGroupColumns: 4
 providers:
   finnhub: "{{FINNHUB_API_KEY}}"
 layout:
-  Main:
+  Center:
     style: row
-    Networking:
+    columns: 4
+    Main:
       style: row
       columns: 3
-    Observability:
-      style: row
-      columns: 3
-    DevBench:
-      style: row
-      columns: 3
-    Multimedia and Entertainment:
-      style: row
-      columns: 3
-  Right:
-    style: column
-    columns: 1
-    LLMs and AI:
+      Networking:
+        style: row
+        columns: 3
+      Observability:
+        style: row
+        columns: 3
+      DevBench:
+        style: row
+        columns: 3
+      Multimedia and Entertainment:
+        style: row
+        columns: 3
+    Right:
       style: column
       columns: 1
-    Tools:
-      style: column
-      columns: 1
-    Bookmarks:
-      style: column
-      columns: 1
-    Utilities:
-      style: column
-      columns: 1
+      LLMs and AI:
+        style: column
+        columns: 1
+      Tools:
+        style: column
+        columns: 1
+      Bookmarks:
+        style: column
+        columns: 1
+      Utilities:
+        style: column
+        columns: 1
