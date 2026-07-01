@@ -133,6 +133,11 @@ spec:
               custom_claims:
                 n8n_instance_role:
                   attribute: n8n_instance_role
+            langfuse_policy:
+              id_token:
+                - email
+                - name
+                - preferred_username
           scopes:
             grafana_role:
               claims:
@@ -321,6 +326,7 @@ spec:
               token_endpoint_auth_method: client_secret_basic
             - client_id: langfuse
               client_name: Langfuse
+              claims_policy: langfuse_policy
               client_secret:
                 path: /secrets/authelia-app-secrets/client-secret-langfuse
               public: false
