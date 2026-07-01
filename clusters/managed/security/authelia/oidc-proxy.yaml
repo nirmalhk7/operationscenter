@@ -26,7 +26,6 @@ data:
         proxy_set_header Accept-Encoding "";
         sub_filter_types application/json;
         sub_filter_once off;
-        sub_filter "\"issuer\":\"https://secure.trusted.nirmalhk7.com\"" "\"issuer\":\"http://authelia-oidc.mgd-security.svc\"";
         sub_filter "https://secure.trusted.nirmalhk7.com/api/oidc/token" "http://authelia-oidc.mgd-security.svc/api/oidc/token";
         sub_filter "https://secure.trusted.nirmalhk7.com/api/oidc/userinfo" "http://authelia-oidc.mgd-security.svc/api/oidc/userinfo";
         sub_filter "https://secure.trusted.nirmalhk7.com/jwks.json" "http://authelia-oidc.mgd-security.svc/jwks.json";
