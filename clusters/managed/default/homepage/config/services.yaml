@@ -36,8 +36,8 @@
             description: Openclaw Dashboard
             href: "https://robot.trusted.nirmalhk7.com"
     - Utilities:
-        - Calendar:
-            widget:
+      - Calendar:
+          widget:
             type: calendar
             firstDayInWeek: monday
             view: monthly
