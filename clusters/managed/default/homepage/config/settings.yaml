@@ -14,7 +14,7 @@ target: _blank
 layout:
   Center1:
     style: row
-    columns: 2
+    columns: 4
     Left1:
       style: row
       size: 3
@@ -36,5 +36,10 @@ layout:
       size: 1
       LLMs and AI:
         style: row
+        columns: 1
       Tools:
         style: row
+        columns: 1
+      Bookmarks:
+        style: row
+        columns: 1
