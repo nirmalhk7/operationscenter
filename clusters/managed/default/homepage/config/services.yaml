@@ -46,9 +46,12 @@
             - type: ical
               name: Islam Holidays
               url: https://ics.calendarlabs.com/52/d6c36f4b/Islam_Holidays.ics
+              color: teal
             - type: ical
               name: India Holidays
+              color: red
               url: https://ics.calendarlabs.com/33/c948265f/India_Holidays.ics
             - type: ical
               name: US Holidays
+              color: blue
               url: https://ics.calendarlabs.com/76/ff0eb1b3/US_Holidays.ics
