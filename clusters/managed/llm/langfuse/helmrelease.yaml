@@ -45,6 +45,13 @@ spec:
           milano.level: managed
       ingress:
         enabled: false
+      web:
+        pod:
+          # Langfuse's NextAuth OIDC discovery reaches the Traefik ingress IP from inside
+          # the cluster, where the certificate is currently self-signed.
+          additionalEnv:
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              value: "0"
     clickhouse:
       deploy: false
       host: 172.16.0.106
