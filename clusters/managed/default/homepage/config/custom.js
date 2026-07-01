@@ -1,3 +1,4 @@
+// Rotates the Homepage background through Boulder-themed images based on local solar phases.
 (function manageBoulderWallpaper() {
   const minuteMs = 60 * 1000;
   const hourMs = 60 * minuteMs;
@@ -20,24 +21,29 @@
     night: ["/images/homepage/night.webp", fallbackImage],
   };
 
+  // Converts degrees to radians for the solar-position calculations.
   function toRadians(degrees) {
     return (degrees * Math.PI) / 180;
   }
 
+  // Converts radians to degrees for the solar-position calculations.
   function toDegrees(radians) {
     return (radians * 180) / Math.PI;
   }
 
+  // Wraps an angle into the 0-360 degree range.
   function normalizeDegrees(value) {
     const normalized = value % 360;
     return normalized < 0 ? normalized + 360 : normalized;
   }
 
+  // Wraps an hour value into the 0-24 hour range.
   function normalizeHours(value) {
     const normalized = value % 24;
     return normalized < 0 ? normalized + 24 : normalized;
   }
 
+  // Extracts calendar date parts for a Date in the configured time zone.
   function getZonedDateParts(date, zone) {
     const parts = new Intl.DateTimeFormat("en-US", {
       timeZone: zone,
@@ -47,6 +53,7 @@
     }).formatToParts(date);
 
     const values = {};
+    // Copies only semantic date fields from Intl parts into a numeric lookup.
     parts.forEach((part) => {
       if (part.type !== "literal") {
         values[part.type] = Number(part.value);
@@ -60,6 +67,7 @@
     };
   }
 
+  // Shifts a date-part object by the requested number of days.
   function addDays(parts, days) {
     const shifted = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
     return {
@@ -69,16 +77,19 @@
     };
   }
 
+  // Calculates the ordinal day number for solar-event formulas.
   function dayOfYear(parts) {
     return Math.floor((Date.UTC(parts.year, parts.month - 1, parts.day) - Date.UTC(parts.year, 0, 0)) / (24 * hourMs));
   }
 
+  // Compares two date-part objects by their UTC calendar date.
   function compareDateParts(left, right) {
     const leftDate = Date.UTC(left.year, left.month - 1, left.day);
     const rightDate = Date.UTC(right.year, right.month - 1, right.day);
     return Math.sign(leftDate - rightDate);
   }
 
+  // Adjusts a computed solar-event timestamp so it lands on the intended local date.
   function alignEventToZonedDate(timestamp, parts) {
     let aligned = timestamp;
 
@@ -93,6 +104,7 @@
     return aligned;
   }
 
+  // Calculates either sunrise or sunset for the configured latitude and longitude.
   function calculateSolarEvent(parts, isSunrise) {
     const zenith = 90.8333;
     const lngHour = longitude / 15;
@@ -134,6 +146,7 @@
     return alignEventToZonedDate(timestamp, parts);
   }
 
+  // Calculates sunrise and sunset for today and tomorrow in the configured time zone.
   function getSolarTimes(now = new Date()) {
     const today = getZonedDateParts(now, timeZone);
     const tomorrow = addDays(today, 1);
@@ -150,6 +163,7 @@
     };
   }
 
+  // Chooses the wallpaper phase for the current time relative to sunrise and sunset.
   function choosePhase(solarTimes) {
     if (!solarTimes?.today?.sunrise || !solarTimes?.today?.sunset) return null;
 
@@ -165,6 +179,7 @@
     return "night";
   }
 
+  // Finds the next timestamp where the wallpaper phase should be recalculated.
   function getNextPhaseBoundary(solarTimes) {
     if (!solarTimes?.today?.sunrise || !solarTimes?.today?.sunset) return null;
 
@@ -179,11 +194,14 @@
       solarTimes.tomorrow?.sunrise ? solarTimes.tomorrow.sunrise - 60 * minuteMs : null,
       solarTimes.tomorrow?.sunrise,
       solarTimes.tomorrow?.sunrise ? solarTimes.tomorrow.sunrise + 3 * 60 * minuteMs : null,
+    // Drops unavailable solar boundaries before selecting the next future one.
     ].filter((boundary) => Number.isFinite(boundary));
 
+    // Returns the first phase boundary that is safely in the future.
     return boundaries.find((boundary) => boundary > now + 1000);
   }
 
+  // Computes how long to wait before refreshing the selected wallpaper.
   function getNextRefreshDelay(solarTimes) {
     const now = Date.now();
     const phaseBoundary = getNextPhaseBoundary(solarTimes);
@@ -192,15 +210,18 @@
     return Math.max(1000, nextRunAt - now);
   }
 
+  // Schedules the next wallpaper refresh and replaces any prior timer.
   function scheduleNextRefresh(solarTimes) {
     window.clearTimeout(refreshTimer);
     refreshTimer = window.setTimeout(applyWallpaper, getNextRefreshDelay(solarTimes));
   }
 
+  // Builds the CSS background stack with the current theme overlay and image URL.
   function buildBackgroundImage(image) {
     return `linear-gradient(rgb(var(--bg-color) / 0.5), rgb(var(--bg-color) / 0.5)), url('${image}')`;
   }
 
+  // Applies the selected wallpaper to Homepage's background targets and metadata.
   function syncWallpaperTarget() {
     if (!currentWallpaper) return;
 
@@ -222,16 +243,19 @@
     }
   }
 
+  // Debounces wallpaper reapplication onto the next animation frame.
   function queueWallpaperSync() {
     if (syncQueued) return;
 
     syncQueued = true;
+    // Runs one wallpaper sync after Homepage finishes the current DOM/style mutation batch.
     window.requestAnimationFrame(() => {
       syncQueued = false;
       syncWallpaperTarget();
     });
   }
 
+  // Watches Homepage DOM/style mutations that can overwrite the background.
   function observeWallpaperTarget() {
     if (observerStarted || !document.body) return;
     observerStarted = true;
@@ -245,12 +269,15 @@
     });
   }
 
+  // Stores the active wallpaper choice and immediately syncs it into the DOM.
   function applyWallpaperImage(image, phase) {
     currentWallpaper = { image, phase };
     syncWallpaperTarget();
   }
 
+  // Preloads fallback images for smoother future phase changes.
   function warmImages(candidates) {
+    // Starts browser image loads without adding the candidates to the document.
     candidates.forEach((candidate) => {
       if (!candidate) return;
       const image = new Image();
@@ -258,6 +285,7 @@
     });
   }
 
+  // Selects the current wallpaper, warms alternates, and schedules the next refresh.
   function applyWallpaper() {
     const solarTimes = getSolarTimes();
     const phase = choosePhase(solarTimes);
@@ -270,11 +298,13 @@
     scheduleNextRefresh(solarTimes);
   }
 
+  // Starts wallpaper observation, applies the initial image, and wires refresh triggers.
   const start = () => {
     observeWallpaperTarget();
     applyWallpaper();
     window.addEventListener("pageshow", applyWallpaper);
     window.addEventListener("focus", applyWallpaper);
+    // Refreshes the wallpaper when the tab becomes visible again.
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) applyWallpaper();
     });
