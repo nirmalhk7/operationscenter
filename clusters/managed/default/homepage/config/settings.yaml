@@ -17,7 +17,7 @@ providers:
 layout:
   Center:
     style: row
-    columns: 4
+    columns: 2
     Main:
       style: row
       columns: 3
