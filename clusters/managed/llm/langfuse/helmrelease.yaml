@@ -52,6 +52,14 @@ spec:
           additionalEnv:
             - name: NODE_TLS_REJECT_UNAUTHORIZED
               value: "0"
+            # Custom Langfuse SSO claim names must match the claims emitted by Authelia.
+            # These are the standard OIDC fields exposed by the Authelia client config.
+            - name: LANGFUSE_CUSTOM_SSO_EMAIL_CLAIM
+              value: email
+            - name: LANGFUSE_CUSTOM_SSO_NAME_CLAIM
+              value: preferred_username
+            - name: LANGFUSE_CUSTOM_SSO_SUB_CLAIM
+              value: sub
     clickhouse:
       deploy: false
       host: 172.16.0.106
