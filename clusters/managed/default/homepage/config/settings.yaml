@@ -11,35 +11,32 @@ fullWidth: false
 iconStyle: theme
 disableIndexing: true
 target: _blank
+maxGroupColumns: 4
 layout:
   Center1:
-    style: row
-    columns: 4
+    style: column
+    rows: 2
     Left1:
-      style: row
+      style: column
       size: 3
-      Observability:
-        style: row
-        columns: 3
       Networking:
         style: row
         columns: 3
-      Multimedia and Entertainment:
+      Observability:
         style: row
-        iconsOnly: true
         columns: 3
       DevBench:
         style: row
         columns: 3
+      Multimedia and Entertainment:
+        style: row
+        columns: 3
     Right1:
-      style: row
+      style: column
       size: 1
       LLMs and AI:
-        style: row
-        columns: 1
+        style: column
       Tools:
-        style: row
-        columns: 1
+        style: column
       Bookmarks:
-        style: row
-        columns: 1
+        style: column
