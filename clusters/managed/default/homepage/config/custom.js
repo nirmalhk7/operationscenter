@@ -317,6 +317,7 @@
   }
 })();
 
+// Adds build/status badges beneath the Homepage information widgets.
 (function mountStatusBadges() {
   const badges = [
     {
@@ -336,6 +337,7 @@
     },
   ];
 
+  // Renders the badge links once the target container is available.
   const render = () => {
     if (document.getElementById("oc-status-badges")) return;
 
@@ -347,6 +349,7 @@
     const container = document.createElement("div");
     container.id = "oc-status-badges";
 
+    // Builds each linked badge image from the static badge configuration.
     badges.forEach(({ href, src, alt }) => {
       const link = document.createElement("a");
       link.href = href;
