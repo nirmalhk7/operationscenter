@@ -50,6 +50,10 @@ spec:
           # Langfuse's NextAuth OIDC discovery reaches the Traefik ingress IP from inside
           # the cluster, where the certificate is currently self-signed.
           additionalEnv:
+            # Use the userinfo response as the profile source. Authelia already emits the
+            # standard email claim there, while the ID-token-only path was still missing it.
+            - name: AUTH_CUSTOM_ID_TOKEN
+              value: "false"
             - name: NODE_TLS_REJECT_UNAUTHORIZED
               value: "0"
             # Custom Langfuse SSO claim names must match the claims emitted by Authelia.
