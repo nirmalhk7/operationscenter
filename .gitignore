@@ -23,6 +23,7 @@ wikis
 *.tfstate
 *.tfstate.*
 *.backup
+.ansible
 **/.terraform/
 **/terraform.tfplan
 **/terraform.tfplan.*
