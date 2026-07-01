@@ -68,6 +68,8 @@ spec:
               path: client-secret-sonarqube
             - key: client-secret-proxmox
               path: client-secret-proxmox
+            - key: client-secret-langfuse
+              path: client-secret-langfuse
     configMap:
       definitions:
         user_attributes:
@@ -308,6 +310,23 @@ spec:
                 - https://proxmox.trusted.nirmalhk7.com
                 - https://proxmox.trusted.nirmalhk7.com:443
                 - https://172.16.0.1:8006
+              scopes:
+                - openid
+                - profile
+                - email
+              response_types:
+                - code
+              grant_types:
+                - authorization_code
+              token_endpoint_auth_method: client_secret_basic
+            - client_id: langfuse
+              client_name: Langfuse
+              client_secret:
+                path: /secrets/authelia-app-secrets/client-secret-langfuse
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://langfuse.trusted.nirmalhk7.com/api/auth/callback/custom
               scopes:
                 - openid
                 - profile

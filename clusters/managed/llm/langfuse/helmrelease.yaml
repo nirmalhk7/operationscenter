@@ -37,6 +37,8 @@ spec:
       additionalEnvFrom:
         - secretRef:
             name: langfuse-secrets
+        - secretRef:
+            name: langfuse-oidc-secrets
       pod:
         labels:
           milano.app: *app
