@@ -36,6 +36,22 @@
             description: Openclaw Dashboard
             href: "https://robot.trusted.nirmalhk7.com"
     - Utilities:
+      - Stocks:
+            widget:
+                type: stocks
+                provider: finnhub
+                showUSMarketStatus: true # optional, defaults to true
+                watchlist:
+                    - GME
+                    - AMC
+                    - NVDA
+                    - TSM
+                    - BRK.A
+                    - TSLA
+                    - AAPL
+                    - MSFT
+                    - AMZN
+                    - BRK.B
       - Calendar:
           widget:
             type: calendar

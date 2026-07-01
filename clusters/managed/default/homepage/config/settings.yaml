@@ -12,6 +12,8 @@ iconStyle: theme
 disableIndexing: true
 target: _blank
 maxGroupColumns: 4
+providers:
+  finnhub: "{{FINNHUB_API_KEY}}"
 layout:
   Main:
     style: row
