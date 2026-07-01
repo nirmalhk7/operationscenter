@@ -13,30 +13,32 @@ disableIndexing: true
 target: _blank
 maxGroupColumns: 4
 layout:
-  Center1:
+  Main:
+    style: row
+    Networking:
+      style: row
+      columns: 3
+    Observability:
+      style: row
+      columns: 3
+    DevBench:
+      style: row
+      columns: 3
+    Multimedia and Entertainment:
+      style: row
+      columns: 3
+  Right:
     style: column
-    rows: 2
-    Left1:
+    columns: 1
+    LLMs and AI:
       style: column
-      size: 3
-      Networking:
-        style: row
-        columns: 3
-      Observability:
-        style: row
-        columns: 3
-      DevBench:
-        style: row
-        columns: 3
-      Multimedia and Entertainment:
-        style: row
-        columns: 3
-    Right1:
+      columns: 1
+    Tools:
       style: column
-      size: 1
-      LLMs and AI:
-        style: column
-      Tools:
-        style: column
-      Bookmarks:
-        style: column
+      columns: 1
+    Bookmarks:
+      style: column
+      columns: 1
+    Utilities:
+      style: column
+      columns: 1

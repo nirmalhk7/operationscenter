@@ -7,38 +7,6 @@
     format:
       dateStyle: short
       timeStyle: short
-- calendar:
-    firstDayInWeek: sunday
-    view: monthly
-    maxEvents: 10
-    showTime: true
-    timezone: America/Los_Angeles
-    integrations:
-      - type: sonarr
-        service_group: Media
-        service_name: Sonarr
-        color: teal
-        baseUrl: https://sonarr.domain.url
-        params:
-          unmonitored: true
-      - type: ical
-        url: https://domain.url/with/link/to.ics
-        name: My Events
-        color: zinc
-        params:
-          showName: true
-- kubernetes:
-    cluster:
-      show: true
-      cpu: true
-      memory: true
-      showLabel: true
-      label: "cluster"
-    nodes:
-      show: true
-      cpu: true
-      memory: true
-      showLabel: true
 - resources:
     backend: resources
     expanded: true
