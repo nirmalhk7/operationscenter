@@ -13,7 +13,7 @@ disableIndexing: true
 target: _blank
 maxGroupColumns: 4
 providers:
-  finnhub: "{{FINNHUB_API_KEY}}"
+  finnhub: "{{HOMEPAGE_VAR_FINNHUB_API_KEY}}"
 layout:
   Center:
     style: row
