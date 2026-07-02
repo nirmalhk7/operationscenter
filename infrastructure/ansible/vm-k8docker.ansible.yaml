@@ -22,6 +22,7 @@
     vectorchord_db_names: [immich, authentik, sonarqube, outline, n8n, langfuse]
     mongodb_root_password: "{{ lookup('env', 'MONGODB_ROOT_PASSWORD') }}"
     mongodb_db_names: []
+    docker_socket_proxy_bind: "172.16.0.106:2375:2375"
     # External access via nginx stream proxy (db.trusted.nirmalhk7.com:<port>)
     db_proxy_hostname: db.trusted.nirmalhk7.com
     db_proxy_ports:
@@ -129,6 +130,11 @@
                 # External: db.trusted.nirmalhk7.com:3306 via nginx stream proxy
                 published_ports:
                   - "3306:3306"
+                labels:
+                  homepage.group: Containers
+                  homepage.name: MariaDB
+                  homepage.icon: mariadb
+                  homepage.description: Shared MariaDB backend
                 volumes:
                   - mariadb_data:/var/lib/mysql
                 env:
@@ -180,6 +186,11 @@
                 # External: db.trusted.nirmalhk7.com:5432 via nginx stream proxy
                 published_ports:
                   - "5432:5432"
+                labels:
+                  homepage.group: Containers
+                  homepage.name: VectorChord Postgres
+                  homepage.icon: postgres
+                  homepage.description: Shared Postgres and vector database backend
                 volumes:
                   - vectorchorddb_data:/var/lib/postgresql/data
                 env:
@@ -239,6 +250,11 @@
                 published_ports:
                   - "8123:8123"
                   - "9000:9000"
+                labels:
+                  homepage.group: Containers
+                  homepage.name: ClickHouse
+                  homepage.icon: clickhouse
+                  homepage.description: Langfuse analytics database
                 volumes:
                   - langfuse_clickhouse_data:/var/lib/clickhouse
                   - "{{ clickhouse_password_xml }}:/etc/clickhouse-server/users.d/default-password.xml:ro"
@@ -290,6 +306,11 @@
                 # External: db.trusted.nirmalhk7.com:27017 via nginx stream proxy
                 published_ports:
                   - "27017:27017"
+                labels:
+                  homepage.group: Containers
+                  homepage.name: MongoDB
+                  homepage.icon: mongodb
+                  homepage.description: Shared MongoDB backend
                 volumes:
                   - mongodb_data:/data/db
                 env:
@@ -322,3 +343,20 @@
                 login_host: 127.0.0.1
                 login_port: 27017
               loop: "{{ mongodb_db_names }}"
+
+    - name: Ensure Homepage Docker socket proxy is running
+      community.docker.docker_container:
+        name: homepage-docker-proxy
+        image: "{{ docker_socket_proxy_image }}"
+        state: started
+        restart_policy: unless-stopped
+        pull: true
+        published_ports:
+          - "{{ docker_socket_proxy_bind }}"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock:ro
+        env:
+          CONTAINERS: "1"
+          SERVICES: "0"
+          TASKS: "0"
+          POST: "0"

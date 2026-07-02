@@ -7,7 +7,7 @@ spec:
     - websecure
     - web
   routes:
-    - match: "Host(`home.trusted.nirmalhk7.com`)"
+    - match: "Host(`home.trusted.nirmalhk7.com`) || Host(`homepage.trusted.nirmalhk7.com`)"
       kind: Rule
       services:
         - name: homepage

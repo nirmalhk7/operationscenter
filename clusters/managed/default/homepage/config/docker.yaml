@@ -1,1 +1,7 @@
+k8docker:
+  host: 172.16.0.106
+  port: 2375
 
+homesecurity:
+  host: 172.16.0.103
+  port: 2375

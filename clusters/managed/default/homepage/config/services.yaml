@@ -2,40 +2,40 @@
   - Main:
     - Networking:
       - Tailscale:
-        id: local-tailscale
-        icon: tailscale-light
-        href: https://login.tailscale.com/admin/machines
+          id: local-tailscale
+          icon: tailscale-light
+          href: https://login.tailscale.com/admin/machines
       - Google Home:
-        id: googlehome
-        icon: google-home
-        href: https://home.google.com/home/1-55a939b1374bf27e1be4ded764e93e4d2c88ff3cbb03c77c535f0137a96f7663/devices
+          id: googlehome
+          icon: google-home
+          href: https://home.google.com/home/1-55a939b1374bf27e1be4ded764e93e4d2c88ff3cbb03c77c535f0137a96f7663/devices
       - Cloudflare:
-        id: local-cloudflare
-        icon: cloudflare
-        href: https://dash.cloudflare.com/397ae3d0f15c4e696b2a31307963d57c/nirmalhk7.com
+          id: local-cloudflare
+          icon: cloudflare
+          href: https://dash.cloudflare.com/397ae3d0f15c4e696b2a31307963d57c/nirmalhk7.com
       - Proxmox:
-        icon: proxmox-light
-        id: proxmox
-        href: https://proxmox.trusted.nirmalhk7.com/
-        widget:
-          type: proxmox
-          url: https://proxmox.trusted.nirmalhk7.com:8006
-          username: "{{HOMEPAGE_VAR_PROXMOX_USERNAME}}"
-          password: "{{HOMEPAGE_VAR_PROXMOX_PASSWORD}}"
+          icon: proxmox-light
+          id: proxmox
+          href: https://proxmox.trusted.nirmalhk7.com/
+          widget:
+            type: proxmox
+            url: https://proxmox.trusted.nirmalhk7.com:8006
+            username: "{{HOMEPAGE_VAR_PROXMOX_USERNAME}}"
+            password: "{{HOMEPAGE_VAR_PROXMOX_PASSWORD}}"
     - Observability:
       - NetAlertX:
-        id: local-netalertx
-        name: NetAlertX
-        icon: mdi-lan-connect
-        description: Home WiFi device inventory and alerts
-        href: "https://sentinel.trusted.nirmalhk7.com"
+          id: local-netalertx
+          name: NetAlertX
+          icon: mdi-lan-connect
+          description: Home WiFi device inventory and alerts
+          href: "https://sentinel.trusted.nirmalhk7.com"
   - Right:
     - LLMs and AI:
       - Robot:
-        name: Robot
-        icon: openclaw
-        description: Openclaw Dashboard
-        href: "https://robot.trusted.nirmalhk7.com"
+          name: Robot
+          icon: openclaw
+          description: Openclaw Dashboard
+          href: "https://robot.trusted.nirmalhk7.com"
     - Utilities:
       - Stocks:
           header: false
@@ -79,4 +79,3 @@
                 name: F1 Schedule
                 color: orange
                 url: https://ics.calendarlabs.com/643/9d174656/F1_Schedule.ics
-                    

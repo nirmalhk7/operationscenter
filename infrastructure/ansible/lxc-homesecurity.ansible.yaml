@@ -41,6 +41,7 @@
     docker_repo: "https://download.docker.com/linux/debian"
     docker_gpg: "/etc/apt/keyrings/docker.asc"
     repo_list: "/etc/apt/sources.list.d/docker.list"
+    docker_socket_proxy_bind: "172.16.0.103:2375:2375"
 
   tasks:
     - name: Check if docker is installed
@@ -138,6 +139,23 @@
         project_src: "{{ homesecurity_install_dir }}"
         state: present
         pull: always
+
+    - name: Ensure Homepage Docker socket proxy is running
+      community.docker.docker_container:
+        name: homepage-docker-proxy
+        image: "{{ docker_socket_proxy_image }}"
+        state: started
+        restart_policy: unless-stopped
+        pull: true
+        published_ports:
+          - "{{ docker_socket_proxy_bind }}"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock:ro
+        env:
+          CONTAINERS: "1"
+          SERVICES: "0"
+          TASKS: "0"
+          POST: "0"
 
     - name: Restart NetAlertX when app.conf changes
       community.docker.docker_compose_v2:

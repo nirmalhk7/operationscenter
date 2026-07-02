@@ -2,6 +2,11 @@ services:
   blackbox:
     image: prom/blackbox-exporter:v0.26.0
     restart: unless-stopped
+    labels:
+      homepage.group: Home Security
+      homepage.name: Blackbox Exporter
+      homepage.icon: prometheus
+      homepage.description: HTTP and ICMP probe exporter
     cap_add:
       - NET_RAW
     ports:
@@ -12,6 +17,11 @@ services:
   network_exporter:
     image: syepes/network_exporter:latest
     restart: unless-stopped
+    labels:
+      homepage.group: Home Security
+      homepage.name: Network Exporter
+      homepage.icon: mdi-network-outline
+      homepage.description: LAN latency and packet loss exporter
     privileged: true
     cap_add:
       - NET_RAW
@@ -27,6 +37,11 @@ services:
   openport:
     image: ghcr.io/renatogalera/openport-exporter:v0.3.0
     restart: unless-stopped
+    labels:
+      homepage.group: Home Security
+      homepage.name: Open Port Exporter
+      homepage.icon: mdi-door-open
+      homepage.description: Port exposure exporter
     cap_add:
       - NET_RAW
     ports:
@@ -39,14 +54,30 @@ services:
   speedtest:
     image: miguelndecarvalho/speedtest-exporter:v3.5.4
     restart: unless-stopped
+    labels:
+      homepage.group: Home Security
+      homepage.name: Speedtest Exporter
+      homepage.icon: mdi-speedometer
+      homepage.description: Internet speed exporter
     ports:
       - "9798:9798"
     environment:
       SPEEDTEST_PORT: "9798"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9798/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   netalertx:
     image: ghcr.io/jokob-sk/netalertx:latest
     restart: unless-stopped
+    labels:
+      homepage.group: Home Security
+      homepage.name: NetAlertX
+      homepage.icon: mdi-lan-connect
+      homepage.href: https://sentinel.trusted.nirmalhk7.com
+      homepage.description: Home WiFi device inventory and alerts
     network_mode: host
     cap_add:
       - NET_ADMIN

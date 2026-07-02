@@ -31,6 +31,10 @@ containerd_version: "2.2.2-1~debian.13~trixie"
 # renovate: datasource=docker depName=clickhouse/clickhouse-server versioning=docker
 clickhouse_server_version: "25.2.1"
 
+# renovate: datasource=docker depName=tecnativa/docker-socket-proxy versioning=docker
+docker_socket_proxy_version: "v0.4.2"
+docker_socket_proxy_image: "tecnativa/docker-socket-proxy:{{ docker_socket_proxy_version }}"
+
 # renovate: datasource=npm depName=openclaw
 openclaw_version: "2026.4.23"
 

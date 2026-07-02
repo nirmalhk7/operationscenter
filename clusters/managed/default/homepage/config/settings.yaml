@@ -45,6 +45,12 @@ layout:
       Tools:
         style: column
         columns: 1
+      Containers:
+        style: column
+        columns: 1
+      Home Security:
+        style: column
+        columns: 1
       Bookmarks:
         style: column
         columns: 1

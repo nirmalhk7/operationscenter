@@ -155,6 +155,17 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
     iface   = "net0"
     enabled = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "2375"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow Homepage Docker discovery from k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "vm-k8docker-config" {
