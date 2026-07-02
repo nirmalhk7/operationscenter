@@ -21,7 +21,7 @@ spec:
           automountServiceAccountToken: false
           containers:
             - name: renovate
-              image: docker.io/renovate/renovate:43.249.5
+              image: docker.io/renovate/renovate:43.250.0
               imagePullPolicy: IfNotPresent
               env:
                 - name: LOG_LEVEL
