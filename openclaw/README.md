@@ -53,6 +53,14 @@ This inventory reflects the deployed OpenClaw runtime configuration in
 - Long-running Discord tasks should produce short progress updates at start,
   major stage changes, and completion or blockage. Final replies should include
   the result, validation performed, and any live follow-up still required.
+- Discord progress drafts are intentionally enabled with
+  `channels.discord.streaming.mode: progress`. OpenClaw v2026.5.28 surfaces
+  commentary in those drafts, so long-running runs should show useful live
+  context before the final reply.
+- Workboard is enabled for coordinating active agent work. Use it for work that
+  needs ownership, heartbeat/progress, proof, release, comments, or unblock
+  state instead of relying only on Discord scrollback. Rahul has explicit
+  Workboard tool access; main gets Workboard through the full tool profile.
 
 Common prompts:
 

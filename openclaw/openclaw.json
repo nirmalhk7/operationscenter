@@ -181,7 +181,15 @@
             "sessions_spawn",
             "sessions_send",
             "sessions_history",
-            "sessions_list"
+            "sessions_list",
+            "workboard_list",
+            "workboard_read",
+            "workboard_claim",
+            "workboard_heartbeat",
+            "workboard_release",
+            "workboard_comment",
+            "workboard_proof",
+            "workboard_unblock"
           ]
         }
       },
