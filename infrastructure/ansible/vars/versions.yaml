@@ -36,7 +36,7 @@ docker_socket_proxy_version: "v0.4.2"
 docker_socket_proxy_image: "tecnativa/docker-socket-proxy:{{ docker_socket_proxy_version }}"
 
 # renovate: datasource=npm depName=openclaw
-openclaw_version: "2026.4.23"
+openclaw_version: "2026.5.28"
 
 # renovate: datasource=npm depName=@clawdbot/lobster
 lobster_version: "2026.4.6"
