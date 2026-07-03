@@ -1,733 +1,289 @@
 import {
-  CANDIDATE_ARRAY_FIELDS,
-  Candidate,
+  AccountSnapshot,
+  Bar,
+  ClockSnapshot,
   ContractError,
-  MetricValue,
-  blankCandidate,
-  normalizeCandidate,
-  recordValue,
+  OrderSnapshot,
+  PositionSnapshot,
+  Quote,
+  TradingConfig,
+  TradingSide,
+  asNullableNumber,
+  normalizeSymbol,
 } from "./contracts.js";
 
-export const SEC_TICKER_INDEX_URL = "https://www.sec.gov/files/company_tickers.json";
-export const SEC_COMPANY_FACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json";
-export const SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json";
-export const SEC_ARCHIVE_DOCUMENT_URL = "https://www.sec.gov/Archives/edgar/data/{cik}/{accession}/{document}";
-const FINVIZ_DEFAULT_SEED_URL = "https://finviz.com/screener.ashx?v=111&f=fa_debteq_u1,fa_pb_u3,fa_pfcf_u20,fa_pe_u20,fa_roe_pos,geo_usa,sh_avgvol_o200,sh_price_o5";
-const FINVIZ_TECHNICAL_SEED_URL = "https://finviz.com/screener.ashx?v=111&f=geo_usa,sh_avgvol_o300,sh_price_o5,ta_sma20_pa,ta_sma50_pa,ta_sma200_pa";
-const DEFAULT_SEC_FILING_FORMS = new Set([
-  "10-K",
-  "10-Q",
-  "8-K",
-  "S-1",
-  "S-4",
-  "10-12B",
-  "FORM 10",
-  "DEF 14A",
-  "PRE 14A",
-  "SC TO-I",
-  "SC 13D",
-  "SC 13D/A",
-]);
+type FetchLike = typeof fetch;
 
-const SEC_FACTS = {
-  revenue: ["Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax"],
-  net_income: ["NetIncomeLoss"],
-  operating_income: ["OperatingIncomeLoss"],
-  operating_cash_flow: [
-    "NetCashProvidedByUsedInOperatingActivities",
-    "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
-  ],
-  capital_expenditures: [
-    "PaymentsToAcquirePropertyPlantAndEquipment",
-    "PaymentsToAcquireProductiveAssets",
-  ],
-  stock_repurchases: [
-    "PaymentsForRepurchaseOfCommonStock",
-    "PaymentsForRepurchaseOfCommonStocks",
-  ],
-  dividends_paid: [
-    "PaymentsOfDividends",
-    "PaymentsOfDividendsCommonStock",
-  ],
-  assets: ["Assets"],
-  current_assets: ["AssetsCurrent"],
-  liabilities: ["Liabilities"],
-  current_liabilities: ["LiabilitiesCurrent"],
-  stockholders_equity: ["StockholdersEquity"],
-  cash_and_equivalents: [
-    "CashAndCashEquivalentsAtCarryingValue",
-    "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
-  ],
-  short_term_debt: ["ShortTermBorrowings", "ShortTermDebtCurrent"],
-  long_term_debt: ["LongTermDebtNoncurrent", "LongTermDebtAndFinanceLeaseObligationsNoncurrent"],
-  property_plant_equipment_net: ["PropertyPlantAndEquipmentNet"],
-  shares_outstanding: [
-    "EntityCommonStockSharesOutstanding",
-    "CommonStocksIncludingAdditionalPaidInCapitalSharesOutstanding",
-    "WeightedAverageNumberOfDilutedSharesOutstanding",
-  ],
-} as const;
-
-type Reader = (url: string) => Promise<unknown>;
-type TextReader = (url: string) => Promise<string>;
-
-export interface ProviderError {
-  provider: string;
-  message: string;
+function assertOk(response: Response, url: string): Promise<Response> {
+  if (!response.ok) {
+    throw new ContractError(`${url} returned ${response.status}`);
+  }
+  return Promise.resolve(response);
 }
 
-export interface CandidatePayload {
-  candidates: Candidate[];
-  provider_errors: ProviderError[];
-  generated_at: string;
-  [key: string]: unknown;
-}
-
-interface SecTickerRow {
-  cik_str: number | string;
-  ticker: string;
-  title?: string;
-}
-
-interface SecFact {
-  val: unknown;
-  filed?: string;
-  end?: string;
-  form?: string;
-  accn?: string;
-  concept: string;
-}
-
-interface SecFilingColumns {
-  accessionNumber?: unknown[];
-  filingDate?: unknown[];
-  form?: unknown[];
-  primaryDocument?: unknown[];
-  primaryDocDescription?: unknown[];
-  reportDate?: unknown[];
-}
-
-export function payload(candidates: Candidate[] = []): CandidatePayload {
+function authHeaders(config: TradingConfig): Record<string, string> {
+  if (!config.alpaca_api_key || !config.alpaca_secret_key) {
+    throw new ContractError("Alpaca credentials are required");
+  }
   return {
-    candidates,
-    provider_errors: [],
-    generated_at: new Date().toISOString(),
+    "APCA-API-KEY-ID": config.alpaca_api_key,
+    "APCA-API-SECRET-KEY": config.alpaca_secret_key,
+    accept: "application/json",
   };
 }
 
-async function fetchJson(url: string): Promise<unknown> {
-  const userAgent = process.env.OPENCLAW_EDGAR_USER_AGENT
-    ?? process.env.SEC_USER_AGENT
-    ?? "operationscenter-equity-research/1.0 admin@example.invalid";
-  const response = await fetch(url, {
-    headers: { accept: "application/json", "user-agent": userAgent },
-  });
-  if (!response.ok) {
-    throw new Error(`${url} returned ${response.status}`);
+function buildUrl(baseUrl: string, path: string, params?: Record<string, string | number | boolean | undefined>): string {
+  const url = new URL(path, ensureTrailingSlash(baseUrl));
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null) {
+        continue;
+      }
+      url.searchParams.set(key, String(value));
+    }
   }
-  return response.json() as Promise<unknown>;
+  return url.toString();
 }
 
-async function fetchText(url: string): Promise<string> {
-  const response = await fetch(url, {
-    headers: { "user-agent": process.env.OPENCLAW_FINVIZ_USER_AGENT ?? "Mozilla/5.0" },
-  });
-  if (!response.ok) {
-    throw new Error(`${url} returned ${response.status}`);
-  }
-  return response.text();
+function ensureTrailingSlash(baseUrl: string): string {
+  return baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
 }
 
-function sourceError(provider: string, error: unknown): ProviderError {
+function asRecord(value: unknown): Record<string, unknown> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new ContractError("expected object response");
+  }
+  return value as Record<string, unknown>;
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function parseClock(value: unknown): ClockSnapshot {
+  const record = asRecord(value);
   return {
-    provider,
-    message: error instanceof Error ? error.message : String(error),
+    timestamp: String(record.timestamp ?? record.t ?? new Date().toISOString()),
+    is_open: Boolean(record.is_open ?? record.isOpen ?? false),
+    next_open: record.next_open !== undefined ? String(record.next_open) : null,
+    next_close: record.next_close !== undefined ? String(record.next_close) : null,
   };
 }
 
-function isTickerRow(value: unknown): value is SecTickerRow {
-  if (value === null || typeof value !== "object") {
-    return false;
-  }
-  const row = value as Record<string, unknown>;
-  return (typeof row.cik_str === "string" || typeof row.cik_str === "number")
-    && typeof row.ticker === "string";
+function parseAccount(value: unknown): AccountSnapshot {
+  const record = asRecord(value);
+  return {
+    status: typeof record.status === "string" ? record.status : undefined,
+    buying_power: asNullableNumber(record.buying_power),
+    cash: asNullableNumber(record.cash),
+    equity: asNullableNumber(record.equity),
+    portfolio_value: asNullableNumber(record.portfolio_value),
+    day_trade_count: asNullableNumber(record.daytrade_count ?? record.day_trade_count),
+    pattern_day_trader: typeof record.pattern_day_trader === "boolean" ? record.pattern_day_trader : undefined,
+    currency: typeof record.currency === "string" ? record.currency : undefined,
+    raw: record,
+  };
 }
 
-export class SECProvider {
-  constructor(private readonly reader: Reader = fetchJson) {}
+function parsePosition(recordLike: unknown): PositionSnapshot {
+  const record = asRecord(recordLike);
+  return {
+    symbol: normalizeSymbol(String(record.symbol ?? "")),
+    qty: Number.parseFloat(String(record.qty ?? record.quantity ?? 0)),
+    market_value: asNullableNumber(record.market_value),
+    avg_entry_price: asNullableNumber(record.avg_entry_price),
+    current_price: asNullableNumber(record.current_price),
+    unrealized_pl: asNullableNumber(record.unrealized_pl),
+    unrealized_plpc: asNullableNumber(record.unrealized_plpc),
+    side: record.side === "short" ? "short" : "long",
+    entry_date: typeof record.entry_date === "string" ? record.entry_date : null,
+    entry_order_id: typeof record.entry_order_id === "string" ? record.entry_order_id : null,
+    protective_stop_price: asNullableNumber(record.protective_stop_price),
+    protective_stop_order_id: typeof record.protective_stop_order_id === "string" ? record.protective_stop_order_id : null,
+    raw: record,
+  };
+}
 
-  async seed(tickers: string[] = [], limit = 40): Promise<CandidatePayload> {
-    const result = payload();
-    if (tickers.length === 0) {
-      return result;
-    }
-    let rows: SecTickerRow[];
-    try {
-      rows = await secTickerRows(this.reader);
-    } catch (error) {
-      result.provider_errors.push(sourceError("sec_xbrl", error));
-      return result;
-    }
-    const wanted = new Set(tickers.map((ticker) => ticker.toUpperCase()));
-    const selected = rows
-      .filter((row) => wanted.size === 0 || wanted.has(row.ticker.toUpperCase()))
-      .slice(0, limit);
-    for (const row of selected) {
-      try {
-        const candidate = await this.candidateFromRow(row);
-        if (candidate) {
-          result.candidates.push(candidate);
-        }
-      } catch (error) {
-        result.provider_errors.push(sourceError("sec_xbrl", error));
+function parseOrder(recordLike: unknown): OrderSnapshot {
+  const record = asRecord(recordLike);
+  return {
+    id: String(record.id ?? ""),
+    client_order_id: typeof record.client_order_id === "string" ? record.client_order_id : undefined,
+    symbol: normalizeSymbol(String(record.symbol ?? "")),
+    side: record.side === "sell" ? "sell" : "buy",
+    type: (record.type === "market" || record.type === "limit" || record.type === "stop" || record.type === "stop_limit")
+      ? record.type
+      : "market",
+    status: String(record.status ?? ""),
+    qty: asNullableNumber(record.qty),
+    filled_qty: asNullableNumber(record.filled_qty),
+    limit_price: asNullableNumber(record.limit_price),
+    stop_price: asNullableNumber(record.stop_price),
+    filled_avg_price: asNullableNumber(record.filled_avg_price),
+    created_at: typeof record.created_at === "string" ? record.created_at : undefined,
+    submitted_at: typeof record.submitted_at === "string" ? record.submitted_at : undefined,
+    filled_at: typeof record.filled_at === "string" ? record.filled_at : null,
+    canceled_at: typeof record.canceled_at === "string" ? record.canceled_at : null,
+    raw: record,
+  };
+}
+
+function parseQuote(symbol: string, value: unknown): Quote {
+  const root = asRecord(value);
+  const record = asRecord(root.quote ?? root);
+  return {
+    symbol: normalizeSymbol(symbol),
+    timestamp: String(record.t ?? record.timestamp ?? record.timestamp_utc ?? new Date().toISOString()),
+    bid: asNullableNumber(record.bp ?? record.bid) ?? 0,
+    ask: asNullableNumber(record.ap ?? record.ask) ?? 0,
+    bid_size: asNullableNumber(record.bs ?? record.bid_size) ?? undefined,
+    ask_size: asNullableNumber(record.as ?? record.ask_size) ?? undefined,
+    raw: record,
+  };
+}
+
+function parseBar(recordLike: unknown): Bar {
+  const record = asRecord(recordLike);
+  return {
+    symbol: normalizeSymbol(String(record.symbol ?? "")),
+    t: String(record.t ?? record.timestamp ?? ""),
+    o: Number(record.o ?? record.open ?? 0),
+    h: Number(record.h ?? record.high ?? 0),
+    l: Number(record.l ?? record.low ?? 0),
+    c: Number(record.c ?? record.close ?? 0),
+    v: asNullableNumber(record.v ?? record.volume) ?? undefined,
+  };
+}
+
+function normalizeBarsResponse(value: unknown): Record<string, Bar[]> {
+  const record = asRecord(value);
+  const bars = record.bars ?? record.data ?? record.items ?? record;
+  if (Array.isArray(bars)) {
+    const grouped: Record<string, Bar[]> = {};
+    for (const entry of bars) {
+      const bar = parseBar(entry);
+      if (!grouped[bar.symbol]) {
+        grouped[bar.symbol] = [];
       }
+      grouped[bar.symbol].push(bar);
     }
-    return result;
+    return grouped;
   }
-
-  private async candidateFromRow(row: SecTickerRow): Promise<Candidate | null> {
-    const parsedCik = Number.parseInt(String(row.cik_str), 10);
-    if (!Number.isFinite(parsedCik)) {
-      throw new Error(`${row.ticker} SEC CIK must be numeric`);
-    }
-    const cik = String(parsedCik).padStart(10, "0");
-    const factsResponse = await this.reader(SEC_COMPANY_FACTS_URL.replace("{cik}", cik));
-    const { metrics, filingRefs } = extractSecFacts(factsResponse);
-    if (Object.keys(metrics).length === 0) {
-      return null;
-    }
-    const candidate = blankCandidate(row.ticker, row.title ?? "");
-    candidate.sources = ["sec_xbrl"];
-    candidate.metrics = metrics;
-    candidate.metrics.sec_cik = cik;
-    candidate.filing_refs = filingRefs;
-    candidate.screen_reasons = secScreenReasons(metrics);
-    if (candidate.screen_reasons.length === 0) {
-      candidate.evidence_gaps.push("SEC facts need value or profitability review.");
-    }
-    return candidate;
+  const grouped: Record<string, Bar[]> = {};
+  for (const [symbol, entries] of Object.entries(asRecord(bars))) {
+    grouped[normalizeSymbol(symbol)] = asArray(entries).map(parseBar);
   }
+  return grouped;
 }
 
-async function secTickerRows(reader: Reader): Promise<SecTickerRow[]> {
-  const tickerIndex = recordValue(await reader(SEC_TICKER_INDEX_URL));
-  const rows = Object.values(tickerIndex).filter(isTickerRow);
-  if (rows.length === 0) {
-    throw new Error("SEC ticker index has no rows");
-  }
-  return rows;
-}
+export class AlpacaClient {
+  constructor(
+    private readonly config: TradingConfig,
+    private readonly fetchImpl: FetchLike = fetch,
+  ) {}
 
-export function extractSecFacts(companyFacts: unknown): {
-  metrics: Record<string, MetricValue>;
-  filingRefs: Array<Record<string, string>>;
-} {
-  const response = recordValue(companyFacts);
-  const facts = recordValue(response.facts);
-  const taxonomy = recordValue(facts["us-gaap"]);
-  const metrics: Record<string, MetricValue> = {};
-  const filingRefs: Array<Record<string, string>> = [];
-  for (const [metric, concepts] of Object.entries(SEC_FACTS)) {
-    const fact = latestSecFact(taxonomy, concepts);
-    if (!fact) {
-      continue;
-    }
-    metrics[metric] = fact.val as MetricValue;
-    metrics[`${metric}_filed`] = fact.filed ?? null;
-    filingRefs.push({
-      concept: fact.concept,
-      form: fact.form ?? "",
-      filed: fact.filed ?? "",
-      accession: fact.accn ?? "",
-    });
+  async getClock(): Promise<ClockSnapshot> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/clock");
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return parseClock(await response.json());
   }
-  const revenue = numeric(metrics.revenue);
-  const netIncome = numeric(metrics.net_income);
-  const operatingCashFlow = numeric(metrics.operating_cash_flow);
-  const capitalExpenditures = numeric(metrics.capital_expenditures);
-  const assets = numeric(metrics.assets);
-  const currentAssets = numeric(metrics.current_assets);
-  const liabilities = numeric(metrics.liabilities);
-  const currentLiabilities = numeric(metrics.current_liabilities);
-  const equity = numeric(metrics.stockholders_equity);
-  const shortTermDebt = numeric(metrics.short_term_debt);
-  const longTermDebt = numeric(metrics.long_term_debt);
-  if (revenue && netIncome !== null) {
-    metrics.net_margin = round(netIncome / revenue);
-  }
-  if (assets && liabilities !== null) {
-    metrics.liabilities_to_assets = round(liabilities / assets);
-  }
-  if (currentAssets !== null && currentLiabilities !== null) {
-    metrics.working_capital = round(currentAssets - currentLiabilities);
-    if (currentLiabilities !== 0) {
-      metrics.current_ratio = round(currentAssets / currentLiabilities);
-    }
-  }
-  if (shortTermDebt !== null || longTermDebt !== null) {
-    metrics.total_debt = round((shortTermDebt ?? 0) + (longTermDebt ?? 0));
-  }
-  if (equity && netIncome !== null) {
-    metrics.return_on_equity = round(netIncome / equity);
-  }
-  if (equity && liabilities !== null) {
-    metrics.liabilities_to_equity = round(liabilities / equity);
-  }
-  if (equity && numeric(metrics.total_debt) !== null) {
-    metrics.debt_to_equity = round(Number(metrics.total_debt) / equity);
-  }
-  if (operatingCashFlow !== null && capitalExpenditures !== null) {
-    metrics.owner_earnings_proxy = round(operatingCashFlow - Math.abs(capitalExpenditures));
-  }
-  return { metrics, filingRefs };
-}
 
-function latestSecFact(
-  taxonomy: Record<string, unknown>,
-  concepts: readonly string[],
-): SecFact | undefined {
-  const facts: SecFact[] = [];
-  for (const concept of concepts) {
-    const conceptRecord = taxonomy[concept];
-    if (!conceptRecord || typeof conceptRecord !== "object") {
-      continue;
-    }
-    const unitsValue = (conceptRecord as Record<string, unknown>).units;
-    if (!unitsValue || typeof unitsValue !== "object") {
-      continue;
-    }
-    const units = unitsValue as Record<string, unknown>;
-    for (const unit of ["USD", "USD/shares", "shares"]) {
-      const entries = units[unit];
-      if (!Array.isArray(entries)) {
-        continue;
-      }
-      for (const entry of entries) {
-        if (entry && typeof entry === "object") {
-          const fact = entry as Record<string, unknown>;
-          if ((fact.form === "10-K" || fact.form === "10-Q") && "val" in fact) {
-            facts.push({ ...(fact as Omit<SecFact, "concept">), concept });
-          }
-        }
-      }
-    }
+  async getAccount(): Promise<AccountSnapshot> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/account");
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return parseAccount(await response.json());
   }
-  return facts.sort((left, right) => {
-    const filed = String(left.filed ?? "").localeCompare(String(right.filed ?? ""));
-    return filed || String(left.end ?? "").localeCompare(String(right.end ?? ""));
-  }).at(-1);
-}
 
-function numeric(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-function round(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
-}
-
-function secScreenReasons(metrics: Record<string, MetricValue>): string[] {
-  const reasons: string[] = [];
-  const income = numeric(metrics.net_income);
-  const equity = numeric(metrics.stockholders_equity);
-  const leverage = numeric(metrics.liabilities_to_assets);
-  if (income !== null && income > 0) {
-    reasons.push("SEC facts show positive latest net income.");
+  async getPositions(): Promise<PositionSnapshot[]> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/positions");
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    const body = await response.json();
+    return asArray(body).map(parsePosition);
   }
-  if (equity !== null && equity > 0) {
-    reasons.push("SEC facts show positive stockholders equity.");
-  }
-  if (leverage !== null && leverage < 0.8) {
-    reasons.push("SEC facts show liabilities below 80% of assets.");
-  }
-  return reasons;
-}
 
-export class FinvizProvider {
-  constructor(private readonly reader: TextReader = fetchText) {}
+  async getOpenOrders(): Promise<OrderSnapshot[]> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/orders", { status: "open", nested: true, limit: 500 });
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return asArray(await response.json()).map(parseOrder);
+  }
 
-  async seed(limit = 40): Promise<CandidatePayload> {
-    return seedFinvizCandidates(
-      this.reader,
-      process.env.OPENCLAW_FINVIZ_SEED_URL ?? FINVIZ_DEFAULT_SEED_URL,
+  async getOrders(status = "open"): Promise<OrderSnapshot[]> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/orders", { status, nested: true, limit: 500 });
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return asArray(await response.json()).map(parseOrder);
+  }
+
+  async getAsset(symbol: string): Promise<Record<string, unknown>> {
+    const normalized = normalizeSymbol(symbol);
+    const url = buildUrl(this.config.alpaca_trading_base_url, `/v2/assets/${normalized}`);
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return asRecord(await response.json());
+  }
+
+  async getDailyBars(symbols: readonly string[], limit = 260): Promise<Record<string, Bar[]>> {
+    const normalized = symbols.map(normalizeSymbol).join(",");
+    const url = buildUrl(this.config.alpaca_data_base_url, "/v2/stocks/bars", {
+      symbols: normalized,
+      timeframe: "1Day",
+      adjustment: "raw",
+      feed: this.config.alpaca_data_feed,
       limit,
-      "finviz",
-      "Finviz value, liquidity, profitability, and leverage seed filter.",
-    );
-  }
-}
-
-export class FinvizTechnicalProvider {
-  constructor(private readonly reader: TextReader = fetchText) {}
-
-  async seed(limit = 40): Promise<CandidatePayload> {
-    return seedFinvizCandidates(
-      this.reader,
-      process.env.OPENCLAW_FINVIZ_TECHNICAL_SEED_URL ?? FINVIZ_TECHNICAL_SEED_URL,
-      limit,
-      "finviz_technical",
-      "Finviz technical trend seed: liquid US stocks above 20-, 50-, and 200-day SMAs.",
-    );
-  }
-}
-
-async function seedFinvizCandidates(
-  reader: TextReader,
-  seedUrl: string,
-  limit: number,
-  provider: string,
-  reason: string,
-): Promise<CandidatePayload> {
-  const result = payload();
-  let tickers: string[];
-  try {
-    const html = await reader(seedUrl);
-    const candidates = parseFinvizCandidates(html, provider, reason).slice(0, limit);
-    if (candidates.length > 0) {
-      result.candidates.push(...candidates);
-      return result;
-    }
-    tickers = parseFinvizTickers(html).slice(0, limit);
-  } catch (error) {
-    result.provider_errors.push(sourceError(provider, error));
-    return result;
-  }
-  for (const ticker of tickers) {
-    const candidate = blankCandidate(ticker);
-    candidate.sources = [provider];
-    candidate.screen_reasons = [reason];
-    candidate.evidence_gaps = [
-      "Finviz seed values are discovery context and require primary-source checks.",
-    ];
-    result.candidates.push(candidate);
-  }
-  return result;
-}
-
-export class SECFilingSearchProvider {
-  constructor(private readonly reader: Reader = fetchJson) {}
-
-  async enrich(seed: unknown, limit = 6): Promise<CandidatePayload> {
-    const result = mergeSeedPayloads(seed);
-    let rows: SecTickerRow[];
-    try {
-      rows = await secTickerRows(this.reader);
-    } catch (error) {
-      result.provider_errors.push(sourceError("sec_submissions", error));
-      return result;
-    }
-    const rowsByTicker = new Map(rows.map((row) => [row.ticker.toUpperCase(), row]));
-    for (const candidate of result.candidates) {
-      const row = rowsByTicker.get(candidate.ticker.toUpperCase());
-      if (!row) {
-        candidate.evidence_gaps.push("SEC filing search could not map this ticker to a CIK.");
-        continue;
-      }
-      try {
-        const cik = cikForRow(row);
-        await this.enrichCompanyFacts(candidate, cik);
-        const submissions = await this.reader(SEC_SUBMISSIONS_URL.replace("{cik}", cik));
-        const filingRefs = extractSecFilingRefs(submissions, cik, limit);
-        if (filingRefs.length === 0) {
-          candidate.evidence_gaps.push("SEC filing search found no recent research filing refs.");
-        }
-        appendUnique(candidate.filing_refs, filingRefs);
-      } catch (error) {
-        result.provider_errors.push(sourceError("sec_submissions", error));
-      }
-    }
-    return result;
-  }
-
-  private async enrichCompanyFacts(candidate: Candidate, cik: string): Promise<void> {
-    try {
-      const factsResponse = await this.reader(SEC_COMPANY_FACTS_URL.replace("{cik}", cik));
-      const { metrics, filingRefs } = extractSecFacts(factsResponse);
-      if (Object.keys(metrics).length === 0) {
-        candidate.evidence_gaps.push("SEC company facts returned no usable value metrics.");
-        return;
-      }
-      for (const [key, value] of Object.entries(metrics)) {
-        if (!(key in candidate.metrics)) {
-          candidate.metrics[key] = value;
-        }
-      }
-      candidate.metrics.sec_cik = cik;
-      appendUnique(candidate.sources, ["sec_xbrl"]);
-      appendUnique(candidate.filing_refs, filingRefs);
-      appendUnique(candidate.screen_reasons, secScreenReasons(metrics));
-    } catch (error) {
-      candidate.evidence_gaps.push(
-        `SEC company facts enrichment failed: ${error instanceof Error ? error.message : String(error)}.`,
-      );
-    }
-  }
-}
-
-export function extractSecFilingRefs(
-  submissions: unknown,
-  cik: string,
-  limit = 6,
-  forms: ReadonlySet<string> = configuredSecFilingForms(),
-): Array<Record<string, string>> {
-  const submission = recordValue(submissions);
-  const filings = recordValue(submission.filings);
-  const recent = recordValue(filings.recent) as SecFilingColumns;
-  const found: Array<Record<string, string>> = [];
-  for (let index = 0; index < (recent.form?.length ?? 0) && found.length < limit; index += 1) {
-    const form = columnString(recent.form, index).toUpperCase();
-    const accession = columnString(recent.accessionNumber, index);
-    const primaryDocument = columnString(recent.primaryDocument, index);
-    if (!form || !forms.has(form) || !accession || !primaryDocument) {
-      continue;
-    }
-    const archiveCik = String(Number.parseInt(cik, 10));
-    const archiveAccession = accession.replaceAll("-", "");
-    found.push({
-      source: "sec_submissions",
-      form,
-      filed: columnString(recent.filingDate, index),
-      report_date: columnString(recent.reportDate, index),
-      accession,
-      primary_document: primaryDocument,
-      primary_document_description: columnString(recent.primaryDocDescription, index),
-      document_url: SEC_ARCHIVE_DOCUMENT_URL
-        .replace("{cik}", archiveCik)
-        .replace("{accession}", archiveAccession)
-        .replace("{document}", primaryDocument),
     });
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return normalizeBarsResponse(await response.json());
   }
-  return found;
-}
 
-function cikForRow(row: SecTickerRow): string {
-  const cik = Number.parseInt(String(row.cik_str), 10);
-  if (!Number.isFinite(cik)) {
-    throw new Error(`${row.ticker} SEC CIK must be numeric`);
+  async getLatestQuote(symbol: string): Promise<Quote> {
+    const normalized = normalizeSymbol(symbol);
+    const url = buildUrl(this.config.alpaca_data_base_url, `/v2/stocks/${normalized}/quotes/latest`, {
+      feed: this.config.alpaca_data_feed,
+    });
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return parseQuote(normalized, await response.json());
   }
-  return String(cik).padStart(10, "0");
-}
 
-function configuredSecFilingForms(): ReadonlySet<string> {
-  const configured = process.env.OPENCLAW_SEC_FILING_FORMS;
-  if (!configured) {
-    return DEFAULT_SEC_FILING_FORMS;
+  async submitOrder(payload: {
+    symbol: string;
+    side: TradingSide;
+    type: "market" | "limit";
+    time_in_force: "day" | "gtc";
+    qty?: number;
+    notional?: number;
+    limit_price?: number | null;
+    stop_price?: number | null;
+    client_order_id: string;
+    extended_hours?: boolean;
+    order_class?: string;
+    take_profit?: { limit_price: number };
+    stop_loss?: { stop_price: number };
+  }): Promise<OrderSnapshot> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/orders");
+    const response = await assertOk(await this.fetchImpl(url, {
+      method: "POST",
+      headers: {
+        ...authHeaders(this.config),
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }), url);
+    return parseOrder(await response.json());
   }
-  return new Set(configured.split(",").map((form) => form.trim().toUpperCase()).filter(Boolean));
-}
 
-function columnString(column: unknown[] | undefined, index: number): string {
-  const value = column?.[index];
-  return typeof value === "string" ? value : "";
-}
+  async cancelOrder(orderId: string): Promise<void> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, `/v2/orders/${orderId}`);
+    await assertOk(await this.fetchImpl(url, {
+      method: "DELETE",
+      headers: authHeaders(this.config),
+    }), url);
+  }
 
-function appendUnique(target: unknown[], additions: unknown[]): void {
-  for (const addition of additions) {
-    if (!target.some((current) => JSON.stringify(current) === JSON.stringify(addition))) {
-      target.push(addition);
-    }
-  }
-}
-
-const FINVIZ_TICKER_PATTERNS = [
-  /quote\.ashx\?t=([A-Z0-9.-]+)/gi,
-  /stock\?t=([A-Z0-9.-]+)/gi,
-  /data-boxover-ticker="([A-Z0-9.-]+)"/gi,
-] as const;
-
-const FINVIZ_ROW_PATTERNS = [
-  /<tr[^>]*>[\s\S]*?quote\.ashx\?t=([A-Z0-9.-]+)[\s\S]*?<\/tr>/gi,
-  /<tr[^>]*>[\s\S]*?data-boxover-ticker="([A-Z0-9.-]+)"[\s\S]*?<\/tr>/gi,
-] as const;
-
-export function parseFinvizTickers(html: string): string[] {
-  const tickers = new Set<string>();
-  for (const pattern of FINVIZ_TICKER_PATTERNS) {
-    for (const match of html.matchAll(pattern)) {
-      tickers.add(match[1].toUpperCase());
-    }
-  }
-  if (tickers.size === 0) {
-    throw new Error("Finviz screener response has no quote tickers");
-  }
-  return [...tickers];
-}
-
-export function parseFinvizCandidates(html: string, provider: string, reason: string): Candidate[] {
-  const candidates: Candidate[] = [];
-  for (const rows of FINVIZ_ROW_PATTERNS) {
-    for (const row of html.matchAll(rows)) {
-      const candidate = finvizCandidateFromRow(row[0], row[1], provider, reason);
-      if (candidate && !candidates.some((entry) => entry.ticker === candidate.ticker)) {
-        candidates.push(candidate);
-      }
-    }
-    if (candidates.length > 0) {
-      return candidates;
-    }
-  }
-  return candidates;
-}
-
-function finvizCandidateFromRow(
-  rowHtml: string,
-  tickerRaw: string,
-  provider: string,
-  reason: string,
-): Candidate | null {
-  const ticker = tickerRaw.toUpperCase();
-  const companyMatch = rowHtml.match(/data-boxover-company="([^"]+)"/i);
-  const valueMatch = rowHtml.match(/data-boxover-value="([^"]+)"/i);
-  const cells = tableCells(rowHtml);
-  const tickerIndex = cells.findIndex((cell) => cell.toUpperCase() === ticker);
-  const candidate = blankCandidate(
-    ticker,
-    companyMatch?.[1] ?? (tickerIndex >= 0 ? cells[tickerIndex + 1] ?? "" : ""),
-  );
-  candidate.sources = [provider];
-  candidate.screen_reasons = [reason];
-  candidate.evidence_gaps = [
-    "Finviz seed values are discovery context and require primary-source checks.",
-  ];
-  const marketCap = parseFinvizNumber(valueMatch?.[1])
-    ?? parseFinvizNumber(tickerIndex >= 0 ? cells[tickerIndex + 5] : undefined);
-  const peRatio = parsePlainNumber(tickerIndex >= 0 ? cells[tickerIndex + 6] : undefined);
-  const price = parsePlainNumber(tickerIndex >= 0 ? cells[tickerIndex + 7] : undefined);
-  if (marketCap !== null) {
-    candidate.metrics.market_cap = marketCap;
-  }
-  if (peRatio !== null) {
-    candidate.metrics.pe_ratio = peRatio;
-  }
-  if (price !== null) {
-    candidate.metrics.price = price;
-  }
-  return candidate;
-}
-
-function tableCells(rowHtml: string): string[] {
-  return [...rowHtml.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)]
-    .map((match) => stripHtml(match[1]))
-    .filter((cell) => cell.length > 0);
-}
-
-function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function parseFinvizNumber(value: string | undefined): number | null {
-  if (!value || value === "-") {
-    return null;
-  }
-  const match = value.trim().match(/^(-?\d+(?:\.\d+)?)([KMBT])?$/i);
-  if (!match) {
-    return parsePlainNumber(value);
-  }
-  const number = Number.parseFloat(match[1]);
-  if (!Number.isFinite(number)) {
-    return null;
-  }
-  const suffix = match[2]?.toUpperCase();
-  const multiplier = suffix === "T" ? 1_000_000_000_000
-    : suffix === "B" ? 1_000_000_000
-      : suffix === "M" ? 1_000_000
-        : suffix === "K" ? 1_000
-          : 1;
-  return Math.round(number * multiplier);
-}
-
-function parsePlainNumber(value: string | undefined): number | null {
-  if (!value || value === "-") {
-    return null;
-  }
-  const parsed = Number.parseFloat(value.replace(/[$,%]/g, ""));
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-export function appendSeed(upstream: unknown, addition: unknown): CandidatePayload {
-  const combined = payload([
-    ...validatePayloadCandidates(upstream),
-    ...validatePayloadCandidates(addition),
-  ]);
-  combined.provider_errors = [
-    ...payloadErrors(upstream),
-    ...payloadErrors(addition),
-  ];
-  return combined;
-}
-
-export function mergeSeedPayloads(...seeds: unknown[]): CandidatePayload {
-  const merged = payload();
-  const candidates = new Map<string, Candidate>();
-  for (const seed of seeds) {
-    merged.provider_errors.push(...payloadErrors(seed));
-    for (const candidate of validatePayloadCandidates(seed)) {
-      const current = candidates.get(candidate.ticker);
-      if (current) {
-        mergeCandidate(current, candidate);
-      } else {
-        candidates.set(candidate.ticker, candidate);
-      }
-    }
-  }
-  merged.candidates = [...candidates.values()];
-  return merged;
-}
-
-function payloadErrors(seed: unknown): ProviderError[] {
-  if (!seed || typeof seed !== "object") {
-    return [];
-  }
-  const errors = (seed as Record<string, unknown>).provider_errors;
-  return Array.isArray(errors) ? errors as ProviderError[] : [];
-}
-
-function validatePayloadCandidates(seed: unknown): Candidate[] {
-  if (!seed || typeof seed !== "object" || Array.isArray(seed)) {
-    throw new ContractError("seed payload must be an object");
-  }
-  const candidates = (seed as Record<string, unknown>).candidates ?? [];
-  if (!Array.isArray(candidates)) {
-    throw new ContractError("seed payload candidates must be an array");
-  }
-  return candidates.map(normalizeCandidate);
-}
-
-function mergeCandidate(target: Candidate, incoming: Candidate): void {
-  if (!target.company && incoming.company) {
-    target.company = incoming.company;
-  }
-  for (const field of CANDIDATE_ARRAY_FIELDS) {
-    for (const value of incoming[field]) {
-      if (!target[field].some((current) => JSON.stringify(current) === JSON.stringify(value))) {
-        target[field].push(value);
-      }
-    }
-  }
-  for (const [key, value] of Object.entries(incoming.metrics)) {
-    const current = target.metrics[key];
-    if (!(key in target.metrics)) {
-      target.metrics[key] = value;
-    } else if (JSON.stringify(current) !== JSON.stringify(value)) {
-      const conflicts = conflictMetrics(target.metrics);
-      const values = conflicts[key] ?? [current];
-      if (!values.some((item) => JSON.stringify(item) === JSON.stringify(value))) {
-        values.push(value);
-      }
-      conflicts[key] = values;
-    }
+  async getOrder(orderId: string): Promise<OrderSnapshot> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, `/v2/orders/${orderId}`);
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return parseOrder(await response.json());
   }
 }
 
-function conflictMetrics(metrics: Record<string, MetricValue>): Record<string, MetricValue[]> {
-  if (!metrics._conflicts || typeof metrics._conflicts !== "object" || Array.isArray(metrics._conflicts)) {
-    metrics._conflicts = {};
-  }
-  return metrics._conflicts as Record<string, MetricValue[]>;
+export function createAlpacaClient(config: TradingConfig, fetchImpl: FetchLike = fetch): AlpacaClient {
+  return new AlpacaClient(config, fetchImpl);
 }

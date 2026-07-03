@@ -1,664 +1,424 @@
-import { CandidatePayload, mergeSeedPayloads, payload } from "./adapters.js";
-import { Candidate, MetricValue } from "./contracts.js";
+import {
+  Bar,
+  IndicatorSet,
+  PositionSnapshot,
+  SignalDecision,
+  StrategySignal,
+  TradableSymbol,
+  TradeIntent,
+  TradingConfig,
+  WatchlistSymbol,
+  isTradableSymbol,
+  normalizeSymbol,
+} from "./contracts.js";
 
-type GateStatus = "pass" | "watch" | "fail";
+const TRADABLE: TradableSymbol[] = ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"];
+const WATCHLIST: WatchlistSymbol[] = ["SPY", ...TRADABLE];
 
-interface Scorecard extends Record<string, unknown> {
-  score: number;
-  max_score: number;
-  status: GateStatus;
-  positives: string[];
-  failures: string[];
-  missing_inputs: string[];
+export interface SignalPlan {
+  trade_date: string;
+  generated_at: string;
+  market_regime: "RISK_ON" | "RISK_OFF" | "UNKNOWN";
+  spy: IndicatorSet | null;
+  decisions: SignalDecision[];
+  buy_candidate: SignalDecision | null;
+  exit_symbols: string[];
+  no_trade_reason: string | null;
 }
 
-interface EarningsYieldScorecard extends Scorecard {
-  earnings_yield: number | null;
-  return_on_capital: number | null;
-  earnings_yield_rank: number | null;
-  return_on_capital_rank: number | null;
-  combined_rank: number | null;
+export interface ExecutionPlan {
+  buy_intent: TradeIntent | null;
+  sell_intents: TradeIntent[];
+  skipped: Array<Record<string, unknown>>;
 }
 
-interface CompositeScorecard {
-  score: number;
-  max_score: number;
-  status: GateStatus;
-  blocking_failures: string[];
-  missing_inputs: string[];
-}
+export function computeSignalPlan(input: {
+  trade_date: string;
+  generated_at: string;
+  bars_by_symbol: Record<string, Bar[]>;
+  holdings: PositionSnapshot[];
+}): SignalPlan {
+  const barsBySymbol = normalizeBars(input.bars_by_symbol);
+  const holdings = safeArray(input.holdings);
+  const holdingsSymbols = new Set(holdings.map((holding) => holding.symbol.toUpperCase()));
+  const spyBars = barsBySymbol.SPY ?? [];
+  const spyIndicators = spyBars.length > 0 ? computeIndicators("SPY", spyBars, null) : null;
+  const spyReturn20 = spyIndicators?.return_20d ?? null;
+  const marketRegime = spyIndicators && spyIndicators.sma_200 !== null
+    ? spyIndicators.previous_close > spyIndicators.sma_200
+      ? "RISK_ON"
+      : "RISK_OFF"
+    : "UNKNOWN";
 
-interface OpportunityScorecard extends Scorecard {
-  market_cap: number | null;
-  market_cap_band: string;
-  primary_evidence_count: number;
-  catalyst_forms: string[];
-  crowding_penalty: boolean;
-  opportunity_type: string[];
-}
+  const decisions: SignalDecision[] = [];
+  let noTradeReason: string | null = null;
 
-export function scoreEarningsYield(seed: unknown): CandidatePayload {
-  const result = normalizedPayload(seed);
-  for (const candidate of result.candidates) {
-    const scorecard = buildEarningsYieldScorecard(candidate);
-    candidate.metrics.earnings_yield_scorecard = scorecard as unknown as MetricValue;
-    appendScorecardNotes(candidate, "Earnings-yield", scorecard);
+  if (!spyIndicators || spyReturn20 === null || marketRegime === "UNKNOWN") {
+    noTradeReason = "Missing SPY bars for regime detection.";
   }
-  applyEarningsYieldRanks(result.candidates);
-  applyCompositeScores(result.candidates);
-  applyOpportunityScores(result.candidates);
-  return result;
-}
 
-export function scoreBalanceSheetSafety(seed: unknown): CandidatePayload {
-  const result = normalizedPayload(seed);
-  for (const candidate of result.candidates) {
-    const scorecard = buildBalanceSheetSafetyScorecard(candidate);
-    candidate.metrics.balance_sheet_safety = scorecard as unknown as MetricValue;
-    appendScorecardNotes(candidate, "Balance-sheet safety", scorecard);
-  }
-  applyCompositeScores(result.candidates);
-  applyOpportunityScores(result.candidates);
-  return result;
-}
-
-export function scoreOwnerEarningsQuality(seed: unknown): CandidatePayload {
-  const result = normalizedPayload(seed);
-  for (const candidate of result.candidates) {
-    const scorecard = buildOwnerEarningsQualityScorecard(candidate);
-    candidate.metrics.owner_earnings_quality = scorecard as unknown as MetricValue;
-    appendScorecardNotes(candidate, "Owner-earnings quality", scorecard);
-  }
-  applyCompositeScores(result.candidates);
-  applyOpportunityScores(result.candidates);
-  return result;
-}
-
-export function rankOpportunities(seed: unknown, limit: number): CandidatePayload {
-  const result = normalizedPayload(seed);
-  for (const candidate of result.candidates) {
-    if (!isRecord(candidate.metrics.earnings_yield_scorecard)) {
-      candidate.metrics.earnings_yield_scorecard = buildEarningsYieldScorecard(candidate) as unknown as MetricValue;
+  for (const symbol of WATCHLIST) {
+    if (symbol === "SPY") {
+      continue;
     }
-    if (!isRecord(candidate.metrics.balance_sheet_safety)) {
-      candidate.metrics.balance_sheet_safety = buildBalanceSheetSafetyScorecard(candidate) as unknown as MetricValue;
+    const bars = barsBySymbol[symbol] ?? [];
+    if (bars.length < 200 || spyIndicators === null || spyReturn20 === null) {
+      decisions.push(blankDecision(symbol, "insufficient data"));
+      continue;
     }
-    if (!isRecord(candidate.metrics.owner_earnings_quality)) {
-      candidate.metrics.owner_earnings_quality = buildOwnerEarningsQualityScorecard(candidate) as unknown as MetricValue;
-    }
-  }
-  applyEarningsYieldRanks(result.candidates);
-  applyCompositeScores(result.candidates);
-  applyOpportunityScores(result.candidates);
-
-  const rejected = rejectedByReviews(seed);
-  const ranked = result.candidates
-    .filter((candidate) => !rejected.has(candidate.ticker))
-    .sort(compareValueCandidates);
-  const narrowed = {
-    ...result,
-    candidates: ranked.slice(0, limit),
-    excluded_after_narrowing: ranked.slice(limit).map((candidate) => candidate.ticker),
-  };
-  return narrowed as CandidatePayload;
-}
-
-function normalizedPayload(seed: unknown): CandidatePayload {
-  const normalized = mergeSeedPayloads(seed);
-  const base = isRecord(seed) ? seed : {};
-  return {
-    ...base,
-    ...payload(normalized.candidates),
-    provider_errors: normalized.provider_errors,
-  };
-}
-
-function buildEarningsYieldScorecard(candidate: Candidate): EarningsYieldScorecard {
-  const metrics = candidate.metrics;
-  const marketCap = numberMetric(metrics.market_cap);
-  const enterpriseValue = numberMetric(metrics.enterprise_value)
-    ?? enterpriseValueFromParts(metrics, marketCap);
-  const ebit = numberMetric(metrics.ebit) ?? numberMetric(metrics.operating_income);
-  const workingCapital = numberMetric(metrics.working_capital)
-    ?? differenceMetric(metrics.current_assets, metrics.current_liabilities);
-  const tangibleCapital = numberMetric(metrics.tangible_capital)
-    ?? sumPositive(workingCapital, numberMetric(metrics.property_plant_equipment_net));
-  const earningsYield = ebit !== null && enterpriseValue !== null && enterpriseValue > 0
-    ? round(ebit / enterpriseValue)
-    : null;
-  const returnOnCapital = ebit !== null && tangibleCapital !== null && tangibleCapital > 0
-    ? round(ebit / tangibleCapital)
-    : null;
-  const missing = missingInputs({
-    ebit,
-    enterprise_value: enterpriseValue,
-    tangible_capital: tangibleCapital,
-  });
-  const positives: string[] = [];
-  const failures: string[] = [];
-  if (earningsYield !== null && earningsYield >= 0.08) {
-    positives.push("Earnings yield is at or above 8%.");
-  } else if (earningsYield !== null) {
-    failures.push("Earnings yield is below 8%.");
-  }
-  if (returnOnCapital !== null && returnOnCapital >= 0.15) {
-    positives.push("Return on capital is at or above 15%.");
-  } else if (returnOnCapital !== null) {
-    failures.push("Return on capital is below 15%.");
-  }
-  return {
-    score: positives.length,
-    max_score: 2,
-    status: statusFor(positives.length, 2, failures, missing),
-    positives,
-    failures,
-    missing_inputs: missing,
-    earnings_yield: earningsYield,
-    return_on_capital: returnOnCapital,
-    earnings_yield_rank: null,
-    return_on_capital_rank: null,
-    combined_rank: null,
-  };
-}
-
-function buildBalanceSheetSafetyScorecard(candidate: Candidate): Scorecard {
-  const metrics = candidate.metrics;
-  const currentRatio = numberMetric(metrics.current_ratio)
-    ?? ratioMetric(metrics.current_assets, metrics.current_liabilities);
-  const debtToEquity = numberMetric(metrics.debt_to_equity)
-    ?? ratioMetric(totalDebt(metrics), metrics.stockholders_equity);
-  const marketCap = numberMetric(metrics.market_cap);
-  const ncav = ncavMetric(metrics);
-  const ncavMargin = ncav !== null && marketCap !== null && marketCap > 0
-    ? round((ncav - marketCap) / marketCap)
-    : null;
-  const peRatio = numberMetric(metrics.pe_ratio);
-  const priceToBook = numberMetric(metrics.price_to_book);
-  const missing = missingInputs({
-    current_assets: numberMetric(metrics.current_assets),
-    current_liabilities: numberMetric(metrics.current_liabilities),
-    total_debt: totalDebt(metrics),
-    stockholders_equity: numberMetric(metrics.stockholders_equity),
-    market_cap: marketCap,
-    pe_ratio: peRatio,
-    price_to_book: priceToBook,
-  });
-  const positives: string[] = [];
-  const failures: string[] = [];
-  if (currentRatio !== null && currentRatio >= 2) {
-    positives.push("Current ratio is at or above 2.0.");
-  } else if (currentRatio !== null) {
-    failures.push("Current ratio is below balance-sheet safety threshold.");
-  }
-  if (debtToEquity !== null && debtToEquity <= 0.5) {
-    positives.push("Debt to equity is at or below 0.5.");
-  } else if (debtToEquity !== null) {
-    failures.push("Debt to equity is above balance-sheet safety threshold.");
-  }
-  if (ncavMargin !== null && ncavMargin >= 0.33) {
-    positives.push("Market cap is at least 33% below NCAV.");
-  } else if (ncavMargin !== null) {
-    failures.push("No net-current-asset margin of safety.");
-  }
-  if (peRatio !== null && peRatio <= 15) {
-    positives.push("P/E is at or below 15.");
-  } else if (peRatio !== null) {
-    failures.push("P/E is above the value threshold.");
-  }
-  if (priceToBook !== null && priceToBook <= 1.5) {
-    positives.push("Price/book is at or below 1.5.");
-  } else if (priceToBook !== null) {
-    failures.push("Price/book is above the asset-value threshold.");
-  }
-  return withComputedMetrics({
-    score: positives.length,
-    max_score: 5,
-    status: statusFor(positives.length, 5, failures, missing),
-    positives,
-    failures,
-    missing_inputs: missing,
-  }, {
-    current_ratio: currentRatio,
-    debt_to_equity: debtToEquity,
-    ncav,
-    ncav_margin: ncavMargin,
-  });
-}
-
-function buildOwnerEarningsQualityScorecard(candidate: Candidate): Scorecard {
-  const metrics = candidate.metrics;
-  const roe = numberMetric(metrics.return_on_equity);
-  const netMargin = numberMetric(metrics.net_margin);
-  const ownerEarnings = numberMetric(metrics.owner_earnings_proxy);
-  const netIncome = numberMetric(metrics.net_income);
-  const liabilitiesToEquity = numberMetric(metrics.liabilities_to_equity);
-  const repurchases = numberMetric(metrics.stock_repurchases);
-  const dividends = numberMetric(metrics.dividends_paid);
-  const missing = missingInputs({
-    return_on_equity: roe,
-    net_margin: netMargin,
-    owner_earnings_proxy: ownerEarnings,
-    net_income: netIncome,
-    liabilities_to_equity: liabilitiesToEquity,
-    stock_repurchases: repurchases,
-    dividends_paid: dividends,
-  });
-  const positives: string[] = [];
-  const failures: string[] = [];
-  if (roe !== null && roe >= 0.15) {
-    positives.push("ROE is at or above 15%.");
-  } else if (roe !== null) {
-    failures.push("ROE is below owner-earnings quality threshold.");
-  }
-  if (netMargin !== null && netMargin >= 0.1) {
-    positives.push("Net margin is at or above 10%.");
-  } else if (netMargin !== null) {
-    failures.push("Net margin is below 10%.");
-  }
-  if (ownerEarnings !== null && netIncome !== null && netIncome > 0 && ownerEarnings / netIncome >= 0.8) {
-    positives.push("Owner-earnings proxy converts at least 80% of net income.");
-  } else if (ownerEarnings !== null && netIncome !== null && netIncome > 0) {
-    failures.push("Owner-earnings proxy converts less than 80% of net income.");
-  }
-  if (liabilitiesToEquity !== null && liabilitiesToEquity <= 1) {
-    positives.push("Liabilities are not greater than equity.");
-  } else if (liabilitiesToEquity !== null) {
-    failures.push("Liabilities exceed equity.");
-  }
-  if ((repurchases !== null && repurchases > 0) || (dividends !== null && dividends > 0)) {
-    positives.push("Capital returns are visible in filings.");
-  }
-  return withComputedMetrics({
-    score: positives.length,
-    max_score: 5,
-    status: statusFor(positives.length, 5, failures, missing),
-    positives,
-    failures,
-    missing_inputs: missing,
-  }, {
-    owner_earnings_conversion: ownerEarnings !== null && netIncome !== null && netIncome !== 0
-      ? round(ownerEarnings / netIncome)
-      : null,
-  });
-}
-
-function applyEarningsYieldRanks(candidates: Candidate[]): void {
-  const eligible = candidates
-    .map((candidate) => ({ candidate, scorecard: candidate.metrics.earnings_yield_scorecard }))
-    .filter((item): item is { candidate: Candidate; scorecard: EarningsYieldScorecard } => (
-      isRecord(item.scorecard)
-      && typeof item.scorecard.earnings_yield === "number"
-      && typeof item.scorecard.return_on_capital === "number"
-    ));
-  const byYield = [...eligible].sort((left, right) => (
-    (right.scorecard.earnings_yield ?? 0) - (left.scorecard.earnings_yield ?? 0)
-  ));
-  const byCapital = [...eligible].sort((left, right) => (
-    (right.scorecard.return_on_capital ?? 0) - (left.scorecard.return_on_capital ?? 0)
-  ));
-  for (const [index, item] of byYield.entries()) {
-    item.scorecard.earnings_yield_rank = index + 1;
-  }
-  for (const [index, item] of byCapital.entries()) {
-    item.scorecard.return_on_capital_rank = index + 1;
-  }
-  for (const item of eligible) {
-    item.scorecard.combined_rank = (item.scorecard.earnings_yield_rank ?? eligible.length)
-      + (item.scorecard.return_on_capital_rank ?? eligible.length);
-  }
-}
-
-function applyCompositeScores(candidates: Candidate[]): void {
-  for (const candidate of candidates) {
-    const cards = [
-      candidate.metrics.earnings_yield_scorecard,
-      candidate.metrics.balance_sheet_safety,
-      candidate.metrics.owner_earnings_quality,
-    ].filter(isRecord);
-    const score = sumNumbers(cards.map((card) => numberMetric(card.score)));
-    const maxScore = sumNumbers(cards.map((card) => numberMetric(card.max_score)));
-    const blockingFailures = cards.flatMap((card) => (
-      Array.isArray(card.failures) && card.status === "fail" ? card.failures.map(String) : []
-    ));
-    const missingInputs = uniqueStrings(cards.flatMap((card) => (
-      Array.isArray(card.missing_inputs) ? card.missing_inputs.map(String) : []
-    )));
-    const composite: CompositeScorecard = {
-      score,
-      max_score: maxScore,
-      status: blockingFailures.length > 0 ? "fail" : score >= Math.ceil(maxScore * 0.55) ? "pass" : "watch",
-      blocking_failures: blockingFailures,
-      missing_inputs: missingInputs,
-    };
-    candidate.metrics.value_composite = composite as unknown as MetricValue;
-  }
-}
-
-function applyOpportunityScores(candidates: Candidate[]): void {
-  for (const candidate of candidates) {
-    const scorecard = buildOpportunityScorecard(candidate);
-    candidate.metrics.opportunity_scorecard = scorecard as unknown as MetricValue;
-    appendScorecardNotes(candidate, "Gem", scorecard);
-  }
-}
-
-function buildOpportunityScorecard(candidate: Candidate): OpportunityScorecard {
-  const metrics = candidate.metrics;
-  const marketCap = numberMetric(metrics.market_cap);
-  const earningsYieldScorecard = isRecord(metrics.earnings_yield_scorecard) ? metrics.earnings_yield_scorecard : {};
-  const balanceSheetScorecard = isRecord(metrics.balance_sheet_safety) ? metrics.balance_sheet_safety : {};
-  const earningsYield = numberMetric(earningsYieldScorecard.earnings_yield);
-  const peRatio = numberMetric(metrics.pe_ratio);
-  const priceToBook = numberMetric(metrics.price_to_book);
-  const ownerEarnings = numberMetric(metrics.owner_earnings_proxy);
-  const netIncome = numberMetric(metrics.net_income);
-  const ncavMargin = numberMetric(balanceSheetScorecard.ncav_margin);
-  const liabilitiesToEquity = numberMetric(metrics.liabilities_to_equity);
-  const debtToEquity = numberMetric(metrics.debt_to_equity);
-  const primaryEvidenceCount = primaryEvidenceRefs(candidate).length;
-  const catalystForms = catalystFilingForms(candidate);
-  const positives: string[] = [];
-  const failures: string[] = [];
-  const missing = missingInputs({ market_cap: marketCap });
-  const opportunityType: string[] = [];
-  const isCrowdedLargeCap = marketCap !== null && marketCap > 50_000_000_000;
-
-  if (marketCap !== null && marketCap >= 300_000_000 && marketCap <= 10_000_000_000) {
-    positives.push("Market cap is in a less-crowded small/mid-cap discovery band.");
-    opportunityType.push("less_crowded");
-  } else if (isCrowdedLargeCap) {
-    missing.push("large_cap_specific_mispricing_or_catalyst");
-  } else if (marketCap !== null && marketCap < 300_000_000) {
-    failures.push("Market cap is below the minimum liquidity band.");
+    const indicators = computeIndicators(symbol, bars, spyReturn20);
+    const checks = buildEligibilityChecks(symbol, indicators, holdingsSymbols, marketRegime);
+    const eligible = Object.values(checks).every((value) => value === true);
+    const reason = eligible
+      ? "eligible"
+      : explainChecks(symbol, checks, marketRegime);
+    decisions.push({
+      symbol,
+      action: eligible && marketRegime === "RISK_ON"
+        ? "BUY_CANDIDATE"
+        : marketRegime === "RISK_OFF" && holdingsSymbols.has(symbol)
+          ? "EXIT_POSITION"
+          : "NO_BUY",
+      eligible: eligible && marketRegime === "RISK_ON" && !holdingsSymbols.has(symbol),
+      score: eligible ? 1 : 0,
+      rank: null,
+      reason,
+      checks,
+      indicators,
+    });
   }
 
-  if ((earningsYield !== null && earningsYield >= 0.08) || (peRatio !== null && peRatio <= 12)) {
-    positives.push("Valuation is cheap on earnings yield or P/E.");
-    opportunityType.push("cheap_earnings");
-  } else if (earningsYield !== null || peRatio !== null) {
-    failures.push("No clear cheapness signal from earnings yield or P/E.");
-  } else {
-    missing.push("earnings_yield_or_pe_ratio");
-  }
+  const eligible = decisions.filter((decision) => decision.eligible);
+  const ranked = [...eligible]
+    .sort((left, right) => {
+      const leftStrength = left.indicators.relative_strength_20d_vs_spy ?? Number.NEGATIVE_INFINITY;
+      const rightStrength = right.indicators.relative_strength_20d_vs_spy ?? Number.NEGATIVE_INFINITY;
+      const leftVol = left.indicators.atr_percent ?? Number.POSITIVE_INFINITY;
+      const rightVol = right.indicators.atr_percent ?? Number.POSITIVE_INFINITY;
+      return (rightStrength - leftStrength)
+        || (leftVol - rightVol)
+        || left.symbol.localeCompare(right.symbol);
+    })
+    .map((decision, index) => ({ ...decision, rank: index + 1, score: scoreDecision(decision, index + 1) }));
 
-  if ((priceToBook !== null && priceToBook <= 1.5) || (ncavMargin !== null && ncavMargin > 0)) {
-    positives.push("Asset-value signal is present through price/book or NCAV.");
-    opportunityType.push("asset_value");
-  } else if (priceToBook !== null) {
-    failures.push("Price/book does not show asset-value cheapness.");
-  }
+  const rankedBySymbol = new Map(ranked.map((decision) => [decision.symbol, decision]));
+  const decisionsWithRank = decisions.map((decision) => rankedBySymbol.get(decision.symbol) ?? decision);
+  const exitSymbols = holdings
+    .filter((holding) => shouldExitHolding(holding, marketRegime, decisionsWithRank, ranked, input.generated_at))
+    .map((holding) => holding.symbol.toUpperCase());
 
-  if (ownerEarnings !== null && ownerEarnings > 0 && netIncome !== null && netIncome > 0) {
-    positives.push("Owner-earnings proxy and net income are positive.");
-    opportunityType.push("owner_earnings");
-  } else if (ownerEarnings !== null || netIncome !== null) {
-    failures.push("Owner-earnings or net-income quality is not clearly positive.");
-  } else {
-    missing.push("owner_earnings_and_net_income");
-  }
-
-  if ((debtToEquity !== null && debtToEquity <= 0.5) || (liabilitiesToEquity !== null && liabilitiesToEquity <= 1)) {
-    positives.push("Balance sheet does not appear over-levered.");
-  } else if (debtToEquity !== null || liabilitiesToEquity !== null) {
-    failures.push("Balance-sheet leverage weakens the opportunity case.");
-  }
-
-  if (primaryEvidenceCount >= 3) {
-    positives.push("Primary SEC evidence has multiple filed anchors.");
-  } else {
-    failures.push("Primary SEC evidence is too thin for an opportunity memo.");
-  }
-
-  if (catalystForms.length > 0) {
-    positives.push(`Special-situation filing forms present: ${catalystForms.join(", ")}.`);
-    opportunityType.push("special_situation");
-  }
-
-  const hasOpportunity = opportunityType.some((type) => type !== "less_crowded");
-  if (isCrowdedLargeCap && !hasOpportunity) {
-    failures.push("Large-cap candidate lacks a specific cheapness, asset-value, owner-earnings, or catalyst angle.");
+  const buyCandidate = ranked.find((decision) => !holdingsSymbols.has(decision.symbol)) ?? null;
+  if (!buyCandidate && !noTradeReason) {
+    noTradeReason = marketRegime === "RISK_OFF"
+      ? "Market regime is risk-off."
+      : "No ETF passed the entry filter.";
   }
 
   return {
-    score: positives.length,
-    max_score: 7,
-    status: !hasOpportunity || failures.length >= 3
-      ? "fail"
-      : positives.length >= 4 ? "pass" : "watch",
-    positives,
-    failures,
-    missing_inputs: uniqueStrings(missing),
-    market_cap: marketCap,
-    market_cap_band: marketCapBand(marketCap),
-    primary_evidence_count: primaryEvidenceCount,
-    catalyst_forms: catalystForms,
-    crowding_penalty: isCrowdedLargeCap,
-    opportunity_type: uniqueStrings(opportunityType),
+    trade_date: input.trade_date,
+    generated_at: input.generated_at,
+    market_regime: marketRegime,
+    spy: spyIndicators,
+    decisions: decisionsWithRank,
+    buy_candidate: buyCandidate && !holdingsSymbols.has(buyCandidate.symbol) ? buyCandidate : null,
+    exit_symbols: uniqueStrings(exitSymbols),
+    no_trade_reason: noTradeReason,
   };
 }
 
-function appendScorecardNotes(candidate: Candidate, label: string, scorecard: Scorecard): void {
-  if (scorecard.positives.length > 0) {
-    appendUnique(candidate.screen_reasons, `${label} screen: ${scorecard.positives.join(" ")}`);
+export function buildExecutionPlan(input: {
+  signal_plan: SignalPlan;
+  holdings: PositionSnapshot[];
+  strategy_equity: number;
+  cash_available: number;
+  max_open_positions: number;
+  max_new_entries_per_day: number;
+  max_position_notional_pct: number;
+  max_total_invested_pct: number;
+  minimum_order_notional_usd: number;
+}): ExecutionPlan {
+  const skipped: Array<Record<string, unknown>> = [];
+  const sell_intents: TradeIntent[] = [];
+  const buyCandidate = input.signal_plan.buy_candidate;
+  const holdings = safeArray(input.holdings);
+  const holdingsCount = holdings.length;
+  const invested = holdings.reduce((sum, holding) => sum + Math.max(0, holding.market_value ?? 0), 0);
+  const totalCapacity = input.strategy_equity * input.max_total_invested_pct;
+  const remainingTotal = Math.max(0, totalCapacity - invested);
+
+  for (const symbol of input.signal_plan.exit_symbols) {
+    const holding = holdings.find((entry) => entry.symbol.toUpperCase() === symbol);
+    if (!holding) {
+      continue;
+    }
+    sell_intents.push({
+      trade_date: input.signal_plan.trade_date,
+      created_at: input.signal_plan.generated_at,
+      symbol: symbol as TradableSymbol,
+      action: "sell",
+      reason: `Exit signal triggered for ${symbol}.`,
+      quantity: holding.qty,
+    });
   }
-  if (scorecard.failures.length > 0) {
-    appendUnique(candidate.evidence_gaps, `${label} screen failures: ${scorecard.failures.join(" ")}`);
+
+  if (!buyCandidate) {
+    if (input.signal_plan.no_trade_reason) {
+      skipped.push({ symbol: null, reason: input.signal_plan.no_trade_reason });
+    }
+    return { buy_intent: null, sell_intents, skipped };
   }
-  if (scorecard.missing_inputs.length > 0) {
-    appendUnique(candidate.evidence_gaps, `${label} screen missing inputs: ${scorecard.missing_inputs.join(", ")}.`);
+
+  if (input.max_new_entries_per_day < 1) {
+    skipped.push({ symbol: buyCandidate.symbol, reason: "Daily entry limit is zero." });
+    return { buy_intent: null, sell_intents, skipped };
   }
+
+  if (holdingsCount >= input.max_open_positions) {
+    skipped.push({ symbol: buyCandidate.symbol, reason: "Maximum open positions reached." });
+    return { buy_intent: null, sell_intents, skipped };
+  }
+
+  if (sell_intents.length > 0 && holdingsCount === 0) {
+    skipped.push({ symbol: buyCandidate.symbol, reason: "Exit-only day." });
+    return { buy_intent: null, sell_intents, skipped };
+  }
+
+  const quotePrice = buyCandidate.indicators.previous_close;
+  const maxNotional = Math.min(
+    input.strategy_equity * input.max_position_notional_pct,
+    remainingTotal,
+    input.cash_available,
+  );
+  if (maxNotional < input.minimum_order_notional_usd) {
+    skipped.push({ symbol: buyCandidate.symbol, reason: "Notional below minimum order size." });
+    return { buy_intent: null, sell_intents, skipped };
+  }
+
+  const quantity = floorToDecimals(maxNotional / quotePrice, 3);
+  if (quantity <= 0) {
+    skipped.push({ symbol: buyCandidate.symbol, reason: "Calculated quantity is zero." });
+    return { buy_intent: null, sell_intents, skipped };
+  }
+
+  return {
+    buy_intent: {
+      trade_date: input.signal_plan.trade_date,
+      created_at: input.signal_plan.generated_at,
+      symbol: buyCandidate.symbol,
+      action: "buy",
+      reason: buyCandidate.reason,
+      quantity,
+      limit_price: null,
+      signal: buyCandidate,
+    },
+    sell_intents,
+    skipped,
+  };
 }
 
-function compareValueCandidates(left: Candidate, right: Candidate): number {
-  const leftComposite = isRecord(left.metrics.value_composite) ? left.metrics.value_composite : {};
-  const rightComposite = isRecord(right.metrics.value_composite) ? right.metrics.value_composite : {};
-  const leftOpportunity = isRecord(left.metrics.opportunity_scorecard) ? left.metrics.opportunity_scorecard : {};
-  const rightOpportunity = isRecord(right.metrics.opportunity_scorecard) ? right.metrics.opportunity_scorecard : {};
-  const leftRank = earningsYieldCombinedRank(left);
-  const rightRank = earningsYieldCombinedRank(right);
-  const leftScore = numberMetric(leftComposite.score) ?? 0;
-  const rightScore = numberMetric(rightComposite.score) ?? 0;
-  const leftOpportunityScore = numberMetric(leftOpportunity.score) ?? 0;
-  const rightOpportunityScore = numberMetric(rightOpportunity.score) ?? 0;
-  const leftStatus = statusWeight(String(leftComposite.status ?? "watch"));
-  const rightStatus = statusWeight(String(rightComposite.status ?? "watch"));
-  const leftOpportunityStatus = statusWeight(String(leftOpportunity.status ?? "watch"));
-  const rightOpportunityStatus = statusWeight(String(rightOpportunity.status ?? "watch"));
-  return (rightOpportunityStatus - leftOpportunityStatus)
-    || (rightOpportunityScore - leftOpportunityScore)
-    || (rightStatus - leftStatus)
-    || (rightScore - leftScore)
-    || (leftRank - rightRank)
-    || left.ticker.localeCompare(right.ticker);
+export function computeIndicators(symbol: string, bars: Bar[], spyReturn20: number | null): IndicatorSet {
+  const ordered = [...bars]
+    .map(normalizeBar)
+    .sort((left, right) => left.t.localeCompare(right.t));
+  if (ordered.length < 20) {
+    throw new Error(`not enough bars for ${symbol}`);
+  }
+  const closes = ordered.map((bar) => bar.c);
+  const highs = ordered.map((bar) => bar.h);
+  const previousClose = closes.at(-1) ?? 0;
+  const sma20 = sma(closes, 20);
+  const sma50 = sma(closes, 50);
+  const sma200 = sma(closes, 200);
+  const close20Ago = closes.length >= 21 ? closes.at(-21) ?? null : null;
+  const return20d = close20Ago && close20Ago !== 0 ? round((previousClose - close20Ago) / close20Ago) : null;
+  const highestHigh20d = highs.slice(-20).reduce((max, value) => Math.max(max, value), Number.NEGATIVE_INFINITY);
+  const atr14 = atr(ordered, 14);
+  const atrPercent = atr14 !== null && previousClose !== 0 ? round(atr14 / previousClose) : null;
+  const relativeStrength = spyReturn20 !== null && return20d !== null ? round(return20d - spyReturn20) : null;
+  return {
+    symbol: normalizeSymbol(symbol) as WatchlistSymbol,
+    previous_close: previousClose,
+    sma_20: sma20,
+    sma_50: sma50,
+    sma_200: sma200,
+    return_20d: return20d,
+    highest_high_20d: Number.isFinite(highestHigh20d) ? round(highestHigh20d) : null,
+    atr_14: atr14,
+    atr_percent: atrPercent,
+    relative_strength_20d_vs_spy: relativeStrength,
+    above_20d_high_ratio: Number.isFinite(highestHigh20d) && highestHigh20d !== 0 ? round(previousClose / highestHigh20d) : null,
+  };
 }
 
-function earningsYieldCombinedRank(candidate: Candidate): number {
-  const card = candidate.metrics.earnings_yield_scorecard;
-  if (!isRecord(card)) {
-    return Number.MAX_SAFE_INTEGER;
-  }
-  return numberMetric(card.combined_rank) ?? Number.MAX_SAFE_INTEGER;
+function buildEligibilityChecks(
+  symbol: TradableSymbol,
+  indicators: IndicatorSet,
+  holdingsSymbols: Set<string>,
+  marketRegime: SignalPlan["market_regime"],
+): Record<string, boolean | number | null> {
+  return {
+    regime_ok: marketRegime === "RISK_ON",
+    above_50: indicators.sma_50 !== null ? indicators.previous_close > indicators.sma_50 : false,
+    sma_50_above_200: indicators.sma_50 !== null && indicators.sma_200 !== null ? indicators.sma_50 > indicators.sma_200 : false,
+    near_high: indicators.highest_high_20d !== null ? indicators.previous_close >= indicators.highest_high_20d * 0.98 : false,
+    positive_return: indicators.return_20d !== null ? indicators.return_20d > 0 : false,
+    relative_strength: indicators.relative_strength_20d_vs_spy !== null ? indicators.relative_strength_20d_vs_spy >= 0.02 : false,
+    volatility_cap: indicators.atr_percent !== null ? indicators.atr_percent <= 0.08 : false,
+    symbol_allowed: isTradableSymbol(symbol),
+    already_held: !holdingsSymbols.has(symbol),
+    qqq_xlk_bucket_ok: !(holdingsSymbols.has("QQQ") && symbol === "XLK") && !(holdingsSymbols.has("XLK") && symbol === "QQQ"),
+  };
 }
 
-function statusWeight(status: string): number {
-  if (status === "pass") {
-    return 2;
+function explainChecks(symbol: TradableSymbol, checks: Record<string, boolean | number | null>, marketRegime: SignalPlan["market_regime"]): string {
+  if (marketRegime === "RISK_OFF") {
+    return "Market regime is risk-off.";
   }
-  if (status === "watch") {
-    return 1;
-  }
-  return 0;
+  const failures = Object.entries(checks)
+    .filter(([, value]) => value === false)
+    .map(([key]) => key.replaceAll("_", " "));
+  return failures.length > 0 ? `${symbol} failed: ${failures.join(", ")}.` : `${symbol} did not qualify.`;
 }
 
-function primaryEvidenceRefs(candidate: Candidate): Record<string, unknown>[] {
-  return candidate.filing_refs
-    .filter(isRecord)
-    .filter((ref) => Boolean(ref.accession || ref.document_url || ref.filed));
+function shouldExitHolding(
+  holding: PositionSnapshot,
+  marketRegime: SignalPlan["market_regime"],
+  decisions: SignalDecision[],
+  ranked: SignalDecision[],
+  referenceTime: string,
+): boolean {
+  if (marketRegime === "RISK_OFF") {
+    return true;
+  }
+  const decision = decisions.find((entry) => entry.symbol === holding.symbol);
+  if (!decision) {
+    return false;
+  }
+  if (decision.indicators.sma_20 !== null && decision.indicators.previous_close < decision.indicators.sma_20) {
+    return true;
+  }
+  const topThree = new Set(ranked.slice(0, 3).map((entry) => entry.symbol));
+  if (!topThree.has(holding.symbol as TradableSymbol)) {
+    return true;
+  }
+  const entryDate = holding.entry_date ? new Date(`${holding.entry_date}T00:00:00Z`) : null;
+  const nowDate = new Date(referenceTime);
+  if (entryDate && Number.isFinite(nowDate.getTime())) {
+    const ageDays = businessDaySpan(entryDate, nowDate);
+    if (ageDays >= 30) {
+      return true;
+    }
+  }
+  return false;
 }
 
-function catalystFilingForms(candidate: Candidate): string[] {
-  const catalystForms = new Set([
-    "8-K",
-    "S-1",
-    "S-4",
-    "10-12B",
-    "FORM 10",
-    "DEF 14A",
-    "PRE 14A",
-    "SC TO-I",
-    "SC 13D",
-    "SC 13D/A",
-  ]);
-  return uniqueStrings(primaryEvidenceRefs(candidate)
-    .map((ref) => String(ref.form ?? "").toUpperCase())
-    .filter((form) => catalystForms.has(form)));
+function scoreDecision(decision: SignalDecision, rank: number): number {
+  const strength = decision.indicators.relative_strength_20d_vs_spy ?? 0;
+  const volPenalty = decision.indicators.atr_percent ?? 1;
+  return round((strength * 100) - (volPenalty * 10) - rank / 100);
 }
 
-function marketCapBand(marketCap: number | null): string {
-  if (marketCap === null) {
-    return "unknown";
+function normalizeBars(barsBySymbol: Record<string, Bar[]>): Record<string, Bar[]> {
+  const normalized: Record<string, Bar[]> = {};
+  for (const [symbol, bars] of Object.entries(barsBySymbol)) {
+    normalized[normalizeSymbol(symbol)] = bars.map(normalizeBar);
   }
-  if (marketCap < 300_000_000) {
-    return "micro/illiquid";
-  }
-  if (marketCap <= 2_000_000_000) {
-    return "small";
-  }
-  if (marketCap <= 10_000_000_000) {
-    return "mid";
-  }
-  if (marketCap <= 50_000_000_000) {
-    return "large";
-  }
-  return "mega";
+  return normalized;
 }
 
-function statusFor(score: number, maxScore: number, failures: string[], missing: string[]): GateStatus {
-  if (failures.length >= Math.max(2, Math.ceil(maxScore / 2))) {
-    return "fail";
-  }
-  if (missing.length > 0 || failures.length > 0 || score < Math.ceil(maxScore * 0.5)) {
-    return "watch";
-  }
-  return "pass";
+function safeArray<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : [];
 }
 
-function rejectedByReviews(seed: unknown): Set<string> {
-  if (!isRecord(seed)) {
-    return new Set();
-  }
-  const reviews = [
-    seed.first_pass_reviews,
-    seed.news_reviews,
-    seed.catalyst_reviews,
-    seed.risk_reviews,
-  ].filter(Array.isArray).flat();
-  return new Set(reviews
-    .filter(isRecord)
-    .filter((review) => review.verdict === "reject")
-    .map((review) => String(review.ticker ?? "").toUpperCase())
-    .filter(Boolean));
+function normalizeBar(bar: Bar): Bar {
+  return {
+    symbol: normalizeSymbol(bar.symbol),
+    t: bar.t,
+    o: bar.o,
+    h: bar.h,
+    l: bar.l,
+    c: bar.c,
+    v: bar.v,
+  };
 }
 
-function enterpriseValueFromParts(metrics: Record<string, MetricValue>, marketCap: number | null): number | null {
-  if (marketCap === null) {
+function sma(values: number[], length: number): number | null {
+  if (values.length < length) {
     return null;
   }
-  const debt = totalDebt(metrics) ?? 0;
-  const cash = numberMetric(metrics.cash_and_equivalents) ?? 0;
-  return round(marketCap + debt - cash);
+  const slice = values.slice(-length);
+  return round(slice.reduce((sum, value) => sum + value, 0) / length);
 }
 
-function ncavMetric(metrics: Record<string, MetricValue>): number | null {
-  const currentAssets = numberMetric(metrics.current_assets);
-  const liabilities = numberMetric(metrics.liabilities);
-  if (currentAssets === null || liabilities === null) {
+function atr(bars: Bar[], length: number): number | null {
+  if (bars.length <= length) {
     return null;
   }
-  return round(currentAssets - liabilities);
-}
-
-function totalDebt(metrics: Record<string, MetricValue>): number | null {
-  const explicitDebt = numberMetric(metrics.total_debt);
-  if (explicitDebt !== null) {
-    return explicitDebt;
+  const ranges: number[] = [];
+  for (let index = 1; index < bars.length; index += 1) {
+    const current = bars[index];
+    const previous = bars[index - 1];
+    const trueRange = Math.max(
+      current.h - current.l,
+      Math.abs(current.h - previous.c),
+      Math.abs(current.l - previous.c),
+    );
+    ranges.push(trueRange);
   }
-  const shortTermDebt = numberMetric(metrics.short_term_debt);
-  const longTermDebt = numberMetric(metrics.long_term_debt);
-  if (shortTermDebt === null && longTermDebt === null) {
+  if (ranges.length < length) {
     return null;
   }
-  return (shortTermDebt ?? 0) + (longTermDebt ?? 0);
-}
-
-function ratioMetric(numerator: unknown, denominator: unknown): number | null {
-  const top = numberMetric(numerator);
-  const bottom = numberMetric(denominator);
-  if (top === null || bottom === null || bottom === 0) {
-    return null;
-  }
-  return round(top / bottom);
-}
-
-function differenceMetric(left: unknown, right: unknown): number | null {
-  const leftNumber = numberMetric(left);
-  const rightNumber = numberMetric(right);
-  if (leftNumber === null || rightNumber === null) {
-    return null;
-  }
-  return round(leftNumber - rightNumber);
-}
-
-function sumPositive(...values: Array<number | null>): number | null {
-  if (values.some((value) => value === null)) {
-    return null;
-  }
-  let sum = 0;
-  for (const value of values) {
-    sum += Math.max(0, value ?? 0);
-  }
-  return sum;
-}
-
-function sumNumbers(values: Array<number | null>): number {
-  let sum = 0;
-  for (const value of values) {
-    sum += value ?? 0;
-  }
-  return sum;
-}
-
-function missingInputs(inputs: Record<string, number | null>): string[] {
-  return Object.entries(inputs)
-    .filter(([, value]) => value === null)
-    .map(([key]) => key);
-}
-
-function withComputedMetrics<T extends Scorecard>(
-  scorecard: T,
-  metrics: Record<string, number | null>,
-): T & Record<string, number | null> {
-  return { ...scorecard, ...metrics };
-}
-
-function numberMetric(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-function appendUnique(values: unknown[], value: string): void {
-  if (!values.includes(value)) {
-    values.push(value);
-  }
-}
-
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values)];
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
+  return round(ranges.slice(-length).reduce((sum, value) => sum + value, 0) / length);
 }
 
 function round(value: number): number {
   return Math.round(value * 10_000) / 10_000;
+}
+
+function floorToDecimals(value: number, decimals: number): number {
+  const factor = 10 ** decimals;
+  return Math.floor(value * factor) / factor;
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function businessDaySpan(start: Date, end: Date): number {
+  const current = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+  const limit = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()));
+  let days = 0;
+  while (current < limit) {
+    current.setUTCDate(current.getUTCDate() + 1);
+    const weekday = current.getUTCDay();
+    if (weekday >= 1 && weekday <= 5) {
+      days += 1;
+    }
+  }
+  return days;
+}
+
+function blankDecision(symbol: WatchlistSymbol, reason: string): SignalDecision {
+  return {
+    symbol,
+    action: "NO_BUY",
+    eligible: false,
+    score: 0,
+    rank: null,
+    reason,
+    checks: {},
+    indicators: {
+      symbol,
+      previous_close: 0,
+      sma_20: null,
+      sma_50: null,
+      sma_200: null,
+      return_20d: null,
+      highest_high_20d: null,
+      atr_14: null,
+      atr_percent: null,
+      relative_strength_20d_vs_spy: null,
+      above_20d_high_ratio: null,
+    },
+  };
 }

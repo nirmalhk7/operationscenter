@@ -1,5 +1,5 @@
 {
-  "name": "mountainvalue-paper-trading",
+  "name": "mountainvalue-cycle",
   "steps": [
     {
       "id": "preflight",
@@ -16,24 +16,14 @@
       "stdin": "$reconcile.stdout"
     },
     {
-      "id": "signals_if_due",
-      "command": "equity-research signals-if-due",
-      "stdin": "$watchdog.stdout"
-    },
-    {
       "id": "cycle_if_due",
       "command": "equity-research cycle-if-due",
-      "stdin": "$signals_if_due.stdout"
-    },
-    {
-      "id": "cancel_stale_entries_if_due",
-      "command": "equity-research cancel-stale-entries-if-due",
-      "stdin": "$cycle_if_due.stdout"
+      "stdin": "$watchdog.stdout"
     },
     {
       "id": "daily_report",
       "command": "equity-research daily-report",
-      "stdin": "$cancel_stale_entries_if_due.stdout"
+      "stdin": "$cycle_if_due.stdout"
     }
   ]
 }

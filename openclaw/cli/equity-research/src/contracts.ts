@@ -1,56 +1,219 @@
-export const CANDIDATE_ARRAY_FIELDS = [
-  "sources",
-  "screen_reasons",
-  "filing_refs",
-  "news_refs",
-  "polymarket_context",
-  "evidence_gaps",
+export const MOUNTAINVALUE_WATCHLIST = [
+  "SPY",
+  "QQQ",
+  "IWM",
+  "XLK",
+  "XLF",
+  "XLV",
+  "XLE",
+  "XLI",
 ] as const;
 
-export const REVIEW_ARRAY_FIELDS = [
-  "bull_case",
-  "bear_case",
-  "disqualifiers",
-  "required_checks",
+export const MOUNTAINVALUE_TRADABLE_SYMBOLS = [
+  "QQQ",
+  "IWM",
+  "XLK",
+  "XLF",
+  "XLV",
+  "XLE",
+  "XLI",
 ] as const;
 
-const VERDICTS = new Set(["proceed", "caution", "reject"]);
-const CONFIDENCE_LEVELS = new Set(["low", "medium", "high"]);
-const REPORT_MODES = new Set(["memo", "docket"]);
+export type WatchlistSymbol = typeof MOUNTAINVALUE_WATCHLIST[number];
+export type TradableSymbol = typeof MOUNTAINVALUE_TRADABLE_SYMBOLS[number];
+export type ExecutionMode = "paper" | "live";
+export type TradingSide = "buy" | "sell";
+export type OrderType = "market" | "limit" | "stop" | "stop_limit";
+export type TimeInForce = "day" | "gtc";
+export type StrategySignal = "BUY_CANDIDATE" | "NO_BUY" | "EXIT_POSITION" | "NO_EXIT";
+export type WorkflowStatus = "NO_TRADE" | "ORDER_SUBMITTED" | "ORDER_FILLED" | "EXIT_SUBMITTED" | "BLOCKED" | "SKIPPED" | "ERROR";
+export type AuditKind = "info" | "warn" | "error";
 
-export type JsonScalar = string | number | boolean | null;
-export type MetricValue = JsonScalar | Record<string, unknown> | unknown[];
-
-export interface Candidate {
-  ticker: string;
-  company: string;
-  sources: unknown[];
-  screen_reasons: unknown[];
-  metrics: Record<string, MetricValue>;
-  filing_refs: unknown[];
-  news_refs: unknown[];
-  polymarket_context: unknown[];
-  evidence_gaps: unknown[];
+export interface TradingConfig {
+  execution_mode: ExecutionMode;
+  autonomous_execution_enabled: boolean;
+  alpaca_trading_base_url: string;
+  alpaca_data_base_url: string;
+  alpaca_data_feed: string;
+  alpaca_api_key: string;
+  alpaca_secret_key: string;
+  paper_strategy_capital_usd: number;
+  max_open_positions: number;
+  max_new_entries_per_day: number;
+  max_position_notional_pct: number;
+  max_total_invested_pct: number;
+  minimum_order_notional_usd: number;
+  max_quote_age_seconds: number;
+  max_spread_bps: number;
+  max_midpoint_deviation_pct: number;
+  order_client_prefix: string;
+  ledger_path: string;
+  timezone: string;
 }
 
-export interface ReviewVerdict {
-  ticker: string;
-  verdict: "proceed" | "caution" | "reject";
-  bull_case: unknown[];
-  bear_case: unknown[];
-  disqualifiers: unknown[];
-  required_checks: unknown[];
-  confidence: "low" | "medium" | "high";
+export interface TradingState {
+  trading_enabled: boolean;
+  execution_mode: ExecutionMode;
+  starting_capital_usd: number;
+  virtual_cash_usd: number;
+  realized_pnl_usd: number;
+  last_strategy_equity_usd: number;
+  pause_reason: string | null;
+  paused_at: string | null;
+  resumed_at: string | null;
+  resumed_by: string | null;
+  last_signals_for: string | null;
+  last_cycle_for: string | null;
+  last_watchdog_for: string | null;
+  last_cancel_for: string | null;
+  last_entry_date: string | null;
 }
 
-export interface FinalReport {
-  mode: "memo" | "docket";
-  title: string;
-  selected_ticker: string | null;
-  body_markdown: string;
-  reviewed_candidates: unknown[];
-  rejected_candidates: unknown[];
-  missing_evidence: unknown[];
+export interface ClockSnapshot {
+  timestamp: string;
+  is_open: boolean;
+  next_open?: string | null;
+  next_close?: string | null;
+}
+
+export interface AccountSnapshot {
+  status?: string;
+  buying_power?: number;
+  cash?: number;
+  equity?: number;
+  portfolio_value?: number;
+  day_trade_count?: number;
+  pattern_day_trader?: boolean;
+  currency?: string;
+  raw?: unknown;
+}
+
+export interface PositionSnapshot {
+  symbol: string;
+  qty: number;
+  market_value?: number;
+  avg_entry_price?: number;
+  current_price?: number;
+  unrealized_pl?: number;
+  unrealized_plpc?: number;
+  side?: "long" | "short";
+  entry_date?: string | null;
+  entry_order_id?: string | null;
+  protective_stop_price?: number | null;
+  protective_stop_order_id?: string | null;
+  raw?: unknown;
+}
+
+export interface OrderSnapshot {
+  id: string;
+  client_order_id?: string;
+  symbol: string;
+  side: TradingSide;
+  type: OrderType;
+  status: string;
+  qty?: number;
+  filled_qty?: number;
+  limit_price?: number | null;
+  stop_price?: number | null;
+  filled_avg_price?: number | null;
+  created_at?: string;
+  submitted_at?: string;
+  filled_at?: string | null;
+  canceled_at?: string | null;
+  raw?: unknown;
+}
+
+export interface Bar {
+  symbol: string;
+  t: string;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  v?: number;
+}
+
+export interface Quote {
+  symbol: string;
+  timestamp: string;
+  bid: number;
+  ask: number;
+  bid_size?: number;
+  ask_size?: number;
+  raw?: unknown;
+}
+
+export interface IndicatorSet {
+  symbol: string;
+  previous_close: number;
+  sma_20: number | null;
+  sma_50: number | null;
+  sma_200: number | null;
+  return_20d: number | null;
+  highest_high_20d: number | null;
+  atr_14: number | null;
+  atr_percent: number | null;
+  relative_strength_20d_vs_spy: number | null;
+  above_20d_high_ratio: number | null;
+}
+
+export interface SignalDecision {
+  symbol: WatchlistSymbol;
+  action: StrategySignal;
+  eligible: boolean;
+  score: number;
+  rank?: number | null;
+  reason: string;
+  checks: Record<string, boolean | number | null>;
+  indicators: IndicatorSet;
+}
+
+export interface TradeIntent {
+  trade_date: string;
+  created_at: string;
+  symbol: TradableSymbol | WatchlistSymbol;
+  action: "buy" | "sell" | "none";
+  reason: string;
+  quantity?: number;
+  limit_price?: number | null;
+  stop_price?: number | null;
+  signal?: SignalDecision;
+}
+
+export interface CycleResult {
+  status: WorkflowStatus;
+  trade_date: string;
+  actions: Array<Record<string, unknown>>;
+  skipped: Array<Record<string, unknown>>;
+  paused: boolean;
+  reason?: string | null;
+}
+
+export interface ReportSummary {
+  mode: ExecutionMode;
+  trading_enabled: boolean;
+  trade_date: string;
+  strategy_equity: number;
+  cash: number;
+  realized_pnl: number;
+  invested: number;
+  open_positions: PositionSnapshot[];
+  open_orders: OrderSnapshot[];
+  today_intent: TradeIntent | null;
+  signals: SignalDecision[];
+  skipped_trades: Array<Record<string, unknown>>;
+  audit_count: number;
+  pause_reason: string | null;
+  watchdog: Record<string, unknown>;
+}
+
+export interface AuditRecord {
+  timestamp: string;
+  step: string;
+  kind: AuditKind;
+  symbol?: string | null;
+  message: string;
+  payload: Record<string, unknown>;
 }
 
 export class ContractError extends Error {
@@ -60,158 +223,59 @@ export class ContractError extends Error {
   }
 }
 
-function clone<T>(value: T): T {
-  return structuredClone(value);
+export function assertRecord(value: unknown, message = "expected object"): Record<string, unknown> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new ContractError(message);
+  }
+  return value as Record<string, unknown>;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function stringField(
-  record: Record<string, unknown>,
-  field: string,
-  message: string,
-): string {
-  const value = record[field];
+export function assertString(value: unknown, message: string): string {
   if (typeof value !== "string" || value.trim() === "") {
     throw new ContractError(message);
   }
   return value;
 }
 
-function arrayField(
-  record: Record<string, unknown>,
-  field: string,
-  label: string,
-): unknown[] {
-  const value = record[field] ?? [];
-  if (!Array.isArray(value)) {
-    throw new ContractError(`${label} ${field} must be an array`);
-  }
-  return clone(value);
-}
-
-export function blankCandidate(ticker: string, company = ""): Candidate {
-  return {
-    ticker: ticker.toUpperCase(),
-    company,
-    sources: [],
-    screen_reasons: [],
-    metrics: {},
-    filing_refs: [],
-    news_refs: [],
-    polymarket_context: [],
-    evidence_gaps: [],
-  };
-}
-
-export function normalizeCandidate(candidate: unknown): Candidate {
-  if (!isRecord(candidate)) {
-    throw new ContractError("candidate must be an object");
-  }
-  const ticker = stringField(
-    candidate,
-    "ticker",
-    "candidate ticker must be a non-empty string",
-  );
-  const company = typeof candidate.company === "string" ? candidate.company : "";
-  const normalized = blankCandidate(ticker.trim(), company);
-  const metrics = candidate.metrics ?? {};
-  if (!isRecord(metrics)) {
-    throw new ContractError(`${normalized.ticker} metrics must be an object`);
-  }
-  normalized.metrics = clone(metrics) as Record<string, MetricValue>;
-  for (const field of CANDIDATE_ARRAY_FIELDS) {
-    normalized[field] = arrayField(candidate, field, normalized.ticker);
-  }
-  return normalized;
-}
-
-export function validateCandidates(candidates: unknown): Candidate[] {
-  if (!Array.isArray(candidates)) {
-    throw new ContractError("candidates must be an array");
-  }
-  return candidates.map(normalizeCandidate);
-}
-
-export function validateReview(review: unknown): ReviewVerdict {
-  if (!isRecord(review)) {
-    throw new ContractError("review must be an object");
-  }
-  const ticker = stringField(review, "ticker", "review ticker must be a non-empty string");
-  const { verdict, confidence } = review;
-  if (typeof verdict !== "string" || !VERDICTS.has(verdict)) {
-    throw new ContractError(`${ticker} verdict must be one of caution, proceed, reject`);
-  }
-  if (typeof confidence !== "string" || !CONFIDENCE_LEVELS.has(confidence)) {
-    throw new ContractError(`${ticker} confidence must be one of high, low, medium`);
-  }
-  return {
-    ticker: ticker.toUpperCase(),
-    verdict: verdict as ReviewVerdict["verdict"],
-    confidence: confidence as ReviewVerdict["confidence"],
-    bull_case: arrayField(review, "bull_case", ticker),
-    bear_case: arrayField(review, "bear_case", ticker),
-    disqualifiers: arrayField(review, "disqualifiers", ticker),
-    required_checks: arrayField(review, "required_checks", ticker),
-  };
-}
-
-export function validateReviewBatch(batch: unknown): ReviewVerdict[] {
-  if (!isRecord(batch) || !Array.isArray(batch.reviews)) {
-    throw new ContractError("worker output must include reviews array");
-  }
-  return batch.reviews.map(validateReview);
-}
-
-export function validateEventBatch(batch: unknown): {
-  reviews: ReviewVerdict[];
-  eventCandidates: Candidate[];
-} {
-  if (!isRecord(batch)) {
-    throw new ContractError("event output must be an object");
-  }
-  return {
-    reviews: validateReviewBatch(batch),
-    eventCandidates: validateCandidates(batch.event_candidates ?? []),
-  };
-}
-
-export function validateFinalReport(report: unknown): FinalReport {
-  if (!isRecord(report)) {
-    throw new ContractError("final report must be an object");
-  }
-  if (typeof report.mode !== "string" || !REPORT_MODES.has(report.mode)) {
-    throw new ContractError("final report mode must be one of docket, memo");
-  }
-  const title = stringField(report, "title", "final report title must be a non-empty string");
-  const body = stringField(
-    report,
-    "body_markdown",
-    "final report body_markdown must be a non-empty string",
-  );
-  if (report.selected_ticker !== null && report.selected_ticker !== undefined
-    && typeof report.selected_ticker !== "string") {
-    throw new ContractError("final report selected_ticker must be a string or null");
-  }
-  const selectedTicker = typeof report.selected_ticker === "string" && report.selected_ticker
-    ? report.selected_ticker.toUpperCase()
-    : null;
-  return {
-    mode: report.mode as FinalReport["mode"],
-    title,
-    selected_ticker: selectedTicker,
-    body_markdown: body,
-    reviewed_candidates: arrayField(report, "reviewed_candidates", "final report"),
-    rejected_candidates: arrayField(report, "rejected_candidates", "final report"),
-    missing_evidence: arrayField(report, "missing_evidence", "final report"),
-  };
-}
-
-export function recordValue(value: unknown): Record<string, unknown> {
-  if (!isRecord(value)) {
-    throw new ContractError("payload must be an object");
+export function assertNumber(value: unknown, message: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new ContractError(message);
   }
   return value;
+}
+
+export function asNullableNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+export function isWatchlistSymbol(value: string): value is WatchlistSymbol {
+  return (MOUNTAINVALUE_WATCHLIST as readonly string[]).includes(value);
+}
+
+export function isTradableSymbol(value: string): value is TradableSymbol {
+  return (MOUNTAINVALUE_TRADABLE_SYMBOLS as readonly string[]).includes(value);
+}
+
+export function normalizeSymbol(symbol: string): string {
+  return assertString(symbol, "symbol required").trim().toUpperCase();
+}
+
+export function createDefaultState(mode: ExecutionMode): TradingState {
+  return {
+    trading_enabled: true,
+    execution_mode: mode,
+    starting_capital_usd: 100,
+    virtual_cash_usd: 100,
+    realized_pnl_usd: 0,
+    last_strategy_equity_usd: 100,
+    pause_reason: null,
+    paused_at: null,
+    resumed_at: null,
+    resumed_by: null,
+    last_signals_for: null,
+    last_cycle_for: null,
+    last_watchdog_for: null,
+    last_cancel_for: null,
+    last_entry_date: null,
+  };
 }
