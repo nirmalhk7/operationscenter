@@ -575,7 +575,7 @@
       }
     },
     "telegram": {
-      "enabled": true,
+      "enabled": false,
       "dmPolicy": "pairing",
       "groups": {
         "-1003812665515": {
@@ -589,7 +589,6 @@
       "accounts": {
         "main": {
           "dmPolicy": "allowlist",
-          "botToken": "${OPENCLAW_TELEGRAM_BOT_TOKEN_MAIN}",
           "allowFrom": [
             "8163098638"
           ],
@@ -741,9 +740,16 @@
     "install": {}
   },
   "plugins": {
+    "allow": [
+      "discord",
+      "workboard"
+    ],
     "entries": {
+      "workboard": {
+        "enabled": true
+      },
       "telegram": {
-        "enabled": true,
+        "enabled": false,
         "config": {}
       },
       "openrouter": {
