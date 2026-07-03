@@ -55,17 +55,16 @@
           }
         ]
       }
-    }
-  },
-  "agents": {
+    },
+    "agents": {
     "defaults": {
       "model": {
-        "primary": "openai/gpt-5.5",
+        "primary": "openai/gpt-5.4-mini",
         "fallbacks": [
           "openrouter/qwen/qwen3.5-flash-02-23",
           "local-ollama/qwen2.5-coder:3b",
           "groq/qwen/qwen3-32b",
-          "openrouter/free"
+          "openrouter/auto"
         ]
       },
       "models": {
@@ -76,7 +75,6 @@
           "alias": "gemini-flash-lite"
         },
         "openrouter/auto": {},
-        "openrouter/free": {},
         "openrouter/nvidia/nemotron-3-super-120b-a12b:free": {},
         "openrouter/nvidia/nemotron-3-nano-30b-a3b:free": {},
         "openrouter/qwen/qwen3-coder:free": {},
@@ -91,10 +89,10 @@
         "nvidia-nim/gpt-oss-120b": {},
         "groq/qwen/qwen3-32b": {},
         "openrouter/qwen/qwen3.5-flash-02-23": {},
-        "openai-codex/gpt-5.4-mini": {
+        "openai/gpt-5.4-mini": {
           "alias": "codex-gpt-5.4-mini"
         },
-        "openai-codex/gpt-5.5": {
+        "openai/gpt-5.5": {
           "alias": "codex-gpt-5.5"
         }
       },
@@ -102,11 +100,11 @@
       "userTimezone": "America/Denver",
       "compaction": {
         "mode": "safeguard",
-        "model": "openrouter/free"
+        "model": "openrouter/auto"
       },
       "heartbeat": {
         "every": "30m",
-        "model": "openrouter/free",
+        "model": "openrouter/auto",
         "target": "discord",
         "directPolicy": "allow",
         "lightContext": true,
@@ -127,7 +125,7 @@
           "primary": "openai/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         }
       }
@@ -138,19 +136,20 @@
         "tools": {
           "profile": "full"
         },
+        "thinkingDefault": "minimal",
         "heartbeat": {
           "every": "30m",
-          "model": "openrouter/free",
+          "model": "openrouter/auto",
           "target": "discord",
           "directPolicy": "allow",
           "lightContext": true,
           "isolatedSession": true
         },
         "model": {
-          "primary": "openai-codex/gpt-5.4-mini",
+          "primary": "openai/gpt-5.4-mini",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         }
       },
@@ -158,16 +157,16 @@
         "id": "rahul",
         "workspace": "/root/.openclaw/workspace-rahul",
         "model": {
-          "primary": "openai-codex/gpt-5.5",
+          "primary": "openai/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         },
         "skills": [],
         "heartbeat": {
           "every": "5m",
-          "model": "openrouter/free",
+          "model": "openrouter/auto",
           "lightContext": false,
           "isolatedSession": true,
           "target": "discord"
@@ -190,10 +189,10 @@
         "id": "victor",
         "workspace": "/root/.openclaw/workspace-victor",
         "model": {
-          "primary": "openai-codex/gpt-5.5",
+          "primary": "openai/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         },
         "subagents": {
@@ -236,7 +235,7 @@
           "primary": "openai/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         },
         "skills": [],
@@ -260,7 +259,7 @@
           "primary": "openai/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         },
         "skills": [],
@@ -289,7 +288,7 @@
           "primary": "openai/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         },
         "skills": [],
@@ -318,7 +317,7 @@
           "primary": "openai/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         },
         "skills": [],
@@ -342,7 +341,7 @@
           "primary": "openai/gpt-5.5",
           "fallbacks": [
             "openrouter/qwen/qwen3.5-flash-02-23",
-            "openrouter/free"
+            "openrouter/auto"
           ]
         },
         "skills": [],
@@ -475,6 +474,7 @@
           "autoPresence": {
             "enabled": true
           },
+          "status": "online",
           "activityType": 4,
           "ui": {
             "components": {

@@ -78,12 +78,23 @@ test("workflow stays JSON command steps", () => {
   const config = repoJson(join("openclaw", "openclaw.json"));
   const workflow = repoJson(join("openclaw", "mountainvalue.lobster"));
   const steps = workflow.steps as Array<Record<string, unknown>>;
-  const defaults = (config.agents as Record<string, unknown>).defaults as Record<string, unknown>;
+  const models = config.models as Record<string, unknown>;
+  const agentsConfig = models.agents as Record<string, unknown>;
+  const defaults = agentsConfig.defaults as Record<string, unknown>;
   const defaultsModel = defaults.model as Record<string, unknown>;
+  const discord = models.channels as Record<string, unknown>;
+  const discordConfig = discord.discord as Record<string, unknown>;
+  const mainDiscordAccount = ((discordConfig.accounts as Record<string, unknown>).main) as Record<string, unknown>;
+  const mainProfile = (agentsConfig.list as Array<Record<string, unknown>>)
+    .find((agent) => agent.id === "main") as Record<string, unknown>;
+  const mainModel = mainProfile.model as Record<string, unknown>;
 
-  assert.equal((config.meta as Record<string, unknown>).lastTouchedVersion, "2026.4.23");
+  assert.equal((config.meta as Record<string, unknown>).lastTouchedVersion, "2026.5.28");
   assert.equal(workflow.name, "mountainvalue-daily-equity-research");
-  assert.equal(defaultsModel.primary, "openai/gpt-5.5");
+  assert.equal(defaultsModel.primary, "openai/gpt-5.4-mini");
+  assert.equal(mainModel.primary, "openai/gpt-5.4-mini");
+  assert.equal(mainProfile.thinkingDefault, "minimal");
+  assert.equal(mainDiscordAccount.status, "online");
   assert.deepEqual(
     steps.map((step) => step.id),
     [
@@ -107,10 +118,12 @@ test("workflow stays JSON command steps", () => {
   assert.ok(steps.every((step) => "command" in step));
   assert.equal("stdin" in steps[0], false);
   assert.ok(steps.slice(1).every((step) => "stdin" in step));
-  const agents = (((config.agents as Record<string, unknown>).list) as Array<Record<string, unknown>>)
+  const agents = (agentsConfig.list as Array<Record<string, unknown>>)
     .map((agent) => agent as Record<string, unknown>);
+  const plugins = models.plugins as Record<string, unknown>;
+  assert.deepEqual(plugins.allow, ["discord", "workboard"]);
   const agentIds = agents.map((agent) => agent.id);
-  const bindings = (config.bindings as Array<Record<string, unknown>>)
+  const bindings = (models.bindings as Array<Record<string, unknown>>)
     .filter((binding) => (binding.match as Record<string, unknown>).channel === "discord")
     .map((binding) => binding.agentId);
   assert.ok(agentIds.includes("victor"));
@@ -152,9 +165,8 @@ test("workflow stays JSON command steps", () => {
   assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "TOOLS.md")), /"cwd": "\.\."/u);
   assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "AGENTS.md")), /"cwd": "\.\."/u);
   const victorSubagents = (victor.subagents as Record<string, unknown> | undefined)
-    ?? (((config.agents as Record<string, unknown>).defaults as Record<string, unknown>).subagents as Record<string, unknown>);
-  const defaultSubagents = (((config.agents as Record<string, unknown>).defaults as Record<string, unknown>)
-    .subagents as Record<string, unknown>);
+    ?? (defaults.subagents as Record<string, unknown>);
+  const defaultSubagents = defaults.subagents as Record<string, unknown>;
   assert.equal((defaultSubagents.allowAgents as string[]).includes("newswire"), false);
   assert.deepEqual(victorSubagents.allowAgents, [
     "eq_quantsieve",
@@ -170,8 +182,8 @@ test("workflow stays JSON command steps", () => {
     "exa__web_fetch_exa",
     "exa__web_search_advanced_exa",
   ]);
-  const plugins = (config.plugins as Record<string, unknown>).entries as Record<string, Record<string, unknown>>;
-  assert.ok(plugins.openai?.enabled);
+  const pluginEntries = plugins.entries as Record<string, Record<string, unknown>>;
+  assert.ok(pluginEntries.openai?.enabled);
 });
 
 test("worker turns target configured role profiles directly", () => {
