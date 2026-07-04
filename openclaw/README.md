@@ -252,7 +252,7 @@ The playbook deploys focused Lobster pipelines:
 - `/root/.openclaw/mountainvalue-signals.lobster`
 - `/root/.openclaw/mountainvalue.lobster`
 
-The OpenClaw cron uses `America/New_York` and runs the buy/sell evaluation
+The OpenClaw cron uses `America/Denver` and runs the buy/sell evaluation
 workflow with:
 
 ```cron

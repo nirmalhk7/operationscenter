@@ -938,7 +938,7 @@
               - --cron
               - "0 8-13 * * 1-5"
               - --tz
-              - America/New_York
+              - America/Denver
               - --agent
               - victor
               - --session
