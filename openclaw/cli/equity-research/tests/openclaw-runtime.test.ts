@@ -14,10 +14,26 @@ function repoJson(path: string): Record<string, unknown> {
 test("OpenClaw runtime config parses and points at the MountainValue operator workspace", () => {
   const config = repoJson(join("openclaw", "openclaw.json"));
   const agentsConfig = config.agents as Record<string, unknown>;
+  const channelsConfig = config.channels as Record<string, unknown>;
+  const agentList = agentsConfig.list as Array<Record<string, unknown>>;
+  const defaults = agentsConfig.defaults as Record<string, unknown>;
+  const main = agentList.find((agent) => agent.id === "main");
   const victor = (agentsConfig.list as Array<Record<string, unknown>>).find((agent) => agent.id === "victor");
   const gateway = config.gateway as Record<string, unknown>;
+  const discord = channelsConfig.discord as Record<string, unknown>;
 
+  assert.ok(main);
   assert.ok(victor);
+  assert.equal(discord.enabled, true);
+  assert.equal(((discord.token as Record<string, unknown>) ?? {}).id, "DISCORD_BOT_TOKEN");
+  assert.ok(Array.isArray(defaults.skills));
+  assert.ok("openrouter/free" in (defaults.models as Record<string, unknown>));
+  assert.ok("openrouter/qwen/qwen3.5-flash-02-23" in (defaults.models as Record<string, unknown>));
+  assert.ok(agentList.every((agent) => Array.isArray(agent.skills)));
+  assert.ok(agentList.every((agent) => {
+    const tools = agent.tools as Record<string, unknown>;
+    return Array.isArray(tools.allow) && Array.isArray(tools.deny) && Array.isArray(tools.alsoAllow);
+  }));
   assert.equal(victor?.workspace, "/root/.openclaw/workspace-victor");
   assert.equal(((victor as Record<string, unknown>).tools as Record<string, unknown>).profile, "full");
   assert.equal("agentDir" in (victor ?? {}), false);
