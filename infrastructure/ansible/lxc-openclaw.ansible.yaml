@@ -66,6 +66,7 @@
         - openclaw-pipelines
         - openclaw-env
       block:
+      
         - name: Ensure OpenClaw configuration directory exists
           ansible.builtin.file:
             path: "{{ openclaw_home }}/.openclaw"
