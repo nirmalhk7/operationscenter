@@ -217,6 +217,12 @@
             - "{{ openclaw_home }}/.openclaw/extensions/discord"
             - "{{ openclaw_home }}/.openclaw/extensions/exa"
 
+        - name: Check installed OpenClaw version
+          ansible.builtin.command: openclaw --version
+          register: openclaw_version_check
+          failed_when: false
+          changed_when: false
+
         - name: Install OpenClaw companion packages globally using pnpm
           ansible.builtin.shell:
             cmd: |
@@ -228,8 +234,8 @@
             PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
             HOME: "{{ openclaw_home }}"
           register: openclaw_install
+          when: openclaw_version not in (openclaw_version_check.stdout | default(""))
           changed_when: "'Already up to date' not in openclaw_install.stdout"
-          notify: Restart OpenClaw service
 
         - name: Publish Lobster to a standard system PATH
           ansible.builtin.copy:
