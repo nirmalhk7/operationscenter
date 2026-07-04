@@ -735,6 +735,23 @@
             - { src: "README.md", dest: "README.md", mode: "0644" }
             - { src: "src/index.js", dest: "src/index.js", mode: "0644" }
 
+        - name: Install Lobster plugin production dependencies
+          ansible.builtin.command:
+            argv:
+              - pnpm
+              - install
+              - --prod
+              - --ignore-scripts
+          args:
+            chdir: "{{ openclaw_home }}/.openclaw/plugins/lobster"
+          environment:
+            HOME: "{{ openclaw_home }}"
+            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+          register: lobster_plugin_deps
+          changed_when: "'Already up to date' not in lobster_plugin_deps.stdout"
+          notify: Restart OpenClaw service
+
         - name: Install Lobster plugin into OpenClaw
           ansible.builtin.command:
             argv:

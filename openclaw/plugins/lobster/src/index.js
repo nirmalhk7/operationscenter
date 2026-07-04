@@ -1,55 +1,35 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
+import { Type } from "typebox";
+import { jsonResult } from "openclaw/plugin-sdk/core";
 import { defineToolPlugin } from "openclaw/plugin-sdk/tool-plugin";
 
-const LOBSTER_TOOL_SCHEMA = {
-  type: "object",
-  additionalProperties: false,
-  required: ["action"],
-  properties: {
-    action: {
-      type: "string",
-      enum: ["run"],
-      description: "Only the run action is supported in this wrapper."
-    },
-    pipeline: {
-      type: "string",
-      description: "Path to the Lobster workflow file."
-    },
-    cwd: {
-      type: "string",
-      description: "Working directory relative to the invoking agent workspace."
-    },
-    timeoutMs: {
-      type: "integer",
-      minimum: 1,
-      description: "Maximum runtime in milliseconds."
-    },
-    maxStdoutBytes: {
-      type: "integer",
-      minimum: 1,
-      description: "Maximum stdout bytes to capture before aborting."
-    }
-  }
-};
+const LOBSTER_TOOL_SCHEMA = Type.Object({
+  action: Type.Literal("run", { description: "Only the run action is supported in this wrapper." }),
+  pipeline: Type.Optional(Type.String({ description: "Path to the Lobster workflow file." })),
+  cwd: Type.Optional(Type.String({ description: "Working directory relative to the invoking agent workspace." })),
+  timeoutMs: Type.Optional(Type.Integer({ minimum: 1, description: "Maximum runtime in milliseconds." })),
+  maxStdoutBytes: Type.Optional(Type.Integer({ minimum: 1, description: "Maximum stdout bytes to capture before aborting." }))
+}, { additionalProperties: false });
 
 function resolveBaseWorkspace(toolContext) {
-  return toolContext.workspaceDir || toolContext.agentDir || process.cwd();
+  return toolContext?.workspaceDir || toolContext?.agentDir || process.cwd();
 }
 
 function normalizeRunParameters(params, toolContext) {
+  const input = params && typeof params === "object" ? params : {};
   const baseWorkspace = resolveBaseWorkspace(toolContext);
-  const cwd = typeof params.cwd === "string" && params.cwd.trim() ? params.cwd : ".";
+  const cwd = typeof input.cwd === "string" && input.cwd.trim() ? input.cwd : ".";
   const resolvedCwd = path.resolve(baseWorkspace, cwd);
-  const rawPipeline = typeof params.pipeline === "string" && params.pipeline.trim()
-    ? params.pipeline.trim()
+  const rawPipeline = typeof input.pipeline === "string" && input.pipeline.trim()
+    ? input.pipeline.trim()
     : path.resolve(baseWorkspace, "..", "mountainvalue.lobster");
   const normalizedPipeline = rawPipeline.startsWith("$WORKSPACE_DIR/")
     ? path.resolve(path.resolve(baseWorkspace, ".."), rawPipeline.slice("$WORKSPACE_DIR/".length))
     : rawPipeline;
   const resolvedPipeline = path.isAbsolute(normalizedPipeline) ? normalizedPipeline : path.resolve(resolvedCwd, normalizedPipeline);
-  const timeoutMs = Number.isInteger(params.timeoutMs) && params.timeoutMs > 0 ? params.timeoutMs : 1_800_000;
-  const maxStdoutBytes = Number.isInteger(params.maxStdoutBytes) && params.maxStdoutBytes > 0 ? params.maxStdoutBytes : 1_048_576;
+  const timeoutMs = Number.isInteger(input.timeoutMs) && input.timeoutMs > 0 ? input.timeoutMs : 1_800_000;
+  const maxStdoutBytes = Number.isInteger(input.maxStdoutBytes) && input.maxStdoutBytes > 0 ? input.maxStdoutBytes : 1_048_576;
   return { resolvedCwd, resolvedPipeline, timeoutMs, maxStdoutBytes };
 }
 
@@ -176,10 +156,11 @@ export default defineToolPlugin({
         label: "Lobster",
         description: "Run a Lobster workflow and return its JSON result.",
         parameters: LOBSTER_TOOL_SCHEMA,
-        execute: async (params) => {
+        execute: async (_toolCallId, params, signal) => {
           const normalized = normalizeRunParameters(params, toolContext);
           const result = await runLobsterBinary({
-            ...normalized
+            ...normalized,
+            signal
           });
 
           if (result.ok) {
@@ -188,7 +169,7 @@ export default defineToolPlugin({
               try {
                 const parsed = JSON.parse(text);
                 if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-                  return {
+                  return jsonResult({
                     ...parsed,
                     lobster: {
                       ok: true,
@@ -196,9 +177,9 @@ export default defineToolPlugin({
                       resolvedCwd: result.resolvedCwd,
                       resolvedPipeline: result.resolvedPipeline
                     }
-                  };
+                  });
                 }
-                return {
+                return jsonResult({
                   result: parsed,
                   lobster: {
                     ok: true,
@@ -206,25 +187,25 @@ export default defineToolPlugin({
                     resolvedCwd: result.resolvedCwd,
                     resolvedPipeline: result.resolvedPipeline
                   }
-                };
+                });
               } catch {
-                return {
+                return jsonResult({
                   ok: true,
                   exitCode: result.exitCode ?? 0,
                   resolvedCwd: result.resolvedCwd,
                   resolvedPipeline: result.resolvedPipeline,
                   stdout: text,
                   stderr: result.stderr.trim()
-                };
+                });
               }
             }
           }
 
-          return {
+          return jsonResult({
             ...result,
             stdout: result.stdout.trim(),
             stderr: result.stderr.trim()
-          };
+          });
         }
       })
     })
