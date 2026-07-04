@@ -39,7 +39,7 @@ docker_socket_proxy_image: "tecnativa/docker-socket-proxy:{{ docker_socket_proxy
 openclaw_version: "2026.5.28"
 
 # renovate: datasource=npm depName=@clawdbot/lobster
-lobster_version: "2026.4.6"
+lobster_version: "2026.6.11"
 
 # renovate: datasource=npm depName=polymarket-mcp
 polymarket_mcp_version: "1.0.0"
