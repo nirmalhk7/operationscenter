@@ -804,6 +804,22 @@
         mode: '0644'
       notify: Restart OpenClaw service
 
+    - name: Remove legacy OpenClaw user gateway service
+      tags:
+        - openclaw-service
+      block:
+        - name: Stop and disable legacy root user gateway
+          ansible.builtin.command:
+            cmd: systemctl --user disable --now openclaw-gateway.service
+          register: openclaw_legacy_user_gateway
+          changed_when: openclaw_legacy_user_gateway.rc == 0
+          failed_when: false
+
+        - name: Remove legacy root user gateway unit file
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.config/systemd/user/openclaw-gateway.service"
+            state: absent
+
     - name: Enable and restart OpenClaw service
       tags:
         - openclaw-service
