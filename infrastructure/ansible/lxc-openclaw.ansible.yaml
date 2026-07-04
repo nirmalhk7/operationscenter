@@ -272,40 +272,59 @@
       tags:
         - openclaw-equity-cli
       block:
-        - name: Require GitHub Packages token for equity research install
-          ansible.builtin.assert:
-            that:
-              - lookup('env', 'OPENCLAW_GITHUB_TOKEN') | length > 0
-            fail_msg: "Set OPENCLAW_GITHUB_TOKEN with GitHub Packages read access before deploying OpenClaw."
-
-        - name: Configure GitHub Packages npm scope for OpenClaw
-          ansible.builtin.copy:
-            dest: "{{ openclaw_home }}/.npmrc"
-            content: |
-              @nirmalhk7:registry=https://npm.pkg.github.com
-              //npm.pkg.github.com/:_authToken={{ lookup('env', 'OPENCLAW_GITHUB_TOKEN') }}
+        - name: Ensure local equity-research deployment directory exists
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.openclaw/cli/equity-research"
+            state: directory
             owner: "{{ openclaw_user }}"
             group: "{{ openclaw_user }}"
-            mode: '0600'
+            mode: '0755'
 
-        - name: Install equity research CLI from GitHub Packages
-          ansible.builtin.command: pnpm install -g @nirmalhk7/equity-research@{{ equity_research_version }}
-          environment:
-            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
-            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
-            HOME: "{{ openclaw_home }}"
+        - name: Deploy local equity-research package metadata
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/cli/equity-research/{{ item }}"
+            dest: "{{ openclaw_home }}/.openclaw/cli/equity-research/{{ item }}"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0644'
+            force: yes
+          loop:
+            - package.json
+            - package-lock.json
+            - README.md
           notify: Restart OpenClaw service
+
+        - name: Deploy local equity-research build output
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/cli/equity-research/dist/"
+            dest: "{{ openclaw_home }}/.openclaw/cli/equity-research/dist/"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0755'
+            force: yes
+          notify: Restart OpenClaw service
+
+        - name: Install local equity-research production dependencies
+          ansible.builtin.command: npm ci --omit=dev --ignore-scripts
+          args:
+            chdir: "{{ openclaw_home }}/.openclaw/cli/equity-research"
+          environment:
+            HOME: "{{ openclaw_home }}"
+          changed_when: false
 
         - name: Publish equity-research to a standard system PATH
           ansible.builtin.copy:
-            dest: /usr/local/bin/equity-research
+            dest: "{{ item }}"
             content: |
               #!/bin/sh
-              exec node {{ openclaw_home }}/.local/share/pnpm/global/5/node_modules/@nirmalhk7/equity-research/dist/src/cli.js "$@"
+              exec node {{ openclaw_home }}/.openclaw/cli/equity-research/dist/src/cli.js "$@"
             mode: '0755'
             owner: root
             group: root
             force: true
+          loop:
+            - /usr/local/bin/equity-research
+            - "{{ openclaw_home }}/.local/share/pnpm/equity-research"
           notify: Restart OpenClaw service
 
         - name: Install fix-that-thang CLI from GitHub Packages
