@@ -676,15 +676,87 @@
         - openclaw-assets
         - openclaw-pipelines
       block:
-        - name: Deploy Lobster pipeline file
+        - name: Deploy MountainValue Lobster pipeline files
           ansible.builtin.copy:
-            src: "{{ playbook_dir }}/../../openclaw/mountainvalue.lobster"
-            dest: "{{ openclaw_home }}/.openclaw/mountainvalue.lobster"
+            src: "{{ item }}"
+            dest: "{{ openclaw_home }}/.openclaw/{{ item | basename }}"
             owner: "{{ openclaw_user }}"
             group: "{{ openclaw_user }}"
             mode: '0600'
             force: yes
+          loop: "{{ lookup('fileglob', playbook_dir ~ '/../../openclaw/mountainvalue*.lobster', wantlist=True) }}"
+          loop_control:
+            label: "{{ item | basename }}"
           notify: Restart OpenClaw service
+
+    - name: Deploy Lobster OpenClaw plugin
+      tags:
+        - openclaw-assets
+        - openclaw-plugins
+      block:
+        - name: Ensure Lobster plugin directory exists
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.openclaw/plugins/lobster/src"
+            state: directory
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0755'
+
+        - name: Deploy Lobster plugin package files
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../../openclaw/plugins/lobster/{{ item.src }}"
+            dest: "{{ openclaw_home }}/.openclaw/plugins/lobster/{{ item.dest }}"
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: "{{ item.mode }}"
+            force: yes
+          loop:
+            - { src: "package.json", dest: "package.json", mode: "0644" }
+            - { src: "openclaw.plugin.json", dest: "openclaw.plugin.json", mode: "0644" }
+            - { src: "README.md", dest: "README.md", mode: "0644" }
+            - { src: "src/index.js", dest: "src/index.js", mode: "0644" }
+
+        - name: Install Lobster plugin into OpenClaw
+          ansible.builtin.command:
+            argv:
+              - openclaw
+              - plugins
+              - install
+              - --dangerously-force-unsafe-install
+              - --link
+              - "{{ openclaw_home }}/.openclaw/plugins/lobster"
+          environment:
+            HOME: "{{ openclaw_home }}"
+            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+          register: lobster_plugin_install
+          changed_when: "'Installed' in lobster_plugin_install.stdout or 'Linked' in lobster_plugin_install.stdout or 'updated' in (lobster_plugin_install.stdout | lower)"
+          notify: Restart OpenClaw service
+
+    - name: Configure Victor Discord delivery
+      tags:
+        - openclaw-channel
+        - openclaw-service
+      block:
+        - name: Add Victor Discord channel
+          ansible.builtin.command:
+            argv:
+              - openclaw
+              - channels
+              - add
+              - --channel
+              - discord
+              - --name
+              - Victor
+              - --use-env
+          environment:
+            HOME: "{{ openclaw_home }}"
+            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+            OPENCLAW_DISCORD_BOT_TOKEN_VICTOR: "{{ lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_VICTOR') }}"
+            DISCORD_BOT_TOKEN: "{{ lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_VICTOR') }}"
+          register: victor_discord_channel
+          changed_when: "'configured' in (victor_discord_channel.stdout | lower) or 'updated' in (victor_discord_channel.stdout | lower) or 'enabled' in (victor_discord_channel.stdout | lower)"
 
     - name: Install OpenClaw systemd service
       tags:
@@ -728,3 +800,110 @@
         enabled: true
         state: restarted
         daemon_reload: yes
+
+    - name: Schedule autonomous MountainValue OpenClaw cron
+      tags:
+        - openclaw-cron
+        - openclaw-pipelines
+      environment:
+        HOME: "{{ openclaw_home }}"
+        PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+        PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+        KUBECONFIG: "{{ openclaw_support_home }}/.kube/config"
+      block:
+        - name: Remove legacy MountainValue root crontab timezone
+          ansible.builtin.cron:
+            name: CRON_TZ
+            env: true
+            state: absent
+            user: "{{ openclaw_user }}"
+
+        - name: Remove legacy MountainValue root cron schedules
+          ansible.builtin.cron:
+            name: "{{ item }}"
+            state: absent
+            user: "{{ openclaw_user }}"
+          loop:
+            - MountainValue watchdog
+            - MountainValue watchdog open
+            - MountainValue watchdog market hours
+            - MountainValue watchdog close
+            - MountainValue cycle
+            - MountainValue cancel stale entries
+            - MountainValue signals
+            - MountainValue evaluate buy sell
+
+        - name: Wait for OpenClaw cron scheduler
+          ansible.builtin.command:
+            argv:
+              - openclaw
+              - cron
+              - status
+          register: openclaw_cron_status
+          changed_when: false
+          retries: 12
+          delay: 5
+          until: openclaw_cron_status.rc == 0
+
+        - name: List existing OpenClaw cron jobs
+          ansible.builtin.command:
+            argv:
+              - openclaw
+              - cron
+              - list
+              - --json
+          register: openclaw_cron_jobs
+          changed_when: false
+
+        - name: Remove legacy OpenClaw MountainValue cron jobs
+          ansible.builtin.command:
+            argv:
+              - openclaw
+              - cron
+              - rm
+              - "{{ item }}"
+          loop: >-
+            {{
+              (openclaw_cron_jobs.stdout | from_json).jobs
+              | selectattr('name', 'in', [
+                'MountainValue Daily Equity Research',
+                'MountainValue Paper Trading',
+                'MountainValue evaluate buy sell'
+              ])
+              | map(attribute='id')
+              | list
+            }}
+          when: (openclaw_cron_jobs.stdout | from_json).jobs | length > 0
+
+        - name: Create MountainValue hourly buy/sell OpenClaw cron
+          ansible.builtin.command:
+            argv:
+              - openclaw
+              - cron
+              - add
+              - --name
+              - MountainValue evaluate buy sell
+              - --cron
+              - "0 8-13 * * 1-5"
+              - --tz
+              - America/New_York
+              - --agent
+              - victor
+              - --session
+              - isolated
+              - --announce
+              - --channel
+              - discord
+              - --to
+              - "channel:{{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504282224789295134', true) }}"
+              - --timeout
+              - "1800000"
+              - --message
+              - >-
+                Run MountainValue autonomous buy/sell evaluation now. Use the
+                Lobster tool with action "run" and pipeline
+                "/root/.openclaw/mountainvalue.lobster". Set cwd to ".." so it
+                resolves to "/root/.openclaw" from Victor's workspace, timeoutMs
+                to 1800000, and maxStdoutBytes to 1048576. Do not choose assets,
+                place orders, or bypass the deterministic MountainValue workflow;
+                the Lobster pipeline decides whether any action is due.
