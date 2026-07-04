@@ -146,9 +146,13 @@ export class TradingCoreService {
     if (paused) {
       this.pause(`Reconciliation failed: ${failed.join("; ")}`);
     } else {
+      let openValue = 0;
+      for (const position of safePositions(positions)) {
+        openValue += position.market_value ?? position.qty * (position.current_price ?? position.avg_entry_price ?? 0);
+      }
       this.writeState({
         virtual_cash_usd: account?.cash ?? state.virtual_cash_usd,
-        last_strategy_equity_usd: (account?.cash ?? state.virtual_cash_usd) + safePositions(positions).reduce((sum, position) => sum + (position.market_value ?? position.qty * (position.current_price ?? position.avg_entry_price ?? 0)), 0),
+        last_strategy_equity_usd: (account?.cash ?? state.virtual_cash_usd) + openValue,
       });
       this.deps.ledger.replacePositions(positions.map(normalizeBrokerPosition), this.now().toISOString());
       this.deps.ledger.saveSnapshot("account", account, this.now().toISOString());
@@ -531,7 +535,10 @@ export class TradingCoreService {
 
   private strategyEquity(positions: PositionSnapshot[], account: AccountSnapshot | null): number {
     const cash = this.state().virtual_cash_usd ?? account?.cash ?? this.deps.config.paper_strategy_capital_usd;
-    const marketValue = safePositions(positions).reduce((sum, position) => sum + (position.market_value ?? position.qty * (position.current_price ?? position.avg_entry_price ?? 0)), 0);
+    let marketValue = 0;
+    for (const position of safePositions(positions)) {
+      marketValue += position.market_value ?? position.qty * (position.current_price ?? position.avg_entry_price ?? 0);
+    }
     return round((cash ?? 0) + marketValue);
   }
 
@@ -747,17 +754,18 @@ function getNewYorkParts(date: Date): { year: number; month: number; day: number
     weekday: "short",
     hour12: false,
   });
-  const parts = formatter.formatToParts(date).reduce<Record<string, string>>((acc, part) => {
-    acc[part.type] = part.value;
-    return acc;
-  }, {});
+  const parts = formatter.formatToParts(date);
+  const records: Record<string, string> = {};
+  for (const part of Array.isArray(parts) ? parts : []) {
+    records[part.type] = part.value;
+  }
   const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
   return {
-    year: Number(parts.year),
-    month: Number(parts.month),
-    day: Number(parts.day),
-    hour: Number(parts.hour),
-    minute: Number(parts.minute),
-    weekday: weekdayMap[parts.weekday] ?? 0,
+    year: Number(records.year),
+    month: Number(records.month),
+    day: Number(records.day),
+    hour: Number(records.hour),
+    minute: Number(records.minute),
+    weekday: weekdayMap[records.weekday] ?? 0,
   };
 }

@@ -142,7 +142,10 @@ export function buildExecutionPlan(input: {
   const buyCandidate = input.signal_plan.buy_candidate;
   const holdings = safeArray(input.holdings);
   const holdingsCount = holdings.length;
-  const invested = holdings.reduce((sum, holding) => sum + Math.max(0, holding.market_value ?? 0), 0);
+  let invested = 0;
+  for (const holding of holdings) {
+    invested += Math.max(0, holding.market_value ?? 0);
+  }
   const totalCapacity = input.strategy_equity * input.max_total_invested_pct;
   const remainingTotal = Math.max(0, totalCapacity - invested);
 
@@ -231,7 +234,10 @@ export function computeIndicators(symbol: string, bars: Bar[], spyReturn20: numb
   const sma200 = sma(closes, 200);
   const close20Ago = closes.length >= 21 ? closes.at(-21) ?? null : null;
   const return20d = close20Ago && close20Ago !== 0 ? round((previousClose - close20Ago) / close20Ago) : null;
-  const highestHigh20d = highs.slice(-20).reduce((max, value) => Math.max(max, value), Number.NEGATIVE_INFINITY);
+  let highestHigh20d = Number.NEGATIVE_INFINITY;
+  for (const value of highs.slice(-20)) {
+    highestHigh20d = Math.max(highestHigh20d, value);
+  }
   const atr14 = atr(ordered, 14);
   const atrPercent = atr14 !== null && previousClose !== 0 ? round(atr14 / previousClose) : null;
   const relativeStrength = spyReturn20 !== null && return20d !== null ? round(return20d - spyReturn20) : null;
@@ -347,7 +353,11 @@ function sma(values: number[], length: number): number | null {
     return null;
   }
   const slice = values.slice(-length);
-  return round(slice.reduce((sum, value) => sum + value, 0) / length);
+  let sum = 0;
+  for (const value of slice) {
+    sum += value;
+  }
+  return round(sum / length);
 }
 
 function atr(bars: Bar[], length: number): number | null {
@@ -368,7 +378,11 @@ function atr(bars: Bar[], length: number): number | null {
   if (ranges.length < length) {
     return null;
   }
-  return round(ranges.slice(-length).reduce((sum, value) => sum + value, 0) / length);
+  let sum = 0;
+  for (const value of ranges.slice(-length)) {
+    sum += value;
+  }
+  return round(sum / length);
 }
 
 function round(value: number): number {
