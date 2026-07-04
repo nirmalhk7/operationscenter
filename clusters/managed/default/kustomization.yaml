@@ -7,7 +7,6 @@ resources:
   - _repositories
   - namespace.yaml
   - homepage
-  - n8n
   - outline
   - nfsprovisioner
   
