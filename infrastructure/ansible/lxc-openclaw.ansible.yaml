@@ -101,7 +101,7 @@
               - git
             state: present
             update_cache: true
-
+# TODO Remove this as its a one-time check
         - name: Remove conflicting Node.js packages if present
           ansible.builtin.apt:
             name:
@@ -188,16 +188,19 @@
           ansible.builtin.command: npm install -g pnpm@{{ pnpm_version }}
           when: pnpm_check.rc != 0 or (pnpm_check.stdout is defined and pnpm_check.stdout != pnpm_version)
 
+# TODO Remove this as its a one-time check
         - name: Remove conflicting global OpenClaw if exists
           ansible.builtin.file:
             path: /usr/bin/openclaw
             state: absent
 
+# TODO Remove this as its a one-time check
         - name: Remove legacy uv-installed Polymarket MCP shim if present
           ansible.builtin.file:
             path: "{{ openclaw_home }}/.local/bin/polymarket-mcp"
             state: absent
 
+# TODO Remove this as its a one-time check
         - name: Remove incompatible OpenClaw extensions from newer releases
           ansible.builtin.file:
             path: "{{ item }}"
