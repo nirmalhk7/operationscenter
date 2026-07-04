@@ -21,9 +21,10 @@ This inventory reflects the deployed OpenClaw runtime configuration in
   maintenance analysis and PR drafting.
   Runtime workspace: `/root/.openclaw/workspace-rahul`. External access:
   Discord `rahul`.
-- `victor`: MountainValue final value analyst and publisher. Owns Lobster
-  equity research runs, coordinates the configured review profiles,
-  enforces the evidence bar, and posts the final Discord forum artifact.
+- `victor`: MountainValue operator interface. Owns the Lobster paper-trading
+  workflow, reports status and audit history, and handles explicit pause /
+  resume requests. Runtime workspace: `/root/.openclaw/workspace-victor`.
+  External access: Discord `victor`.
   Runtime workspace: `/root/.openclaw/workspace-victor`. External access:
   Discord `victor`.
 - `alexa`: technical storyteller and blog-draft writer for Rahul's solved
@@ -38,8 +39,8 @@ This inventory reflects the deployed OpenClaw runtime configuration in
 
 - Use `main` for general Operations Center coordination and cross-agent routing.
 - Use `rahul` for Proxmox, Kubernetes, Flux, YAML, and PR-oriented ops work.
-- Use `victor` for MountainValue status, runs, and final equity research
-  publishing.
+- Use `victor` for MountainValue status, workflow runs, reports, and explicit
+  pause / resume control.
 - Use `alexa` for postmortem-style engineering blogs about Rahul's solved
   cluster issues, but only when the fix is validated and worth a real writeup.
 - Discord-facing agents can inspect image and GIF attachments, and may reply
@@ -91,10 +92,9 @@ Main, route this to the right agent and keep status updates in this thread.
 ### Configured subagents
 
 These profiles are also active in `agents.list`, but they have no Discord
-bindings. The `eq_*` profiles are MountainValue equity workers.
-`newswire` is a reusable news-context worker currently allowlisted only for
-Victor. The Lobster CLI may call these profiles directly for synchronous JSON
-review stages.
+bindings. MountainValue v1 does not use them for trade execution. The
+`eq_*` profiles remain available for separate research work, and `newswire`
+is a reusable news-context worker currently allowlisted only for Victor.
 
 - `eq_quantsieve`: first-pass value and quality reviewer. Audits cheapness,
   business quality, leverage, liquidity, balance-sheet sanity,
@@ -186,7 +186,7 @@ it is also listed in `openclaw/openclaw.json`.
 - `workspace-motabhai`: not configured as an active agent. Docs describe a
   senior Indian equity analyst for Dhandho-style NSE/BSE research.
 
-## MountainValue Manual Run
+## MountainValue Workflow
 
 The LXC deployment copies `mountainvalue.lobster` to:
 
@@ -212,10 +212,15 @@ Victor's Lobster tool call should be:
 }
 ```
 
-The workflow itself handles the final `publish-final-report` step. Victor should post
-one Discord forum artifact only when `OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID`
-points to the real forum channel. The deployed default target is
-`1504282224789295134`.
+The workflow is deterministic:
+
+`preflight` → `reconcile` → `watchdog` → `signals-if-due` → `cycle-if-due` →
+`cancel-stale-entries-if-due` → `daily-report`
+
+Signals are generated after the close, execution happens the next morning, and
+watchdog checks are supervision only. Victor should report the workflow result,
+not invent trades. The deployed default forum target remains
+`1504282224789295134` for ordinary OpenClaw posting when explicitly requested.
 
 MountainValue worker roles are configured OpenClaw profiles with no Discord
 bindings. Their workspaces and role docs deploy to `/root/.openclaw/subAgents/`.
@@ -228,54 +233,58 @@ two files are the runtime contract:
 - `eq_thesis_depth_reviewer`: thesis-depth US equity review.
 - `eq_riskskeptic`: bear-case and evidence-quality review.
 
-Victor is allowed to spawn only these configured profiles as subagents.
-The Lobster CLI also calls these profiles directly for synchronous JSON review
-steps, which keeps the pipeline deterministic instead of waiting on background
-subagent announce messages.
+Victor does not use these profiles for trading decisions in MountainValue v1.
 
-## Optional Manual Cron
+## Autonomous Schedule
 
-The LXC Ansible playbook does not create or update this cron job. To schedule it
-manually on the OpenClaw host, run:
+MountainValue autonomous runs are GitOps-managed by
+`infrastructure/ansible/lxc-openclaw.ansible.yaml` as a Victor-owned OpenClaw
+cron job. The cron wakes Victor in an isolated session, calls the repo-owned
+Lobster tool plugin, and announces the final result back through Victor's
+private Discord route. Victor remains the private operator interface for
+manual status and explicit workflow runs.
 
-```sh
-openclaw cron add \
-  --name "MountainValue Daily Equity Research" \
-  --cron "0 6 * * 1-5" \
-  --tz "America/Denver" \
-  --session isolated \
-  --agent victor \
-  --no-deliver \
-  --message 'Use the Lobster tool with action "run" and pipeline "/root/.openclaw/mountainvalue.lobster". Set cwd to ".." so it resolves to "/root/.openclaw" from Victor''s workspace, timeoutMs to 1800000, and maxStdoutBytes to 1048576. Do not read the path as a directory. After the workflow completes, publish exactly one final Discord forum artifact or docket when the configured forum channel id is real.'
+The playbook deploys focused Lobster pipelines:
+
+- `/root/.openclaw/mountainvalue-watchdog.lobster`
+- `/root/.openclaw/mountainvalue-cycle.lobster`
+- `/root/.openclaw/mountainvalue-cancel-stale.lobster`
+- `/root/.openclaw/mountainvalue-signals.lobster`
+- `/root/.openclaw/mountainvalue.lobster`
+
+The OpenClaw cron uses `America/New_York` and runs the buy/sell evaluation
+workflow with:
+
+```cron
+0 8-13 * * 1-5
 ```
 
-To run that scheduled job immediately:
+The `*-if-due` CLI commands still perform their own market-day and clock gates.
+Cron provides autonomy; the strategy code decides whether anything is due.
+
+## Remove Old MountainValue Cron
+
+The current LXC playbook removes legacy root crontab entries and old
+MountainValue OpenClaw cron jobs before creating the current Victor-owned job.
+To inspect the active schedule on the OpenClaw host:
 
 ```sh
 openclaw cron list --agent victor
-openclaw cron run <job-id>
+crontab -l
 ```
 
-## Remove Old Cron
-
-The LXC playbook no longer manages the MountainValue cron. If an older job still
-exists on the OpenClaw host, it can still run from the persisted cron registry
-and post through the agent that originally owned it. Check both Victor and the
-main agent before testing manual runs:
+There should be one OpenClaw cron named `MountainValue evaluate buy sell`, and
+no MountainValue entries in root's crontab. If a stale OpenClaw cron job exists,
+remove it with the job id from the list output:
 
 ```sh
-openclaw cron list --agent main
-openclaw cron list --agent victor
+openclaw cron rm <job-id>
 ```
 
-Remove every old `MountainValue Daily Equity Research` job shown under the wrong
-agent, especially any job under `main`, using the job id from the list output:
-
-```sh
-openclaw cron remove <job-id>
-```
-
-After the stale job is gone, add only the Victor-owned cron shown above.
+The Lobster tool itself is provided by
+`openclaw/plugins/lobster/src/index.js`, a local wrapper around the installed
+`lobster` binary. That keeps the runtime tool contract explicit and avoids
+depending on a newer hosted plugin package than this VM has pinned.
 
 ## Deployment Validation
 

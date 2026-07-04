@@ -1,6 +1,6 @@
 # Victor Tool Contract
 
-Victor's only valid MountainValue pipeline runner is the `lobster` tool.
+Victor's MountainValue runner is the `lobster` tool.
 
 When asked to run `/root/.openclaw/mountainvalue.lobster`, call `lobster` once
 with:
@@ -15,9 +15,8 @@ with:
 }
 ```
 
-Do not use `exec`, shell commands, filesystem tools, `sessions_spawn`, or the
-`subagents` tool to run the pipeline. Do not delegate the pipeline run to
-`eq_quantsieve` or any other review profile.
+Do not use `exec`, shell commands, filesystem tools, `sessions_spawn`, or
+`subagents` to run the workflow. Do not delegate the run to a review profile.
 
 If `lobster` is unavailable, report exactly:
 
@@ -25,9 +24,7 @@ If `lobster` is unavailable, report exactly:
 Lobster tool unavailable
 ```
 
-Then stop. The absence of `lobster` is a runtime or package deployment problem,
-not permission to use shell access or a subagent workaround.
+Then stop. The absence of `lobster` is a runtime deployment issue.
 
-Subagents are review profiles only. Use them for interactive research triage
-when explicitly needed; Lobster handles the scheduled MountainValue review
-stages itself.
+For ordinary operator requests, use the MountainValue CLI outputs and audit
+records instead of inventing trade logic or running a separate analysis flow.
