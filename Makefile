@@ -106,7 +106,6 @@ ansible-run-one: ansible-install
 	@if [ -z "$(NOTEBOOK)" ]; then \
 		echo "Usage: make ansible-run-one NOTEBOOK=path/to/playbook.ansible.yaml"; \
 	else \
-		eval "$$(ssh-agent -s)" && ssh-add --apple-use-keychain ~/.ssh/id_ed25519_homelab && \
 		cd infrastructure/ansible && \
 		if [ -f .env ]; then \
 			set -a; . .env; set +a; \
