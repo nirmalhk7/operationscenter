@@ -78,6 +78,7 @@
   },
   "agents": {
     "defaults": {
+      "skills": [],
       "model": {
         "primary": "openai/gpt-5.4-mini",
         "fallbacks": [
@@ -94,6 +95,7 @@
           "alias": "gemini-flash-lite"
         },
         "openrouter/auto": {},
+        "openrouter/free": {},
         "openrouter/nvidia/nemotron-3-super-120b-a12b:free": {},
         "openrouter/nvidia/nemotron-3-nano-30b-a3b:free": {},
         "openrouter/qwen/qwen3-coder:free": {},
@@ -152,8 +154,12 @@
     "list": [
       {
         "id": "main",
+        "skills": [],
         "tools": {
-          "profile": "full"
+          "profile": "full",
+          "allow": [],
+          "deny": [],
+          "alsoAllow": []
         },
         "thinkingDefault": "minimal",
         "heartbeat": {
@@ -194,6 +200,7 @@
           "deny": [
             "bundle-mcp"
           ],
+          "allow": [],
           "alsoAllow": [
             "subagents",
             "sessions_yield",
@@ -215,6 +222,7 @@
       {
         "id": "victor",
         "workspace": "/root/.openclaw/workspace-victor",
+        "skills": [],
         "model": {
           "primary": "openai/gpt-5.5",
           "fallbacks": [
@@ -245,6 +253,7 @@
             "polymarket__getAllMarkets",
             "polymarket__getMarketDetails"
           ],
+          "alsoAllow": [],
           "deny": [
             "bundle-mcp",
             "group:runtime",
@@ -268,6 +277,7 @@
         "skills": [],
         "tools": {
           "profile": "minimal",
+          "allow": [],
           "deny": [
             "bundle-mcp",
             "group:messaging",
@@ -275,7 +285,8 @@
             "group:runtime",
             "group:fs",
             "group:automation"
-          ]
+          ],
+          "alsoAllow": []
         }
       },
       {
@@ -304,7 +315,8 @@
             "group:runtime",
             "group:fs",
             "group:automation"
-          ]
+          ],
+          "alsoAllow": []
         }
       },
       {
@@ -333,7 +345,8 @@
             "group:runtime",
             "group:fs",
             "group:automation"
-          ]
+          ],
+          "alsoAllow": []
         }
       },
       {
@@ -350,6 +363,7 @@
         "skills": [],
         "tools": {
           "profile": "minimal",
+          "allow": [],
           "deny": [
             "bundle-mcp",
             "group:messaging",
@@ -357,7 +371,8 @@
             "group:runtime",
             "group:fs",
             "group:automation"
-          ]
+          ],
+          "alsoAllow": []
         }
       },
       {
@@ -374,6 +389,7 @@
         "skills": [],
         "tools": {
           "profile": "minimal",
+          "allow": [],
           "deny": [
             "bundle-mcp",
             "group:messaging",
@@ -381,7 +397,8 @@
             "group:runtime",
             "group:fs",
             "group:automation"
-          ]
+          ],
+          "alsoAllow": []
         }
       }
     ]
