@@ -345,6 +345,7 @@
             PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
             HOME: "{{ openclaw_home }}"
           notify: Restart OpenClaw service
+          when: false
 
         - name: Publish fix-that-thang to a standard system PATH
           ansible.builtin.copy:
