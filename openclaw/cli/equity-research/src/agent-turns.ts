@@ -328,8 +328,12 @@ export class TradingCoreService {
     const positions = safePositions(this.deps.ledger.listOpenPositions());
     const openOrders = this.deps.ledger.listOpenOrders();
     const signalPlan = this.deps.ledger.readSnapshot<SignalPlan>("signal_plan");
+    const signalDecisions = Array.isArray(signalPlan?.decisions) ? signalPlan.decisions : [];
     const audits = this.deps.ledger.countAudits();
-    const openValue = safePositions(positions).reduce((sum, position) => sum + (position.market_value ?? position.qty * (position.current_price ?? position.avg_entry_price ?? 0)), 0);
+    let openValue = 0;
+    for (const position of safePositions(positions)) {
+      openValue += position.market_value ?? position.qty * (position.current_price ?? position.avg_entry_price ?? 0);
+    }
     const strategyEquity = this.strategyEquity(positions, account);
     const state = this.state();
     const summary: ReportSummary = {
@@ -350,8 +354,10 @@ export class TradingCoreService {
         reason: signalPlan.no_trade_reason ?? (signalPlan.buy_candidate ? signalPlan.buy_candidate.reason : "no trade"),
         signal: signalPlan.buy_candidate ?? undefined,
       } : null,
-      signals: signalPlan?.decisions ?? [],
-      skipped_trades: signalPlan?.decisions.filter((decision) => !decision.eligible).map((decision) => ({ symbol: decision.symbol, reason: decision.reason })) ?? [],
+      signals: signalDecisions,
+      skipped_trades: signalDecisions
+        .filter((decision) => !decision.eligible)
+        .map((decision) => ({ symbol: decision.symbol, reason: decision.reason })),
       audit_count: audits,
       pause_reason: state.pause_reason,
       watchdog: this.deps.ledger.readSnapshot("watchdog") ?? {},

@@ -337,6 +337,32 @@ test("buildExecutionPlan tolerates missing holdings arrays from workflow inputs"
   assert.ok(execution.buy_intent);
 });
 
+test("dailyReport tolerates malformed signal-plan snapshots and keeps array fields", async () => {
+  const nowIso = "2026-07-06T14:10:00.000Z";
+  const config = makeConfig();
+  const { ledger, cleanup } = tempLedger();
+  try {
+    ledger.writeState(createDefaultState("paper"));
+    ledger.saveSnapshot("signal_plan", {
+      trade_date: "2026-07-06",
+      generated_at: nowIso,
+      buy_candidate: null,
+      exit_symbols: [],
+      no_trade_reason: "No trade",
+    }, nowIso);
+    const broker = makeBrokerMock({ nowIso });
+    const service = createTradingCoreService({ config, ledger, broker, now: () => new Date(nowIso) });
+
+    const report = await service.dailyReport();
+
+    assert.deepEqual(report.signals, []);
+    assert.deepEqual(report.skipped_trades, []);
+    assert.deepEqual(report.open_orders, []);
+  } finally {
+    cleanup();
+  }
+});
+
 test("cycle submits a filled buy order and records a position", async () => {
   const nowIso = "2026-07-06T14:10:00.000Z";
   const config = makeConfig();

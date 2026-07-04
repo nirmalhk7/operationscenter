@@ -144,6 +144,9 @@ function validateContract(contract: string | undefined, document: unknown): unkn
         trade_date: assertString(record.trade_date, "report trade_date is required"),
         strategy_equity: record.strategy_equity,
         open_positions: Array.isArray(record.open_positions) ? record.open_positions : [],
+        open_orders: Array.isArray(record.open_orders) ? record.open_orders : [],
+        signals: Array.isArray(record.signals) ? record.signals : [],
+        skipped_trades: Array.isArray(record.skipped_trades) ? record.skipped_trades : [],
       };
     case "audit":
       return {
