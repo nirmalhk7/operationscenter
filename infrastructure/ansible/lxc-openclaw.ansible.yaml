@@ -74,6 +74,14 @@
             group: "{{ openclaw_user }}"
             mode: '0700'
 
+        - name: Ensure OpenClaw log directory exists
+          ansible.builtin.file:
+            path: /var/log/openclaw
+            state: directory
+            owner: "{{ openclaw_user }}"
+            group: "{{ openclaw_user }}"
+            mode: '0750'
+
         - name: Ensure OpenClaw compile cache directory exists
           ansible.builtin.file:
             path: /var/tmp/openclaw-compile-cache
