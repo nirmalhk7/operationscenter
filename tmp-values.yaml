@@ -1,0 +1,112 @@
+api:
+  podAnnotations:
+    milano.app: appwrite
+appwrite:
+  domain: dev.trusted.nirmalhk7.com
+  existingSecret: appwrite-env
+  existingSecretOpenSslKey: _APP_OPENSSL_KEY_V1
+  extraEnv:
+  - name: _APP_OPTIONS_FORCE_HTTPS
+    value: disabled
+  - name: _APP_OPTIONS_ROUTER_FORCE_HTTPS
+    value: disabled
+  - name: _APP_CONSOLE_WHITELIST_EMAILS
+    value: nirmalhk7@gmail.com
+  - name: _APP_STORAGE_DEVICE
+    value: Local
+  storage:
+    limit: '30000000'
+  usageStats: enabled
+commonLabels:
+  milano.app: appwrite
+database:
+  external:
+    existingSecret: appwrite-env
+    existingSecretPasswordKey: _APP_DB_PASS
+    host: 172.16.0.106
+    name: appwrite
+    port: 3306
+    rootUser: appwrite_rw
+  mode: external
+influxdb:
+  auth:
+    admin:
+      bucket: telegraf
+      org: appwrite
+      password: supersecret-influx-password
+      token: supersecret-influx-token
+  enabled: true
+  image:
+    repository: bitnamilegacy/influxdb
+    tag: 2.7.5-debian-11-r0
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: milano-v2
+mariadb:
+  enabled: false
+persistence:
+  builds:
+    size: 5Gi
+  cache:
+    size: 2Gi
+  certificates:
+    size: 1Gi
+  enabled: true
+  functions:
+    size: 5Gi
+  sites:
+    size: 5Gi
+  storageClass: milano-v3
+  uploads:
+    size: 10Gi
+realtime:
+  podAnnotations:
+    milano.app: appwrite
+redis:
+  auth:
+    enabled: false
+  enabled: true
+  image:
+    repository: bitnamilegacy/redis
+    tag: 7.2.4-debian-11-r1
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: milano-v2
+  metrics:
+    enabled: false
+  replica:
+    replicaCount: 0
+schedulers:
+  executions:
+    enabled: true
+  functions:
+    enabled: false
+  messages:
+    enabled: true
+telegraf:
+  config:
+    outputs:
+    - influxdb_v2:
+        bucket: telegraf
+        organization: appwrite
+        token: supersecret-influx-token
+        urls:
+        - http://appwrite-influxdb:8086
+  enabled: true
+workers:
+  audits:
+    enabled: true
+  builds:
+    enabled: false
+  certificates:
+    enabled: true
+  functions:
+    enabled: false
+  statsResources:
+    enabled: false
+  statsUsage:
+    enabled: true
+
