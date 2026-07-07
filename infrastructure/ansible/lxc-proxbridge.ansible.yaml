@@ -358,39 +358,3 @@
         name: scrutiny-collector.timer
         state: started
         enabled: true
-
-- name: Remove temporary Proxmox Scrutiny collector
-  hosts: proxmox
-  become: true
-  gather_facts: false
-  tasks:
-    - name: Stop and disable temporary Proxmox Scrutiny collector units
-      ansible.builtin.systemd:
-        daemon_reload: true
-        name: "{{ item }}"
-        state: stopped
-        enabled: false
-      loop:
-        - scrutiny-collector.timer
-        - scrutiny-collector.service
-      failed_when: false
-
-    - name: Remove temporary Proxmox Scrutiny API hosts entry
-      ansible.builtin.blockinfile:
-        path: /etc/hosts
-        marker: "# {mark} ANSIBLE MANAGED - scrutiny api"
-        state: absent
-
-    - name: Remove temporary Proxmox Scrutiny collector files
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /etc/systemd/system/scrutiny-collector.service
-        - /etc/systemd/system/scrutiny-collector.timer
-        - /opt/scrutiny
-        - /var/log/scrutiny-collector.log
-
-    - name: Reload Proxmox systemd after Scrutiny cleanup
-      ansible.builtin.systemd:
-        daemon_reload: true
