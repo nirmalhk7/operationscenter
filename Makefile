@@ -1,6 +1,6 @@
 # Makefile for operationscenter
 
-.PHONY: setup init encrypt encrypt_all encrypt_newkey backup_nginx backup_repo nginx-build nginx-logs terraform-clear terraform-reset terraform-apply-proxmox terraform-apply-discord terraform-apply ansible-install ansible-run ansible-run-one kubernetes-init kubernetes-clean onboard-agents-discord flux-suspend flux-resume sync
+.PHONY: setup init encrypt encrypt_all encrypt_newkey backup_nginx backup_repo nginx-build nginx-logs terraform-clear terraform-reset terraform-apply-proxmox terraform-apply-discord terraform-apply ansible-install ansible-check ansible-run ansible-run-one flux-bootstrap kubernetes-clean onboard-agents-discord flux-suspend flux-resume sync
 
 # --- Initialization ---
 setup:
@@ -9,8 +9,6 @@ setup:
 	$(MAKE) terraform-apply
 	@echo "=== Part 2: Ansible ==="
 	$(MAKE) ansible-run
-	@echo "=== Part 3: Kubernetes ==="
-	$(MAKE) kubernetes-init
 	@echo "=== Setup Complete ==="
 
 init: setup
@@ -113,12 +111,15 @@ ansible-run-one: ansible-install
 		ansible-playbook  -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade,skip,block; \
 	fi
 
-# --- Kubernetes ---
-kubernetes-init:
-	@echo "Installing FluxCD..."
-	kubectl apply -f https://github.com/fluxcd/flux2/releases/latest/download/install.yaml
-	@echo "Applying managed cluster manifests..."
-	kubectl apply -k ./clusters/managed
+# --- Kubernetes / Flux ---
+flux-bootstrap:
+	@echo "Bootstrapping Flux from committed manifests only..."
+	kubectl apply -k ./clusters/managed/flux-system/fluxcd
+	kubectl -n flux-system rollout status deployment/source-controller --timeout=300s
+	kubectl -n flux-system rollout status deployment/kustomize-controller --timeout=300s
+	kubectl -n flux-system rollout status deployment/helm-controller --timeout=300s
+	kubectl -n flux-system rollout status deployment/notification-controller --timeout=300s
+	kubectl -n flux-system wait kustomization.kustomize.toolkit.fluxcd.io/flux-system --for=condition=Ready --timeout=600s
 
 
 kubernetes-clean:

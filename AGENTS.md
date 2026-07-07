@@ -22,7 +22,7 @@ Instructions for AI agents editing this repository. This file does **not** defin
 ### Hard rules for agents
 
 1. **Every Docker image declared under `clusters/managed/` must be Renovate-upgradeable.** See [Renovate upgradeability](#renovate-upgradeability) before adding or changing workloads.
-2. **Do not run live operational Makefile targets** (`terraform-apply*`, `ansible-run*`, `kubernetes-init`, `nginx-build`, `sync`, etc.) unless the user explicitly asked and the target environment is understood.
+2. **Do not run live operational Makefile targets** (`terraform-apply*`, `ansible-run*`, `flux-bootstrap`, `nginx-build`, `sync`, etc.) unless the user explicitly asked and the target environment is understood.
 3. **Prefer non-mutating validation:** `kubectl kustomize clusters/managed/<path>`, `terraform fmt`, Ansible syntax-check, Nginx config test. Say which checks were local vs need the live environment.
 4. **Never commit plaintext secrets.** Use the Sealed Secrets workflow.
 5. **Do not edit** `clusters/managed/flux-system/fluxcd/gotk-*.yaml` by hand (`DO NOT EDIT` — regenerate via Flux bootstrap workflow only).

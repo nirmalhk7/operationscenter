@@ -1,0 +1,82 @@
+---
+- name: Ensure Flux bootstrap staging directory exists
+  ansible.builtin.file:
+    path: /tmp/operationscenter-flux-bootstrap
+    state: directory
+    mode: '0755'
+
+- name: Stage committed Flux bootstrap manifests
+  ansible.builtin.copy:
+    src: "{{ inventory_dir }}/../../clusters/managed/flux-system/fluxcd/"
+    dest: /tmp/operationscenter-flux-bootstrap/fluxcd/
+    owner: root
+    group: root
+    mode: '0644'
+    directory_mode: '0755'
+
+- name: Apply Flux bootstrap manifests from Git
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - /etc/rancher/k3s/k3s.yaml
+      - apply
+      - -k
+      - /tmp/operationscenter-flux-bootstrap/fluxcd
+  register: flux_bootstrap_apply
+  changed_when: "'configured' in flux_bootstrap_apply.stdout or 'created' in flux_bootstrap_apply.stdout"
+
+- name: Wait for Flux controllers to become available
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - /etc/rancher/k3s/k3s.yaml
+      - -n
+      - flux-system
+      - rollout
+      - status
+      - "deployment/{{ item }}"
+      - --timeout=300s
+  changed_when: false
+  loop:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+
+- name: Wait for Flux root Kustomization to reconcile from Git
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - /etc/rancher/k3s/k3s.yaml
+      - -n
+      - flux-system
+      - wait
+      - kustomization.kustomize.toolkit.fluxcd.io/flux-system
+      - --for=condition=Ready
+      - --timeout=600s
+  changed_when: false
+
+- name: Wait for OpenClaw Kubernetes token created by GitOps
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - /etc/rancher/k3s/k3s.yaml
+      - -n
+      - kube-system
+      - get
+      - secret
+      - openclaw-bot-token
+      - -o
+      - jsonpath={.data.token}
+  register: flux_bootstrap_openclaw_token
+  until: flux_bootstrap_openclaw_token.stdout | length > 0
+  retries: 60
+  delay: 10
+  changed_when: false
+  tags:
+    - openclaw-kube
+    - openclaw-env

@@ -1,13 +1,10 @@
 ---
-- name: Install k3s if missing and show cert data
+- name: Install managed K3s control plane
   hosts: vm_k8mgd
   become: true
   gather_facts: false
   vars_files:
     - vars/versions.yaml
-  vars:
-    k3s_config: /etc/rancher/k3s/k3s.yaml
-    tls_san: 10.0.0.10
 
   tasks:
     - name: Configure k3s
@@ -19,10 +16,10 @@
         mode: '0644'
         content: |
           write-kubeconfig-mode: "0600"
-          bind-address: "172.16.0.105"
+          bind-address: "{{ k3s_bind_address }}"
           cluster-init: true
           tls-san:
-            - "{{ tls_san }}"
+            - "{{ k3s_tls_san }}"
           disable:
             - servicelb
             - traefik
@@ -57,7 +54,7 @@
         - yq
         - nfs-common
 
-    - name: Read certificate-authority-data
+    - name: Read managed cluster certificate-authority-data
       tags:
       - k8
       - mgd
@@ -65,31 +62,13 @@
       register: ca_data
       changed_when: false
 
-    - name: Read client-certificate-data
+    - name: Store managed cluster CA for downstream plays
       tags:
       - k8
       - mgd
-      ansible.builtin.command: yq -r '.users[0].user."client-certificate-data"' {{ k3s_config }}
-      register: client_cert_data
-      changed_when: false
-
-    - name: Read client-key-data
-      tags:
-      - k8
-      - mgd
-      ansible.builtin.command: yq -r '.users[0].user."client-key-data"' {{ k3s_config }}
-      register: client_key_data
-      changed_when: false
-
-    - name: Show cert data
-      tags:
-      - k8
-      - mgd
-      ansible.builtin.debug:
-        msg:
-          - "certificate-authority-data: {{ ca_data.stdout }}"
-          - "client-certificate-data: {{ client_cert_data.stdout }}"
-          - "client-key-data: {{ client_key_data.stdout }}"
+      ansible.builtin.set_fact:
+        k3s_cluster_ca: "{{ ca_data.stdout }}"
+      no_log: true
 
   handlers:
     - name: Restart k3s
