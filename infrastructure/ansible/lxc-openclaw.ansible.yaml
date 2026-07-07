@@ -106,7 +106,6 @@
               - git
             state: present
             update_cache: true
-# TODO Remove this as its a one-time check
         - name: Remove conflicting Node.js packages if present
           ansible.builtin.apt:
             name:
@@ -115,6 +114,8 @@
               - libnode-dev
             state: absent
             purge: yes
+          tags:
+            - openclaw_migrations
 
     - name: Configure package repositories
       tags:
@@ -193,19 +194,20 @@
           ansible.builtin.command: npm install -g pnpm@{{ pnpm_version }}
           when: pnpm_check.rc != 0 or (pnpm_check.stdout is defined and pnpm_check.stdout != pnpm_version)
 
-# TODO Remove this as its a one-time check
         - name: Remove conflicting global OpenClaw if exists
           ansible.builtin.file:
             path: /usr/bin/openclaw
             state: absent
+          tags:
+            - openclaw_migrations
 
-# TODO Remove this as its a one-time check
         - name: Remove legacy uv-installed Polymarket MCP shim if present
           ansible.builtin.file:
             path: "{{ openclaw_home }}/.local/bin/polymarket-mcp"
             state: absent
+          tags:
+            - openclaw_migrations
 
-# TODO Remove this as its a one-time check
         - name: Remove incompatible OpenClaw extensions from newer releases
           ansible.builtin.file:
             path: "{{ item }}"
@@ -213,6 +215,8 @@
           loop:
             - "{{ openclaw_home }}/.openclaw/extensions/discord"
             - "{{ openclaw_home }}/.openclaw/extensions/exa"
+          tags:
+            - openclaw_migrations
 
         - name: Check installed OpenClaw version
           ansible.builtin.command: openclaw --version
@@ -341,15 +345,6 @@
             - "{{ openclaw_home }}/.local/share/pnpm/equity-research"
           notify: Restart OpenClaw service
 
-        - name: Install fix-that-thang CLI from GitHub Packages
-          ansible.builtin.command: pnpm install -g @nirmalhk7/fix-that-thang@{{ fix_that_thang_version }}
-          environment:
-            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
-            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
-            HOME: "{{ openclaw_home }}"
-          notify: Restart OpenClaw service
-          when: false
-
         - name: Publish fix-that-thang to a standard system PATH
           ansible.builtin.copy:
             dest: /usr/local/bin/fix-that-thang
@@ -361,18 +356,6 @@
             group: root
             force: true
           notify: Restart OpenClaw service
-
-    # - name: Run OpenClaw doctor check
-    #   ansible.builtin.shell:
-    #     cmd: |
-    #       export PNPM_HOME="{{ openclaw_home }}/.local/share/pnpm"
-    #       export PATH="{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:$PATH"
-    #       openclaw doctor
-    #     executable: /bin/bash
-    #   environment:
-    #     HOME: "{{ openclaw_home }}"
-    #     KUBECONFIG: "{{ openclaw_support_home }}/.kube/config"
-    #   changed_when: false
 
     - name: Configure OpenClaw Kubernetes access
       tags:
@@ -599,6 +582,8 @@
             - eq_thesis_depth_reviewer
             - newswire
           notify: Restart OpenClaw service
+          tags:
+            - openclaw_migrations
 
         - name: Remove stale MountainValue subagent onboarding files
           ansible.builtin.file:
@@ -608,6 +593,8 @@
           loop_control:
             label: "{{ item.0 }}/{{ item.1 }}"
           notify: Restart OpenClaw service
+          tags:
+            - openclaw_migrations
 
         - name: Remove stale MountainValue worker full-agent workspaces
           ansible.builtin.file:
@@ -625,6 +612,8 @@
             - eq_riskskeptic
             - eq_thesis_depth_reviewer
           notify: Restart OpenClaw service
+          tags:
+            - openclaw_migrations
 
         - name: Copy main agent workspaces
           ansible.builtin.copy:
@@ -644,11 +633,14 @@
             - BOOTSTRAP.md
             - MEMORY.md
           notify: Restart OpenClaw service
+          tags:
+            - openclaw_migrations
 
     - name: Reconcile OpenClaw runtime state
       tags:
         - openclaw-config
         - openclaw-agent-workspaces
+        - openclaw_migrations
       block:
         - name: Derive active OpenClaw agent ids from repo config
           ansible.builtin.set_fact:
@@ -806,6 +798,7 @@
     - name: Remove legacy OpenClaw user gateway service
       tags:
         - openclaw-service
+        - openclaw_migrations
       block:
         - name: Stop and disable legacy root user gateway
           ansible.builtin.command:
@@ -844,6 +837,8 @@
             env: true
             state: absent
             user: "{{ openclaw_user }}"
+          tags:
+            - openclaw_migrations
 
         - name: Remove legacy MountainValue root cron schedules
           ansible.builtin.cron:
@@ -859,6 +854,8 @@
             - MountainValue cancel stale entries
             - MountainValue signals
             - MountainValue evaluate buy sell
+          tags:
+            - openclaw_migrations
 
         - name: Wait for OpenClaw cron scheduler
           ansible.builtin.command:
@@ -901,6 +898,8 @@
               | list
             }}
           when: (openclaw_cron_jobs.stdout | from_json).jobs | length > 0
+          tags:
+            - openclaw_migrations
 
         - name: Create MountainValue hourly buy/sell OpenClaw cron
           ansible.builtin.command:
