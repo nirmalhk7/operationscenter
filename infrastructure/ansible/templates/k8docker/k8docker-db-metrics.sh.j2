@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+metrics_dir="{{ k8docker_db_metrics_dir }}"
+backup_dir="{{ k8docker_db_backup_stamps_dir }}"
+tmp="$(mktemp)"
+ts_now="$(date +%s)"
+
+declare -A containers=(
+  [mariadb]=maria
+  [postgres]=vectorchorddb
+  [clickhouse]=langfuse-clickhouse
+  [mongodb]=mongo
+)
+
+declare -A volumes=(
+  [mariadb]=mariadb_data
+  [postgres]=vectorchorddb_data
+  [clickhouse]=langfuse_clickhouse_data
+  [mongodb]=mongodb_data
+)
+
+emit() {
+  printf '%s %s\n' "$1" "$2" >>"$tmp"
+}
+
+for engine in mariadb postgres clickhouse mongodb; do
+  container="${containers[$engine]}"
+  volume="${volumes[$engine]}"
+
+  up=0
+  healthy=0
+
+  if docker inspect "$container" >/dev/null 2>&1; then
+    if [[ "$(docker inspect -f '{% raw %}{{.State.Running}}{% endraw %}' "$container" 2>/dev/null || echo false)" == "true" ]]; then
+      up=1
+    fi
+  fi
+
+  case "$engine" in
+    mariadb)
+      if docker exec "$container" mariadb-admin ping -uroot -p'{{ k8docker_db_passwords.mariadb.root }}' >/dev/null 2>&1; then
+        healthy=1
+      fi
+      ;;
+    postgres)
+      if docker exec "$container" sh -c "PGPASSWORD='{{ k8docker_db_passwords.postgres.root }}' psql -h 127.0.0.1 -U root -d postgres -c 'SELECT 1' >/dev/null" >/dev/null 2>&1; then
+        healthy=1
+      fi
+      ;;
+    clickhouse)
+      if docker exec "$container" clickhouse-client --user root --password '{{ k8docker_db_passwords.clickhouse.root }}' --query 'SELECT 1' >/dev/null 2>&1; then
+        healthy=1
+      fi
+      ;;
+    mongodb)
+      if docker exec "$container" mongo -u root -p'{{ k8docker_db_passwords.mongodb.root }}' --authenticationDatabase admin --eval "db.adminCommand('ping')" >/dev/null 2>&1; then
+        healthy=1
+      fi
+      ;;
+  esac
+
+  emit "k8docker_db_container_up{engine=\"$engine\"}" "$up"
+  emit "k8docker_db_container_healthy{engine=\"$engine\"}" "$healthy"
+
+  if docker volume inspect "$volume" >/dev/null 2>&1; then
+    mountpoint="$(docker volume inspect -f '{% raw %}{{.Mountpoint}}{% endraw %}' "$volume" 2>/dev/null || true)"
+    if [[ -n "$mountpoint" && -d "$mountpoint" ]]; then
+      read -r used total < <(df -PB1 "$mountpoint" | awk 'NR==2 { print $3, $2 }')
+      emit "k8docker_db_volume_used_bytes{engine=\"$engine\"}" "$used"
+      emit "k8docker_db_volume_total_bytes{engine=\"$engine\"}" "$total"
+    else
+      emit "k8docker_db_volume_used_bytes{engine=\"$engine\"}" 0
+      emit "k8docker_db_volume_total_bytes{engine=\"$engine\"}" 0
+    fi
+  else
+    emit "k8docker_db_volume_used_bytes{engine=\"$engine\"}" 0
+    emit "k8docker_db_volume_total_bytes{engine=\"$engine\"}" 0
+  fi
+
+  stamp="$backup_dir/${engine}.last_success"
+  if [[ -f "$stamp" ]]; then
+    last_success="$(stat -c %Y "$stamp")"
+    emit "k8docker_db_backup_last_success_timestamp{engine=\"$engine\"}" "$last_success"
+    emit "k8docker_db_backup_age_seconds{engine=\"$engine\"}" "$((ts_now - last_success))"
+    emit "k8docker_db_backup_success{engine=\"$engine\"}" 1
+  else
+    emit "k8docker_db_backup_last_success_timestamp{engine=\"$engine\"}" 0
+    emit "k8docker_db_backup_age_seconds{engine=\"$engine\"}" -1
+    emit "k8docker_db_backup_success{engine=\"$engine\"}" 0
+  fi
+done
+
+mkdir -p "$metrics_dir"
+mv "$tmp" "$metrics_dir/k8docker-db.prom"

@@ -1,0 +1,62 @@
+---
+- name: Ensure MariaDB container is running
+  community.docker.docker_container:
+    name: maria
+    image: mariadb:12
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ k8docker_db_bind_ip }}:{{ db_proxy_ports.mariadb }}:3306"
+    labels:
+      homepage.group: Containers
+      homepage.name: MariaDB
+      homepage.icon: mariadb
+      homepage.description: Shared MariaDB backend
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    env:
+      MARIADB_ROOT_PASSWORD: "{{ k8docker_db_passwords.mariadb.root }}"
+
+- name: Wait for MariaDB healthy
+  ansible.builtin.command: >
+    docker exec maria mariadb-admin ping -uroot -p{{ k8docker_mariadb_login_password }}
+  register: maria_health
+  retries: 20
+  delay: 5
+  until: maria_health.rc == 0
+  changed_when: false
+
+- name: Ensure MariaDB root password is current
+  community.mysql.mysql_user:
+    name: root
+    password: "{{ k8docker_db_passwords.mariadb.root }}"
+    host_all: true
+    state: present
+    login_user: root
+    login_password: "{{ k8docker_mariadb_login_password }}"
+    login_host: "{{ k8docker_db_bind_ip }}"
+
+- name: Create MariaDB application databases
+  community.mysql.mysql_db:
+    name: "{{ item.key }}"
+    state: present
+    login_user: root
+    login_password: "{{ k8docker_db_passwords.mariadb.root }}"
+    login_host: "{{ k8docker_db_bind_ip }}"
+  loop: "{{ k8docker_databases.mariadb.apps | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Create MariaDB application users
+  community.mysql.mysql_user:
+    name: "{{ item.key }}_rw"
+    password: "{{ k8docker_db_passwords.mariadb.apps[item.key] }}"
+    priv: "{{ item.key }}.*:ALL"
+    host: "%"
+    state: present
+    login_user: root
+    login_password: "{{ k8docker_db_passwords.mariadb.root }}"
+    login_host: "{{ k8docker_db_bind_ip }}"
+  loop: "{{ k8docker_databases.mariadb.apps | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"

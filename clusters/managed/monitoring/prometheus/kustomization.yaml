@@ -11,6 +11,8 @@ resources:
   - docker_scrapeconfigs.yaml
   - proxbridge_scrapeconfigs.yaml
   - homesecurity_scrapeconfigs.yaml
+  - k8docker_scrapeconfigs.yaml
+  - k8docker_prometheusrule.yaml
 
 labels:
   - pairs:

@@ -1,0 +1,46 @@
+---
+- name: Validate k8docker database configuration shape
+  ansible.builtin.assert:
+    that:
+      - k8docker_databases is mapping
+      - k8docker_db_passwords is mapping
+      - k8docker_databases.mariadb.apps is mapping
+      - k8docker_databases.postgres.apps is mapping
+      - k8docker_databases.clickhouse.apps is mapping
+      - k8docker_databases.mongodb.apps is mapping
+      - k8docker_db_passwords.mariadb.root is defined
+      - k8docker_db_passwords.postgres.bootstrap is defined
+      - k8docker_db_passwords.postgres.root is defined
+      - k8docker_db_passwords.clickhouse.root is defined
+      - k8docker_db_passwords.mongodb.root is defined
+    fail_msg: "k8docker database configuration is incomplete or malformed."
+
+- name: Ensure every MariaDB app has a password
+  ansible.builtin.assert:
+    that:
+      - k8docker_db_passwords.mariadb.apps[item.key] is defined
+      - k8docker_db_passwords.mariadb.apps[item.key] | length > 0
+    fail_msg: "Missing MariaDB password for app {{ item.key }}."
+  loop: "{{ k8docker_databases.mariadb.apps | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Ensure every Postgres app has a password
+  ansible.builtin.assert:
+    that:
+      - k8docker_db_passwords.postgres.apps[item.key] is defined
+      - k8docker_db_passwords.postgres.apps[item.key] | length > 0
+    fail_msg: "Missing Postgres password for app {{ item.key }}."
+  loop: "{{ k8docker_databases.postgres.apps | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Ensure every ClickHouse app has a password
+  ansible.builtin.assert:
+    that:
+      - k8docker_db_passwords.clickhouse.apps[item.key] is defined
+      - k8docker_db_passwords.clickhouse.apps[item.key] | length > 0
+    fail_msg: "Missing ClickHouse password for app {{ item.key }}."
+  loop: "{{ k8docker_databases.clickhouse.apps | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"

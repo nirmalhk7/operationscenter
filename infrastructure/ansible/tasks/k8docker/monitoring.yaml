@@ -1,0 +1,114 @@
+---
+- name: Ensure k8docker metrics directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ k8docker_db_metrics_dir }}"
+    - "{{ k8docker_db_backup_stamps_dir }}"
+
+- name: Download node_exporter
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    mode: "0644"
+
+- name: Unarchive node_exporter
+  ansible.builtin.unarchive:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: true
+
+- name: Install node_exporter binary
+  ansible.builtin.copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+    dest: /usr/local/bin/node_exporter
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+  notify: Restart k8docker node exporter
+
+- name: Install node_exporter systemd unit
+  ansible.builtin.template:
+    src: templates/k8docker/node-exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart k8docker node exporter
+
+- name: Ensure node_exporter is running
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: node_exporter
+    state: started
+    enabled: true
+
+- name: Install k8docker DB metrics script
+  ansible.builtin.template:
+    src: templates/k8docker/k8docker-db-metrics.sh.j2
+    dest: /usr/local/bin/k8docker-db-metrics
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Refresh k8docker DB metrics
+
+- name: Install k8docker DB metrics service
+  ansible.builtin.template:
+    src: templates/k8docker/k8docker-db-metrics.service.j2
+    dest: /etc/systemd/system/k8docker-db-metrics.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Refresh k8docker DB metrics
+
+- name: Install k8docker DB metrics timer
+  ansible.builtin.template:
+    src: templates/k8docker/k8docker-db-metrics.timer.j2
+    dest: /etc/systemd/system/k8docker-db-metrics.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Refresh k8docker DB metrics
+
+- name: Install k8docker DB backup script
+  ansible.builtin.template:
+    src: templates/k8docker/k8docker-db-backup.sh.j2
+    dest: /usr/local/bin/k8docker-db-backup
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install k8docker DB backup service
+  ansible.builtin.template:
+    src: templates/k8docker/k8docker-db-backup.service.j2
+    dest: /etc/systemd/system/k8docker-db-backup.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install k8docker DB backup timer
+  ansible.builtin.template:
+    src: templates/k8docker/k8docker-db-backup.timer.j2
+    dest: /etc/systemd/system/k8docker-db-backup.timer
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure k8docker DB metrics timer is running
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: k8docker-db-metrics.timer
+    state: started
+    enabled: true
+
+- name: Ensure k8docker DB backup timer is running
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: k8docker-db-backup.timer
+    state: started
+    enabled: true

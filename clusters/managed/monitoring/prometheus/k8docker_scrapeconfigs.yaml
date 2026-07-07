@@ -1,0 +1,14 @@
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: k8docker-node-metrics
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  staticConfigs:
+    - labels:
+        job: k8docker-node
+      targets:
+        - 172.16.0.106:9100
+  metricsPath: /metrics

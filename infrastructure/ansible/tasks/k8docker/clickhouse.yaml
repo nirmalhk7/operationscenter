@@ -1,0 +1,72 @@
+---
+- name: Render ClickHouse users XML on the host
+  ansible.builtin.template:
+    src: templates/k8docker/clickhouse-users.xml.j2
+    dest: "{{ k8docker_clickhouse_users_xml }}"
+    mode: '0644'
+
+- name: Ensure ClickHouse container is running
+  community.docker.docker_container:
+    name: langfuse-clickhouse
+    image: "clickhouse/clickhouse-server:{{ clickhouse_server_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ k8docker_db_bind_ip }}:{{ db_proxy_ports.clickhouse_http }}:8123"
+      - "{{ k8docker_db_bind_ip }}:{{ db_proxy_ports.clickhouse }}:9000"
+    labels:
+      homepage.group: Containers
+      homepage.name: ClickHouse
+      homepage.icon: clickhouse
+      homepage.description: Langfuse analytics database
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - "{{ k8docker_clickhouse_users_xml }}:/etc/clickhouse-server/users.d/root-and-default.xml:ro"
+    env:
+      CLICKHOUSE_SKIP_USER_SETUP: "1"
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+
+- name: Wait for ClickHouse healthy
+  ansible.builtin.command: >
+    docker exec langfuse-clickhouse clickhouse-client --user root --password '{{ k8docker_clickhouse_login_password }}' --query 'SELECT 1'
+  register: clickhouse_health
+  retries: 20
+  delay: 5
+  until: clickhouse_health.rc == 0
+  changed_when: false
+
+- name: Ensure Langfuse ClickHouse database exists
+  community.clickhouse.clickhouse_db:
+    login_host: "{{ k8docker_db_bind_ip }}"
+    login_port: 9000
+    login_user: root
+    login_password: "{{ k8docker_db_passwords.clickhouse.root }}"
+    login_db: default
+    name: langfuse
+    state: present
+
+- name: Ensure ClickHouse application user exists
+  community.clickhouse.clickhouse_user:
+    login_host: "{{ k8docker_db_bind_ip }}"
+    login_port: 9000
+    login_user: root
+    login_password: "{{ k8docker_db_passwords.clickhouse.root }}"
+    login_db: default
+    name: langfuse_rw
+    authentication:
+      type: sha256_password
+      password: "{{ k8docker_db_passwords.clickhouse.apps.langfuse }}"
+    update_password: always
+
+- name: Grant Langfuse access to its ClickHouse database
+  community.clickhouse.clickhouse_grants:
+    login_host: "{{ k8docker_db_bind_ip }}"
+    login_port: 9000
+    login_user: root
+    login_password: "{{ k8docker_db_passwords.clickhouse.root }}"
+    login_db: default
+    grantee: langfuse_rw
+    privileges:
+      - object: "langfuse.*"
+        privs:
+          ALL: false

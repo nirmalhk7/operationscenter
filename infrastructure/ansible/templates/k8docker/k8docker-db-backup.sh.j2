@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+umask 077
+
+backup_root="{{ k8docker_db_backup_stamps_dir }}"
+tmp_dir="$(mktemp -d)"
+ts="$(date +%Y%m%dT%H%M%S)"
+
+declare -A containers=(
+  [mariadb]=maria
+  [postgres]=vectorchorddb
+  [clickhouse]=langfuse-clickhouse
+  [mongodb]=mongo
+)
+
+declare -A volumes=(
+  [mariadb]=mariadb_data
+  [postgres]=vectorchorddb_data
+  [clickhouse]=langfuse_clickhouse_data
+  [mongodb]=mongodb_data
+)
+
+declare -A outputs=(
+  [mariadb]="$backup_root/mariadb.sql.gz"
+  [postgres]="$backup_root/postgres.sql.gz"
+  [clickhouse]="$backup_root/clickhouse.tar.gz"
+  [mongodb]="$backup_root/mongodb.archive.gz"
+)
+
+emit_success() {
+  local engine="$1"
+  printf '%s\n' "$(date +%s)" > "$backup_root/${engine}.last_success"
+}
+
+cleanup() {
+  rm -rf "$tmp_dir"
+}
+
+trap cleanup EXIT
+
+mkdir -p "$backup_root"
+
+for engine in mariadb postgres clickhouse mongodb; do
+  tmp_output="$tmp_dir/${engine}.${ts}.tmp"
+
+  case "$engine" in
+    mariadb)
+      docker exec "${containers[$engine]}" sh -c "mariadb-dump --all-databases --single-transaction --routines --events --triggers -uroot -p'{{ k8docker_db_passwords.mariadb.root }}'" \
+        | gzip -c > "$tmp_output"
+      ;;
+    postgres)
+      docker exec "${containers[$engine]}" sh -c "PGPASSWORD='{{ k8docker_db_passwords.postgres.root }}' pg_dumpall -h 127.0.0.1 -U root" \
+        | gzip -c > "$tmp_output"
+      ;;
+    clickhouse)
+      mountpoint="$(docker volume inspect -f '{% raw %}{{.Mountpoint}}{% endraw %}' "${volumes[$engine]}")"
+      tar -C "$mountpoint" -czf "$tmp_output" .
+      ;;
+    mongodb)
+      docker exec "${containers[$engine]}" mongodump \
+        --archive \
+        --gzip \
+        --username root \
+        --password '{{ k8docker_db_passwords.mongodb.root }}' \
+        --authenticationDatabase admin \
+        > "$tmp_output"
+      ;;
+  esac
+
+  mv "$tmp_output" "${outputs[$engine]}"
+  emit_success "$engine"
+done

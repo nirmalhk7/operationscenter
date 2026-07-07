@@ -1,0 +1,58 @@
+---
+- name: Ensure MongoDB container is running
+  community.docker.docker_container:
+    name: mongo
+    image: mongo:4.4
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ k8docker_db_bind_ip }}:{{ db_proxy_ports.mongodb }}:27017"
+    labels:
+      homepage.group: Containers
+      homepage.name: MongoDB
+      homepage.icon: mongodb
+      homepage.description: Shared MongoDB backend
+    volumes:
+      - mongodb_data:/data/db
+    env:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: "{{ k8docker_db_passwords.mongodb.root }}"
+
+- name: Wait for MongoDB healthy
+  ansible.builtin.command: >
+    docker exec mongo mongo -u root -p{{ k8docker_mongodb_login_password }} --authenticationDatabase admin --eval "db.adminCommand('ping')"
+  register: mongo_health
+  retries: 20
+  delay: 5
+  until: mongo_health.rc == 0
+  changed_when: false
+
+- name: Ensure MongoDB root password is current
+  community.mongodb.mongodb_user:
+    database: admin
+    name: root
+    password: "{{ k8docker_db_passwords.mongodb.root }}"
+    roles:
+      - db: admin
+        role: root
+    state: present
+    update_password: always
+    login_user: root
+    login_password: "{{ k8docker_mongodb_login_password }}"
+    login_host: "{{ k8docker_db_bind_ip }}"
+    login_port: 27017
+
+- name: Create MongoDB application users
+  community.mongodb.mongodb_user:
+    database: "{{ item.key }}"
+    name: "{{ item.key }}_rw"
+    password: "{{ k8docker_db_passwords.mongodb.apps[item.key] }}"
+    roles: readWrite
+    state: present
+    login_user: root
+    login_password: "{{ k8docker_db_passwords.mongodb.root }}"
+    login_host: "{{ k8docker_db_bind_ip }}"
+    login_port: 27017
+  loop: "{{ k8docker_databases.mongodb.apps | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"

@@ -1,0 +1,40 @@
+---
+k8docker_db_bind_ip: 172.16.0.106
+k8docker_clickhouse_users_xml: /root/operationscenter-artifacts/langfuse-clickhouse-users.xml
+k8docker_db_metrics_dir: /var/lib/node_exporter/textfile_collector
+k8docker_db_backup_stamps_dir: /var/lib/k8docker-db-backups
+vectorchord_image: "tensorchord/vchord-postgres:pg17-v0.4.3"
+docker_socket_proxy_bind: "172.16.0.106:2375:2375"
+db_proxy_hostname: db.trusted.nirmalhk7.com
+db_proxy_ports:
+  mariadb: 3306
+  postgresql: 5432
+  clickhouse: 9000
+  clickhouse_http: 8123
+  mongodb: 27017
+k8docker_databases:
+  mariadb:
+    root_user: root
+    apps:
+      gitea: {}
+      nextcloud: {}
+      bugsink: {}
+      authelia: {}
+      pterodactyl: {}
+      appwrite: {}
+  postgres:
+    admin_user: postgres
+    apps:
+      immich:
+        extensions: [vchord, earthdistance]
+      sonarqube: {}
+      outline: {}
+      n8n: {}
+      langfuse: {}
+  clickhouse:
+    root_user: root
+    apps:
+      langfuse: {}
+  mongodb:
+    root_user: root
+    apps: {}

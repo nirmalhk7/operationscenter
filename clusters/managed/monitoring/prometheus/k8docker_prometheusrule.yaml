@@ -1,0 +1,65 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: k8docker-db-health
+  labels:
+    release: prometheus
+spec:
+  groups:
+    - name: k8docker-db-health
+      rules:
+        - alert: K8dockerDbContainerDown
+          expr: k8docker_db_container_up == 0
+          for: 5m
+          labels:
+            severity: critical
+            namespace: monitoring
+          annotations:
+            summary: "k8docker DB container is down."
+            description: "One of the k8docker database containers is not running."
+        - alert: K8dockerDbContainerUnhealthy
+          expr: k8docker_db_container_healthy == 0
+          for: 10m
+          labels:
+            severity: warning
+            namespace: monitoring
+          annotations:
+            summary: "k8docker DB container healthcheck is failing."
+            description: "The container is running but its built-in login/health probe is not healthy."
+        - alert: K8dockerDbBackupMarkerMissing
+          expr: k8docker_db_backup_success == 0
+          for: 1h
+          labels:
+            severity: warning
+            namespace: monitoring
+          annotations:
+            summary: "k8docker DB backup marker is missing."
+            description: "No successful backup marker is present for one of the k8docker database engines."
+        - alert: K8dockerDbBackupStale
+          expr: k8docker_db_backup_age_seconds > 86400
+          for: 1h
+          labels:
+            severity: critical
+            namespace: monitoring
+          annotations:
+            summary: "k8docker DB backup is stale."
+            description: "The recorded backup age exceeds 24 hours for one of the k8docker database engines."
+        - alert: K8dockerDbVolumeHighUsageWarning
+          expr: (k8docker_db_volume_used_bytes / clamp_min(k8docker_db_volume_total_bytes, 1)) > 0.8
+          for: 15m
+          labels:
+            severity: warning
+            namespace: monitoring
+          annotations:
+            summary: "k8docker DB volume usage is high."
+            description: "A database volume is above 80% usage."
+        - alert: K8dockerDbVolumeHighUsageCritical
+          expr: (k8docker_db_volume_used_bytes / clamp_min(k8docker_db_volume_total_bytes, 1)) > 0.9
+          for: 15m
+          labels:
+            severity: critical
+            namespace: monitoring
+          annotations:
+            summary: "k8docker DB volume usage is critical."
+            description: "A database volume is above 90% usage."

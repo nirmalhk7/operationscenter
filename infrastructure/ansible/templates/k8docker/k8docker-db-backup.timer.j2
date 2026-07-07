@@ -1,0 +1,12 @@
+[Unit]
+Description=Run k8docker DB backups nightly
+
+[Timer]
+OnBootSec=30m
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+RandomizedDelaySec=30m
+Unit=k8docker-db-backup.service
+
+[Install]
+WantedBy=timers.target

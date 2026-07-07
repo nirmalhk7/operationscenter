@@ -1,0 +1,16 @@
+<clickhouse>
+  <users>
+    <default remove="remove"/>
+    <root>
+      <password_sha256_hex>{{ k8docker_db_passwords.clickhouse.root | hash('sha256') }}</password_sha256_hex>
+      <networks>
+        <ip>127.0.0.1</ip>
+        <ip>::1</ip>
+        <ip>172.16.0.0/24</ip>
+      </networks>
+      <profile>default</profile>
+      <quota>default</quota>
+      <access_management>1</access_management>
+    </root>
+  </users>
+</clickhouse>

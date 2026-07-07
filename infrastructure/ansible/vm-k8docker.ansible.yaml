@@ -44,256 +44,29 @@
             state: directory
             mode: '0755'
 
-        - name: Render ClickHouse password XML on the host
-          ansible.builtin.copy:
-            dest: "{{ clickhouse_password_xml }}"
-            mode: '0644'
-            content: |
-              <clickhouse>
-                <users>
-                  <default remove="remove">
-                  </default>
-                  <default>
-                    <password_sha256_hex>{{ clickhouse_password | hash('sha256') }}</password_sha256_hex>
-                    <networks>
-                      <ip>127.0.0.1</ip>
-                      <ip>::1</ip>
-                      <ip>172.16.0.0/24</ip>
-                    </networks>
-                    <profile>default</profile>
-                    <quota>default</quota>
-                  </default>
-                </users>
-              </clickhouse>
+    - name: k8docker host monitoring
+      tags: monitoring
+      ansible.builtin.import_tasks: tasks/k8docker/monitoring.yaml
 
-    - name: Perform docker deployments
-      tags: [deployments]
-      block:
-        - name: MariaDB deployment
-          tags: mariadb
-          block:
-            - name: Ensure MariaDB container is running
-              community.docker.docker_container:
-                name: maria
-                image: mariadb:12
-                state: started
-                restart_policy: unless-stopped
-                # External: db.trusted.nirmalhk7.com:3306 via nginx stream proxy
-                published_ports:
-                  - "3306:3306"
-                labels:
-                  homepage.group: Containers
-                  homepage.name: MariaDB
-                  homepage.icon: mariadb
-                  homepage.description: Shared MariaDB backend
-                volumes:
-                  - mariadb_data:/var/lib/mysql
-                env:
-                  MARIADB_ROOT_PASSWORD: "{{ mariadb_root_password }}"
-                healthcheck:
-                  test: ["CMD", "mariadb-admin", "ping", "-uroot", "-p{{ mariadb_root_password }}"]
-                  interval: 30s
-                  timeout: 10s
-                  retries: 5
-            - name: Wait for MariaDB healthy
-              ansible.builtin.shell: >
-                {% raw %}docker inspect --format '{{.State.Health.Status}}' maria{% endraw %}
-              register: maria_health
-              retries: 20
-              delay: 5
-              until: maria_health.stdout == "healthy"
-              changed_when: false
+    - name: MariaDB deployment
+      tags: mariadb
+      ansible.builtin.import_tasks: tasks/k8docker/mariadb.yaml
 
-            - name: Create MariaDB databases
-              community.mysql.mysql_db:
-                name: "{{ item }}"
-                state: present
-                login_user: root
-                login_password: "{{ mariadb_root_password }}"
-                login_host: 127.0.0.1
-              loop: "{{ mariadb_db_names }}"
+    - name: VectorChord deployment
+      tags: vectorchord
+      ansible.builtin.import_tasks: tasks/k8docker/postgres.yaml
 
-            - name: Create MariaDB users
-              community.mysql.mysql_user:
-                name: "{{ item }}_rw"
-                password: "{{ mariadb_rw_password }}"
-                priv: "{{ item }}.*:ALL"
-                host: "%"
-                state: present
-                login_user: root
-                login_password: "{{ mariadb_root_password }}"
-                login_host: 127.0.0.1
-              loop: "{{ mariadb_db_names }}"
+    - name: ClickHouse deployment
+      tags: clickhouse
+      ansible.builtin.import_tasks: tasks/k8docker/clickhouse.yaml
 
-        - name: VectorChord deployment
-          tags: vectorchord
-          block:
-            - name: Ensure VectorChord DB container is running
-              community.docker.docker_container:
-                name: vectorchorddb
-                image: "{{ vectorchord_image }}"
-                state: started
-                restart_policy: unless-stopped
-                # External: db.trusted.nirmalhk7.com:5432 via nginx stream proxy
-                published_ports:
-                  - "5432:5432"
-                labels:
-                  homepage.group: Containers
-                  homepage.name: VectorChord Postgres
-                  homepage.icon: postgres
-                  homepage.description: Shared Postgres and vector database backend
-                volumes:
-                  - vectorchorddb_data:/var/lib/postgresql/data
-                env:
-                  POSTGRES_PASSWORD: "{{ vectorchord_pg_password }}"
+    - name: MongoDB deployment
+      tags: mongodb
+      ansible.builtin.import_tasks: tasks/k8docker/mongodb.yaml
 
-            - name: Wait for VectorChord DB ready
-              ansible.builtin.command: >
-                docker exec vectorchorddb pg_isready -U postgres
-              register: vchord_health
-              retries: 20
-              delay: 5
-              until: vchord_health.rc == 0
-              changed_when: false
-
-            - name: Create VectorChord users
-              community.postgresql.postgresql_user:
-                name: "{{ item }}_rw"
-                password: "{{ lookup('env', 'VECTORCHORD_RW_PASSWORD') }}"
-                login_db: postgres
-                state: present
-                login_user: postgres
-                login_password: "{{ vectorchord_pg_password }}"
-                login_host: 127.0.0.1
-              loop: "{{ vectorchord_db_names }}"
-
-            - name: Create VectorChord databases
-              community.postgresql.postgresql_db:
-                name: "{{ item }}"
-                state: present
-                login_user: postgres
-                login_password: "{{ vectorchord_pg_password }}"
-                login_host: 127.0.0.1
-                owner: "{{ item }}_rw"
-              loop: "{{ vectorchord_db_names }}"
-
-            - name: Install VectorChord extensions
-              community.postgresql.postgresql_ext:
-                name: "{{ item.1 }}"
-                db: "{{ item.0 }}"
-                cascade: yes
-                login_user: postgres
-                login_password: "{{ vectorchord_pg_password }}"
-                login_host: 127.0.0.1
-              loop: "{{ vectorchord_db_names | product(['vchord', 'earthdistance']) | list }}"
-              when: item.0 == 'immich'
-
-        - name: ClickHouse deployment
-          tags: clickhouse
-          block:
-            - name: Ensure ClickHouse container is running
-              community.docker.docker_container:
-                name: langfuse-clickhouse
-                image: "clickhouse/clickhouse-server:{{ clickhouse_server_version }}"
-                state: started
-                restart_policy: unless-stopped
-                # External: 172.16.0.106:9000 for Langfuse and clickhouse-driver modules
-                published_ports:
-                  - "8123:8123"
-                  - "9000:9000"
-                labels:
-                  homepage.group: Containers
-                  homepage.name: ClickHouse
-                  homepage.icon: clickhouse
-                  homepage.description: Langfuse analytics database
-                volumes:
-                  - langfuse_clickhouse_data:/var/lib/clickhouse
-                  - "{{ clickhouse_password_xml }}:/etc/clickhouse-server/users.d/default-password.xml:ro"
-                env:
-                  CLICKHOUSE_SKIP_USER_SETUP: "1"
-                  CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
-                healthcheck:
-                  test:
-                    - CMD
-                    - clickhouse-client
-                    - --user
-                    - default
-                    - --password
-                    - "{{ clickhouse_password }}"
-                    - --query
-                    - SELECT 1
-                  interval: 30s
-                  timeout: 10s
-                  retries: 10
-
-            - name: Wait for ClickHouse healthy
-              ansible.builtin.shell: >
-                {% raw %}docker inspect --format '{{.State.Health.Status}}' langfuse-clickhouse{% endraw %}
-              register: clickhouse_health
-              retries: 20
-              delay: 5
-              until: clickhouse_health.stdout == "healthy"
-              changed_when: false
-
-            - name: Ensure Langfuse ClickHouse database exists
-              community.clickhouse.clickhouse_db:
-                login_host: 172.16.0.106
-                login_port: 9000
-                login_user: default
-                login_password: "{{ clickhouse_password }}"
-                login_db: default
-                name: "{{ clickhouse_db_name }}"
-                state: present
-
-        - name: MongoDB deployment
-          tags: mongodb
-          block:
-            - name: Ensure MongoDB container is running
-              community.docker.docker_container:
-                name: mongo
-                image: mongo:4.4
-                state: started
-                restart_policy: unless-stopped
-                # External: db.trusted.nirmalhk7.com:27017 via nginx stream proxy
-                published_ports:
-                  - "27017:27017"
-                labels:
-                  homepage.group: Containers
-                  homepage.name: MongoDB
-                  homepage.icon: mongodb
-                  homepage.description: Shared MongoDB backend
-                volumes:
-                  - mongodb_data:/data/db
-                env:
-                  MONGO_INITDB_ROOT_USERNAME: root
-                  MONGO_INITDB_ROOT_PASSWORD: "{{ mongodb_root_password }}"
-                healthcheck:
-                  test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-                  interval: 30s
-                  timeout: 10s
-                  retries: 5
-
-            - name: Wait for MongoDB healthy
-              ansible.builtin.shell: >
-                {% raw %}docker inspect --format '{{.State.Health.Status}}' mongo{% endraw %}
-              register: mongo_health
-              retries: 20
-              delay: 5
-              until: mongo_health.stdout == "healthy"
-              changed_when: false
-
-            - name: Create MongoDB application users
-              community.mongodb.mongodb_user:
-                database: "{{ item }}"
-                name: "{{ item }}_rw"
-                password: "{{ mariadb_rw_password }}"
-                roles: readWrite
-                state: present
-                login_user: root
-                login_password: "{{ mongodb_root_password }}"
-                login_host: 127.0.0.1
-                login_port: 27017
-              loop: "{{ mongodb_db_names }}"
+    - name: Refresh k8docker DB metrics after deployment
+      ansible.builtin.command: /usr/local/bin/k8docker-db-metrics
+      changed_when: false
 
     - name: Ensure Homepage Docker socket proxy is running
       community.docker.docker_container:
@@ -311,3 +84,14 @@
           SERVICES: "0"
           TASKS: "0"
           POST: "0"
+
+  handlers:
+    - name: Restart k8docker node exporter
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: node_exporter
+        state: restarted
+        enabled: true
+
+    - name: Refresh k8docker DB metrics
+      ansible.builtin.command: /usr/local/bin/k8docker-db-metrics

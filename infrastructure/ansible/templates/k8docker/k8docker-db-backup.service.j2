@@ -1,0 +1,10 @@
+[Unit]
+Description=Run k8docker DB backups
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/bin/k8docker-db-backup
