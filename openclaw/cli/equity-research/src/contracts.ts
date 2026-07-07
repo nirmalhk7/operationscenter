@@ -264,10 +264,10 @@ export function createDefaultState(mode: ExecutionMode): TradingState {
   return {
     trading_enabled: true,
     execution_mode: mode,
-    starting_capital_usd: 100,
-    virtual_cash_usd: 100,
+    starting_capital_usd: 100000,
+    virtual_cash_usd: 100000,
     realized_pnl_usd: 0,
-    last_strategy_equity_usd: 100,
+    last_strategy_equity_usd: 100000,
     pause_reason: null,
     paused_at: null,
     resumed_at: null,

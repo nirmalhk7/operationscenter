@@ -638,7 +638,7 @@ export function loadTradingConfig(env = process.env): TradingConfig {
     alpaca_data_feed: env.ALPACA_DATA_FEED?.trim() || "iex",
     alpaca_api_key: env.ALPACA_API_KEY?.trim() || "",
     alpaca_secret_key: env.ALPACA_SECRET_KEY?.trim() || "",
-    paper_strategy_capital_usd: parseNumber(env.PAPER_STRATEGY_CAPITAL_USD, 100),
+    paper_strategy_capital_usd: parseNumber(env.PAPER_STRATEGY_CAPITAL_USD, 100000),
     max_open_positions: parseNumber(env.MOUNTAINVALUE_MAX_OPEN_POSITIONS, 2),
     max_new_entries_per_day: parseNumber(env.MOUNTAINVALUE_MAX_NEW_ENTRIES_PER_DAY, 1),
     max_position_notional_pct: parseNumber(env.MOUNTAINVALUE_MAX_POSITION_NOTIONAL_PCT, 0.3),
