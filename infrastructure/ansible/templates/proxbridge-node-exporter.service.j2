@@ -1,0 +1,21 @@
+[Unit]
+Description=Prometheus node_exporter for proxbridge host disk metrics
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/bin/node_exporter \
+  --web.listen-address=:9100 \
+  --path.procfs=/host/proc \
+  --path.sysfs=/host/sys \
+  --path.rootfs=/host/rootfs \
+  --collector.disable-defaults \
+  --collector.diskstats \
+  --collector.filesystem
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

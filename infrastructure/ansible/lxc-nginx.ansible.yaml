@@ -194,24 +194,12 @@
           state: present
 
       - name: Install systemd unit for exporter
-        ansible.builtin.copy:
+        ansible.builtin.template:
+          src: nginx-prometheus-exporter.service.j2
           dest: /etc/systemd/system/nginx-prometheus-exporter.service
           owner: root
           group: root
           mode: '0644'
-          content: |
-            [Unit]
-            Description=nginx-prometheus-exporter
-            After=network.target
-
-            [Service]
-            User=nginx-prometheus-exporter
-            Group=nginx-prometheus-exporter
-            Type=simple
-            ExecStart=/usr/local/bin/nginx-prometheus-exporter -nginx.scrape-uri=http://localhost:7777/prometheus
-
-            [Install]
-            WantedBy=multi-user.target
 
       - name: Reload systemd and enable exporter
         ansible.builtin.systemd:

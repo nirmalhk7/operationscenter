@@ -1,0 +1,12 @@
+[Unit]
+Description=nginx-prometheus-exporter
+After=network.target
+
+[Service]
+User=nginx-prometheus-exporter
+Group=nginx-prometheus-exporter
+Type=simple
+ExecStart=/usr/local/bin/nginx-prometheus-exporter -nginx.scrape-uri=http://localhost:7777/prometheus
+
+[Install]
+WantedBy=multi-user.target

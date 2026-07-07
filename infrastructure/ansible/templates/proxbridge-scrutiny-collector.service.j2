@@ -1,0 +1,10 @@
+[Unit]
+Description=Scrutiny collector for proxbridge disks
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/scrutiny/bin/scrutiny-collector-metrics run --config /opt/scrutiny/config/collector.yaml --log-file /var/log/scrutiny-collector.log

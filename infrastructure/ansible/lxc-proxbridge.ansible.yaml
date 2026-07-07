@@ -223,33 +223,12 @@
       notify: Restart node exporter
 
     - name: Install systemd unit for host disk node_exporter
-      ansible.builtin.copy:
+      ansible.builtin.template:
+        src: proxbridge-node-exporter.service.j2
         dest: /etc/systemd/system/node_exporter.service
         owner: root
         group: root
         mode: '0644'
-        content: |
-          [Unit]
-          Description=Prometheus node_exporter for proxbridge host disk metrics
-          After=network-online.target
-          Wants=network-online.target
-
-          [Service]
-          Type=simple
-          User=root
-          Group=root
-          ExecStart=/usr/local/bin/node_exporter \
-            --web.listen-address=:9100 \
-            --path.procfs=/host/proc \
-            --path.sysfs=/host/sys \
-            --path.rootfs=/host/rootfs \
-            --collector.disable-defaults \
-            --collector.diskstats \
-            --collector.filesystem
-          Restart=on-failure
-
-          [Install]
-          WantedBy=multi-user.target
       notify: Restart node exporter
 
     - name: Ensure host disk node_exporter is running
@@ -282,26 +261,12 @@
       notify: Restart smartctl exporter
 
     - name: Install systemd unit for smartctl_exporter
-      ansible.builtin.copy:
+      ansible.builtin.template:
+        src: proxbridge-smartctl-exporter.service.j2
         dest: /etc/systemd/system/smartctl_exporter.service
         owner: root
         group: root
         mode: '0644'
-        content: |
-          [Unit]
-          Description=Prometheus smartctl_exporter for proxbridge disks
-          After=network-online.target
-          Wants=network-online.target
-
-          [Service]
-          Type=simple
-          User=root
-          Group=root
-          ExecStart=/usr/local/bin/smartctl_exporter --web.listen-address=:9633 --smartctl.path=/usr/sbin/smartctl
-          Restart=on-failure
-
-          [Install]
-          WantedBy=multi-user.target
       notify: Restart smartctl exporter
 
     - name: Ensure smartctl_exporter is running
@@ -371,41 +336,21 @@
       notify: Run scrutiny collector once
 
     - name: Install proxbridge Scrutiny collector systemd service
-      ansible.builtin.copy:
+      ansible.builtin.template:
+        src: proxbridge-scrutiny-collector.service.j2
         dest: /etc/systemd/system/scrutiny-collector.service
         owner: root
         group: root
         mode: '0644'
-        content: |
-          [Unit]
-          Description=Scrutiny collector for proxbridge disks
-          After=network-online.target
-          Wants=network-online.target
-
-          [Service]
-          Type=oneshot
-          User=root
-          Group=root
-          ExecStart=/opt/scrutiny/bin/scrutiny-collector-metrics run --config /opt/scrutiny/config/collector.yaml --log-file /var/log/scrutiny-collector.log
       notify: Run scrutiny collector once
 
     - name: Install proxbridge Scrutiny collector systemd timer
-      ansible.builtin.copy:
+      ansible.builtin.template:
+        src: proxbridge-scrutiny-collector.timer.j2
         dest: /etc/systemd/system/scrutiny-collector.timer
         owner: root
         group: root
         mode: '0644'
-        content: |
-          [Unit]
-          Description=Run proxbridge Scrutiny collector daily
-
-          [Timer]
-          OnCalendar=*-*-* 00:00:00
-          Persistent=true
-          RandomizedDelaySec=5m
-
-          [Install]
-          WantedBy=timers.target
 
     - name: Ensure proxbridge Scrutiny collector timer is enabled
       ansible.builtin.systemd:

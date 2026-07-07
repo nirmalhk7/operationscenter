@@ -1,0 +1,10 @@
+[Unit]
+Description=Run proxbridge Scrutiny collector daily
+
+[Timer]
+OnCalendar=*-*-* 00:00:00
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

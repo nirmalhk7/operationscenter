@@ -1,0 +1,14 @@
+[Unit]
+Description=Prometheus smartctl_exporter for proxbridge disks
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/bin/smartctl_exporter --web.listen-address=:9633 --smartctl.path=/usr/sbin/smartctl
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
