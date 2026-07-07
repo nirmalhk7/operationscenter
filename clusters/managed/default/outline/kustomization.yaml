@@ -4,6 +4,7 @@ resources:
   - ingressroute.yaml
   - helmrelease.yaml
   - secrets.yaml
+  - db-secret.yaml
   - nfs-storage.yaml
   - backup-cronjob.yaml
 

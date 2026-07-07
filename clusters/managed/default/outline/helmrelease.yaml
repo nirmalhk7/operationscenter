@@ -42,7 +42,7 @@ spec:
       port: 5432
       username: "outline_rw"
       database: *app
-      existingSecret: outline-credentials
+      existingSecret: outline-db-credentials
       passwordSecretKey: "DB_PASSWORD"
     redis:
       enabled: true
