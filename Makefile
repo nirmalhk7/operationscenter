@@ -96,8 +96,12 @@ ansible-run: ansible-install
 	if [ -f .env ]; then \
 		set -a; . .env; set +a; \
 	fi; \
-	echo "Running Mainbook #########################################"; \
-	ansible-playbook -i inventory.ini main.ansible.yaml --skip-tags disabled,upgrade; \
+	echo "Running Operations Center site bootstrap #########################################"; \
+	ansible-playbook -i inventory.ini site.ansible.yaml --skip-tags disabled,upgrade; \
+
+ansible-check: ansible-install
+	cd infrastructure/ansible && ansible-playbook -i inventory.ini site.ansible.yaml --syntax-check
+	cd infrastructure/ansible && ansible-playbook -i inventory.ini playbooks/legacy-cleanup.ansible.yaml --syntax-check
 
 
 ansible-run-one: ansible-install
