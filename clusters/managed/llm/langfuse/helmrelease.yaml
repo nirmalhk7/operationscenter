@@ -67,9 +67,10 @@ spec:
     clickhouse:
       deploy: false
       host: 172.16.0.106
+      database: langfuse
       clusterEnabled: false
       auth:
-        username: default
+        username: langfuse_rw
         existingSecret: langfuse-clickhouse-auth
         existingSecretKey: CLICKHOUSE_PASSWORD
     redis:
@@ -98,7 +99,7 @@ spec:
       auth:
         username: langfuse_rw
         database: langfuse
-        existingSecret: langfuse-secrets
+        existingSecret: langfuse-db-credentials
         secretKeys:
           userPasswordKey: POSTGRES_PASSWORD
-          adminPasswordKey: POSTGRES_PASSWORD
+          adminPasswordKey: POSTGRES_ADMIN_PASSWORD

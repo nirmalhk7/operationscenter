@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - secret.yaml
+  - db-secret.yaml
   - oidc-secret.yaml
   - clickhouse-auth.yaml
   - subchart-secrets.yaml
