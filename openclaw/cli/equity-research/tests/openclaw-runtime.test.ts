@@ -18,14 +18,52 @@ test("OpenClaw runtime config parses and points at the MountainValue operator wo
   const agentList = agentsConfig.list as Array<Record<string, unknown>>;
   const defaults = agentsConfig.defaults as Record<string, unknown>;
   const main = agentList.find((agent) => agent.id === "main");
+  const rahul = agentList.find((agent) => agent.id === "rahul");
   const victor = (agentsConfig.list as Array<Record<string, unknown>>).find((agent) => agent.id === "victor");
   const gateway = config.gateway as Record<string, unknown>;
+  const plugins = config.plugins as Record<string, unknown>;
   const discord = channelsConfig.discord as Record<string, unknown>;
+  const discordAccounts = discord.accounts as Record<string, Record<string, unknown>>;
+  const bindings = config.bindings as Array<Record<string, unknown>>;
 
   assert.ok(main);
+  assert.ok(rahul);
   assert.ok(victor);
   assert.equal(discord.enabled, true);
-  assert.equal(((discord.token as Record<string, unknown>) ?? {}).id, "DISCORD_BOT_TOKEN");
+  assert.equal((((plugins.entries as Record<string, Record<string, unknown>>) ?? {}).discord ?? {}).enabled, true);
+  assert.equal(discord.defaultAccount, "main");
+  assert.deepEqual(Object.keys(discordAccounts).sort(), ["main", "rahul", "victor"]);
+  assert.equal(((discordAccounts.main.token as Record<string, unknown>) ?? {}).id, "OPENCLAW_DISCORD_BOT_TOKEN_MAIN");
+  assert.equal(((discordAccounts.rahul.token as Record<string, unknown>) ?? {}).id, "OPENCLAW_DISCORD_BOT_TOKEN_RAHUL");
+  assert.equal(((discordAccounts.victor.token as Record<string, unknown>) ?? {}).id, "OPENCLAW_DISCORD_BOT_TOKEN_VICTOR");
+  assert.equal(discord.groupPolicy, "allowlist");
+  assert.equal(((discord.guilds as Record<string, Record<string, unknown>>)["1487714737964716084"] ?? {}).requireMention, true);
+  assert.equal(discord.dmPolicy, "allowlist");
+  assert.equal(discord.replyToMode, "first");
+  assert.equal(discord.ackReaction, "👀");
+  assert.equal(((discord.threadBindings as Record<string, unknown>) ?? {}).enabled, true);
+  assert.equal(((discord.execApprovals as Record<string, unknown>) ?? {}).target, "dm");
+  assert.equal(((discord.actions as Record<string, unknown>) ?? {}).presence, true);
+  assert.deepEqual(
+    bindings
+      .filter((binding) => ((binding.match as Record<string, unknown>) ?? {}).channel === "discord")
+      .map((binding) => ({
+        accountId: ((binding.match as Record<string, unknown>) ?? {}).accountId,
+        agentId: binding.agentId,
+      }))
+      .sort((a, b) => String(a.accountId).localeCompare(String(b.accountId))),
+    [
+      { accountId: "main", agentId: "main" },
+      { accountId: "rahul", agentId: "rahul" },
+      { accountId: "victor", agentId: "victor" },
+    ],
+  );
+  for (const agent of [main, rahul, victor]) {
+    assert.equal(((agent.heartbeat as Record<string, unknown>) ?? {}).model, "openrouter/free");
+  }
+  assert.equal(((main.heartbeat as Record<string, unknown>) ?? {}).accountId, "main");
+  assert.equal(((rahul.heartbeat as Record<string, unknown>) ?? {}).accountId, "rahul");
+  assert.equal(((victor.heartbeat as Record<string, unknown>) ?? {}).accountId, "victor");
   assert.ok(Array.isArray(defaults.skills));
   assert.ok("openrouter/free" in (defaults.models as Record<string, unknown>));
   assert.ok("openrouter/qwen/qwen3.5-flash-02-23" in (defaults.models as Record<string, unknown>));
@@ -72,15 +110,18 @@ test("MountainValue workflow is deterministic and trader-facing docs mention pap
   assert.match(repoText(join("openclaw", "plugins", "lobster", "src", "index.js")), /name: "lobster"/u);
   const ansible = repoText(join("infrastructure", "ansible", "lxc-openclaw.ansible.yaml"));
   assert.match(ansible, /MountainValue evaluate buy sell/u);
-  assert.match(ansible, /- openclaw[\s\S]*?- channels[\s\S]*?- add/u);
-  assert.match(ansible, /--use-env/u);
+  assert.doesNotMatch(ansible, /channels[\s\S]*?- add[\s\S]*?OPENCLAW_DISCORD_BOT_TOKEN_VICTOR/u);
+  assert.match(ansible, /OPENCLAW_DISCORD_BOT_TOKEN_MAIN/u);
+  assert.match(ansible, /OPENCLAW_DISCORD_BOT_TOKEN_RAHUL/u);
+  assert.match(ansible, /OPENCLAW_DISCORD_BOT_TOKEN_VICTOR/u);
   assert.match(ansible, /- openclaw[\s\S]*?- cron[\s\S]*?- add/u);
   assert.match(ansible, /0 8-13 \* \* 1-5/u);
   assert.match(ansible, /- --agent[\s\S]*?- victor/u);
   assert.match(ansible, /- --announce/u);
   assert.match(ansible, /- --channel[\s\S]*?- discord/u);
+  assert.match(ansible, /- --account[\s\S]*?- victor/u);
   assert.match(ansible, /- --to[\s\S]*OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID/u);
   const envTemplate = repoText(join("infrastructure", "ansible", "templates", "openclaw.env.j2"));
   assert.match(envTemplate, /EXECUTION_MODE=paper/u);
-  assert.match(envTemplate, /DISCORD_BOT_TOKEN=/u);
+  assert.doesNotMatch(envTemplate, /^DISCORD_BOT_TOKEN=/mu);
 });

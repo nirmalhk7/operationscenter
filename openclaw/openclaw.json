@@ -35,19 +35,117 @@
       ]
     }
   },
-  "channels": {
-    "discord": {
-      "enabled": true,
-      "token": {
-        "source": "env",
-        "provider": "default",
-        "id": "DISCORD_BOT_TOKEN"
-      },
-      "streaming": {
-        "mode": "progress"
+  "plugins": {
+    "entries": {
+      "discord": {
+        "enabled": true
       }
     }
   },
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "defaultAccount": "main",
+      "accounts": {
+        "main": {
+          "name": "Main",
+          "enabled": true,
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_MAIN"
+          }
+        },
+        "rahul": {
+          "name": "Rahul",
+          "enabled": true,
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_RAHUL"
+          }
+        },
+        "victor": {
+          "name": "Victor",
+          "enabled": true,
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_VICTOR"
+          }
+        }
+      },
+      "streaming": {
+        "mode": "progress"
+      },
+      "groupPolicy": "allowlist",
+      "guilds": {
+        "1487714737964716084": {
+          "requireMention": true
+        }
+      },
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "1220283451169837077"
+      ],
+      "dm": {
+        "enabled": true
+      },
+      "agentComponents": {
+        "enabled": true
+      },
+      "ackReaction": "👀",
+      "threadBindings": {
+        "enabled": true,
+        "spawnSubagentSessions": true,
+        "idleHours": 24,
+        "maxAgeHours": 72
+      },
+      "replyToMode": "first",
+      "execApprovals": {
+        "enabled": true,
+        "target": "dm",
+        "approvers": [
+          "1220283451169837077"
+        ],
+        "cleanupAfterResolve": true
+      },
+      "actions": {
+        "presence": true
+      },
+      "ui": {
+        "components": {
+          "accentColor": "#5865F2"
+        }
+      }
+    }
+  },
+  "bindings": [
+    {
+      "type": "route",
+      "agentId": "main",
+      "match": {
+        "channel": "discord",
+        "accountId": "main"
+      }
+    },
+    {
+      "type": "route",
+      "agentId": "rahul",
+      "match": {
+        "channel": "discord",
+        "accountId": "rahul"
+      }
+    },
+    {
+      "type": "route",
+      "agentId": "victor",
+      "match": {
+        "channel": "discord",
+        "accountId": "victor"
+      }
+    }
+  ],
   "models": {
     "mode": "merge",
     "providers": {
@@ -127,6 +225,7 @@
         "every": "30m",
         "model": "openrouter/free",
         "target": "discord",
+        "accountId": "main",
         "directPolicy": "allow",
         "lightContext": true,
         "isolatedSession": true
@@ -166,6 +265,7 @@
           "every": "30m",
           "model": "openrouter/free",
           "target": "discord",
+          "accountId": "main",
           "directPolicy": "allow",
           "lightContext": true,
           "isolatedSession": true
@@ -194,7 +294,8 @@
           "model": "openrouter/free",
           "lightContext": false,
           "isolatedSession": true,
-          "target": "discord"
+          "target": "discord",
+          "accountId": "rahul"
         },
         "tools": {
           "deny": [
@@ -239,6 +340,11 @@
             "eq_thesis_depth_reviewer"
           ],
           "requireAgentId": true
+        },
+        "heartbeat": {
+          "model": "openrouter/free",
+          "target": "discord",
+          "accountId": "victor"
         },
         "tools": {
           "profile": "full",

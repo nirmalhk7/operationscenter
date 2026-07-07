@@ -466,11 +466,15 @@
               - lookup('env', 'OPENCLAW_ALPHAVANTAGE_API_KEY') | length > 0
             fail_msg: "Set OPENCLAW_ALPHAVANTAGE_API_KEY before deploying OpenClaw with the Alpha Vantage MCP server enabled."
 
-        - name: Require Victor Discord bot token
+        - name: Require Discord bot tokens
           ansible.builtin.assert:
             that:
-              - lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_VICTOR') | length > 0
-            fail_msg: "Set OPENCLAW_DISCORD_BOT_TOKEN_VICTOR before deploying OpenClaw with Victor's Discord account enabled."
+              - lookup('env', item) | length > 0
+            fail_msg: "Set {{ item }} before deploying OpenClaw with Discord account {{ item | regex_replace('^OPENCLAW_DISCORD_BOT_TOKEN_', '') | lower }} enabled."
+          loop:
+            - OPENCLAW_DISCORD_BOT_TOKEN_MAIN
+            - OPENCLAW_DISCORD_BOT_TOKEN_RAHUL
+            - OPENCLAW_DISCORD_BOT_TOKEN_VICTOR
 
         - name: Require SEC EDGAR user agent
           ansible.builtin.assert:
@@ -765,31 +769,6 @@
           changed_when: "'Installed' in lobster_plugin_install.stdout or 'Linked' in lobster_plugin_install.stdout or 'updated' in (lobster_plugin_install.stdout | lower)"
           notify: Restart OpenClaw service
 
-    - name: Configure Victor Discord delivery
-      tags:
-        - openclaw-channel
-        - openclaw-service
-      block:
-        - name: Add Victor Discord channel
-          ansible.builtin.command:
-            argv:
-              - openclaw
-              - channels
-              - add
-              - --channel
-              - discord
-              - --name
-              - Victor
-              - --use-env
-          environment:
-            HOME: "{{ openclaw_home }}"
-            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
-            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
-            OPENCLAW_DISCORD_BOT_TOKEN_VICTOR: "{{ lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_VICTOR') }}"
-            DISCORD_BOT_TOKEN: "{{ lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_VICTOR') }}"
-          register: victor_discord_channel
-          changed_when: "'configured' in (victor_discord_channel.stdout | lower) or 'updated' in (victor_discord_channel.stdout | lower) or 'enabled' in (victor_discord_channel.stdout | lower)"
-
     - name: Install OpenClaw systemd service
       tags:
         - openclaw-service
@@ -942,6 +921,8 @@
               - --announce
               - --channel
               - discord
+              - --account
+              - victor
               - --to
               - "channel:{{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504282224789295134', true) }}"
               - --timeout

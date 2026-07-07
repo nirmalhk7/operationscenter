@@ -59,6 +59,11 @@ This inventory reflects the deployed OpenClaw runtime configuration in
   OpenClaw v2026.5.28 surfaces
   commentary in those drafts, so long-running runs should show useful live
   context before the final reply.
+- Discord is configured as three account-scoped bots: `main`, `rahul`, and
+  `victor`. Each account must be invited to the OperationCenter Discord server,
+  have Message Content intent enabled in the Discord developer portal, and have
+  visibility plus send/reply/thread permissions in any channel where it should
+  respond. Enable Presence intent when online status matters.
 - Workboard is enabled for coordinating active agent work. Use it for work that
   needs ownership, heartbeat/progress, proof, release, comments, or unblock
   state instead of relying only on Discord scrollback. Rahul has explicit
