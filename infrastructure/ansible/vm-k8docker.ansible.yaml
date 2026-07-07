@@ -8,80 +8,31 @@
     - vars/versions.yaml
 
   vars:
-    docker_repo: "https://download.docker.com/linux/debian"
-    docker_gpg: "/etc/apt/keyrings/docker.asc"
-    repo_list: "/etc/apt/sources.list.d/docker.list"
-    clickhouse_password: "{{ lookup('env', 'CLICKHOUSE_PASSWORD') }}"
-    clickhouse_password_xml: /root/operationscenter-artifacts/langfuse-clickhouse-default-password.xml
-    clickhouse_db_name: langfuse
-    mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
-    mariadb_rw_password: "{{ lookup('env', 'MARIADB_RW_PASSWORD') }}"
-    mariadb_db_names: [nextcloud, gitea, sonarqube, bugsink, authelia, pterodactyl, appwrite]
-    vectorchord_pg_password: "{{ lookup('env', 'VECTORCHORD_PG_PASSWORD') }}" 
-    vectorchord_image: "tensorchord/vchord-postgres:pg17-v0.4.3"
-    vectorchord_db_names: [immich, authentik, sonarqube, outline, n8n, langfuse]
-    mongodb_root_password: "{{ lookup('env', 'MONGODB_ROOT_PASSWORD') }}"
-    mongodb_db_names: []
-    docker_socket_proxy_bind: "172.16.0.106:2375:2375"
-    # External access via nginx stream proxy (db.trusted.nirmalhk7.com:<port>)
-    db_proxy_hostname: db.trusted.nirmalhk7.com
-    db_proxy_ports:
-      mariadb: 3306
-      postgresql: 5432
-      mongodb: 27017
+    k8docker_mariadb_login_password: "{{ k8docker_db_passwords.mariadb.root }}"
+    k8docker_postgres_login_password: "{{ k8docker_db_passwords.postgres.bootstrap }}"
+    k8docker_postgres_root_login_password: "{{ k8docker_db_passwords.postgres.root }}"
+    k8docker_clickhouse_login_password: "{{ k8docker_db_passwords.clickhouse.root }}"
+    k8docker_mongodb_login_password: "{{ lookup('env', 'MONGODB_ROOT_PASSWORD') | default(k8docker_db_passwords.mongodb.root, true) }}"
 
   tasks:
-    - name: Check if docker is installed
-      ansible.builtin.stat:
-        path: /usr/bin/docker
-      register: docker_bin
-
     - name: Ensure DB management dependencies are installed
       ansible.builtin.apt:
         update_cache: true
         name: [python3-pymysql, python3-psycopg2, python3-pymongo, python3-clickhouse-driver]
 
-    - name: Docker setup
-      block:
-        - name: Ensure base deps
-          ansible.builtin.apt:
-            update_cache: true
-            name: [ca-certificates, curl]
+    - name: Validate k8docker DB configuration
+      ansible.builtin.import_tasks: tasks/k8docker/validate-vars.yaml
 
-        - name: Ensure keyrings directory exists
-          ansible.builtin.file:
-            path: /etc/apt/keyrings
-            state: directory
-            mode: '0755'
-
-        - name: Download Docker GPG key
-          ansible.builtin.get_url:
-            url: "{{ docker_repo }}/gpg"
-            dest: "{{ docker_gpg }}"
-            mode: '0644'
-
-        - name: Get dpkg architecture
-          ansible.builtin.command: dpkg --print-architecture
-          register: dpkg_arch
-          changed_when: false
-
-        - name: Add Docker apt repository
-          ansible.builtin.copy:
-            dest: "{{ repo_list }}"
-            mode: '0644'
-            content: |
-              deb [arch={{ dpkg_arch.stdout }} signed-by={{ docker_gpg }}] {{ docker_repo }} {{ ansible_lsb.codename | default('bookworm') }} stable
-
-        - name: Install Docker packages at requested versions
-          ansible.builtin.apt:
-            name:
-              - "docker-ce={{ docker_ce_version }}"
-              - "docker-ce-cli={{ docker_ce_version }}"
-              - "containerd.io={{ containerd_version }}"
-              - "docker-buildx-plugin={{ docker_buildx_plugin_version }}"
-              - "docker-compose-plugin={{ docker_compose_plugin_version }}"
-            update_cache: true
-      when: not docker_bin.stat.exists
+    - name: Ensure Docker engine is installed at requested versions
+      ansible.builtin.include_role:
+        name: docker_engine
+      vars:
+        docker_engine_packages:
+          - "docker-ce={{ docker_ce_version }}"
+          - "docker-ce-cli={{ docker_ce_version }}"
+          - "containerd.io={{ containerd_version }}"
+          - "docker-buildx-plugin={{ docker_buildx_plugin_version }}"
+          - "docker-compose-plugin={{ docker_compose_plugin_version }}"
       tags: [docker_setup]
 
     - name: Container setup - collecting artifacts

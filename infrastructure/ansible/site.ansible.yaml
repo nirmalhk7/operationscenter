@@ -1,0 +1,16 @@
+---
+# Canonical one-run Ansible entrypoint.
+#
+# Terraform is expected to have created the host/VM/LXC inventory first. This
+# playbook configures host services, installs K3s, bootstraps Flux from Git, and
+# only then deploys the OpenClaw VM runtime that depends on GitOps-created RBAC.
+- import_playbook: playbooks/proxmox-host.ansible.yaml
+- import_playbook: playbooks/shared-ssh.ansible.yaml
+- import_playbook: playbooks/nfs.ansible.yaml
+- import_playbook: playbooks/docker-db.ansible.yaml
+- import_playbook: playbooks/nginx.ansible.yaml
+- import_playbook: playbooks/proxbridge.ansible.yaml
+- import_playbook: playbooks/homesecurity.ansible.yaml
+- import_playbook: playbooks/k3s-managed.ansible.yaml
+- import_playbook: playbooks/flux-bootstrap.ansible.yaml
+- import_playbook: playbooks/openclaw.ansible.yaml

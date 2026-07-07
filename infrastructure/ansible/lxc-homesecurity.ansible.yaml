@@ -38,58 +38,20 @@
     - vars/homesecurity.yaml
 
   vars:
-    docker_repo: "https://download.docker.com/linux/debian"
-    docker_gpg: "/etc/apt/keyrings/docker.asc"
-    repo_list: "/etc/apt/sources.list.d/docker.list"
     docker_socket_proxy_bind: "172.16.0.103:2375:2375"
 
   tasks:
-    - name: Check if docker is installed
-      ansible.builtin.stat:
-        path: /usr/bin/docker
-      register: docker_bin
-
-    - name: Docker setup
-      when: not docker_bin.stat.exists
-      block:
-        - name: Ensure base deps
-          ansible.builtin.apt:
-            update_cache: true
-            name: [ca-certificates, curl]
-
-        - name: Ensure keyrings directory exists
-          ansible.builtin.file:
-            path: /etc/apt/keyrings
-            state: directory
-            mode: "0755"
-
-        - name: Download Docker GPG key
-          ansible.builtin.get_url:
-            url: "{{ docker_repo }}/gpg"
-            dest: "{{ docker_gpg }}"
-            mode: "0644"
-
-        - name: Get dpkg architecture
-          ansible.builtin.command: dpkg --print-architecture
-          register: dpkg_arch
-          changed_when: false
-
-        - name: Add Docker apt repository
-          ansible.builtin.copy:
-            dest: "{{ repo_list }}"
-            mode: "0644"
-            content: |
-              deb [arch={{ dpkg_arch.stdout }} signed-by={{ docker_gpg }}] {{ docker_repo }} {{ ansible_lsb.codename | default('bookworm') }} stable
-
-        - name: Install Docker packages at requested versions
-          ansible.builtin.apt:
-            name:
-              - "docker-ce={{ homesecurity_docker_ce_version }}"
-              - "docker-ce-cli={{ homesecurity_docker_ce_cli_version }}"
-              - "containerd.io={{ homesecurity_containerd_version }}"
-              - "docker-buildx-plugin={{ homesecurity_docker_buildx_plugin_version }}"
-              - "docker-compose-plugin={{ homesecurity_docker_compose_plugin_version }}"
-            update_cache: true
+    - name: Ensure Docker engine is installed at requested versions
+      ansible.builtin.include_role:
+        name: docker_engine
+      vars:
+        docker_engine_packages:
+          - "docker-ce={{ homesecurity_docker_ce_version }}"
+          - "docker-ce-cli={{ homesecurity_docker_ce_cli_version }}"
+          - "containerd.io={{ homesecurity_containerd_version }}"
+          - "docker-buildx-plugin={{ homesecurity_docker_buildx_plugin_version }}"
+          - "docker-compose-plugin={{ homesecurity_docker_compose_plugin_version }}"
+      tags: [docker_setup]
 
     - name: Ensure Docker service is running
       ansible.builtin.service:

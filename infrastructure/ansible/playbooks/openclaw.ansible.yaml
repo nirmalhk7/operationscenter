@@ -1,0 +1,2 @@
+---
+- import_playbook: ../lxc-openclaw.ansible.yaml

@@ -1,0 +1,2 @@
+---
+- import_playbook: ../vm-mgdnfs1.ansible.yaml
