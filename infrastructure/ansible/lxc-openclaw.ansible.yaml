@@ -41,10 +41,6 @@
     - vars/network.yaml
 
   vars:
-    openclaw_user: root
-    openclaw_home: /root
-    openclaw_support_home: /root/openclaw_support
-    openclaw_validate_home: /root/openclaw_validate_home
     openclaw_cluster_token: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_token'] | default(lookup('env', 'OPENCLAW_CLUSTER_TOKEN'), true) }}"
     openclaw_cluster_ca: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_ca'] | default(lookup('env', 'OPENCLAW_CLUSTER_CA'), true) }}"
   handlers:

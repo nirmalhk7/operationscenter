@@ -7,84 +7,65 @@
   vars_files:
     - vars/versions.yaml
 
-  vars:
-    dev_path: "/dev/sdb"
-    mount_point: "/mnt/2tbhdd"
-    export_network: "172.16.0.0/24"
-    export_options: "rw,sync,no_subtree_check,no_root_squash,insecure"
-    app_dirs:
-      - nextcloud
-      - immich
-      - immich/upload
-      - immich/library
-      - gitea
-      - gitea/repositories
-      - gitea/lfs
-      - gitea/attachments
-      - gitea/avatars
-      - gitea/repo-avatars
-      - gitea/packages
-      - outline
-
   tasks:
     - name: Require device path to be set
       ansible.builtin.assert:
         that:
-          - dev_path is defined
-          - dev_path | length > 0
+          - nfs_dev_path is defined
+          - nfs_dev_path | length > 0
         fail_msg: "Device path is required (e.g., /dev/sdb)"
 
     - name: Check block device exists
       ansible.builtin.stat:
-        path: "{{ dev_path }}"
+        path: "{{ nfs_dev_path }}"
         follow: true
         get_checksum: false
       register: dev_stat
 
     - name: Fail when device missing
       ansible.builtin.fail:
-        msg: "Device {{ dev_path }} not found"
+        msg: "Device {{ nfs_dev_path }} not found"
       when: not dev_stat.stat.exists
 
     - name: Probe filesystem UUID
-      ansible.builtin.command: blkid -s UUID -o value {{ dev_path }}
+      ansible.builtin.command: blkid -s UUID -o value {{ nfs_dev_path }}
       register: blkid_probe
       changed_when: false
       failed_when: blkid_probe.rc not in [0, 2]
 
     - name: Format device as ext4 when uninitialized
-      ansible.builtin.command: mkfs.ext4 -F {{ dev_path }}
+      ansible.builtin.command: mkfs.ext4 -F {{ nfs_dev_path }}
       when: blkid_probe.rc != 0
 
     - name: Read filesystem UUID
-      ansible.builtin.command: blkid -s UUID -o value {{ dev_path }}
+      ansible.builtin.command: blkid -s UUID -o value {{ nfs_dev_path }}
       register: device_uuid
       changed_when: false
 
     - name: Ensure mount point exists
       ansible.builtin.file:
-        path: "{{ mount_point }}"
+        path: "{{ nfs_mount_point }}"
         state: directory
         mode: '0755'
 
     - name: Persist and mount filesystem
       ansible.posix.mount:
         src: "UUID={{ device_uuid.stdout }}"
-        path: "{{ mount_point }}"
+        path: "{{ nfs_mount_point }}"
         fstype: ext4
         opts: defaults,noatime,errors=remount-ro
         state: mounted
 
     - name: Verify mount present
-      ansible.builtin.command: df -h {{ mount_point }}
+      ansible.builtin.command: df -h {{ nfs_mount_point }}
       changed_when: false
 
     - name: Ensure application export directories exist
       ansible.builtin.file:
-        path: "{{ mount_point }}/{{ item }}"
+        path: "{{ nfs_mount_point }}/{{ item }}"
         state: directory
         mode: '0777'
-      loop: "{{ app_dirs }}"
+      loop: "{{ nfs_app_dirs }}"
 
     - name: Ensure NFS server installed
       ansible.builtin.apt:
@@ -97,7 +78,7 @@
         create: true
         marker: "# {mark} ANSIBLE MANAGED BLOCK - operationscenter mgdnfs"
         block: |
-          {{ mount_point }} {{ export_network }}({{ export_options }})
+          {{ nfs_mount_point }} {{ nfs_export_network }}({{ nfs_export_options }})
       notify: Reload nfs exports
 
     - name: Ensure NFS service is running and enabled
@@ -117,8 +98,8 @@
     - name: Fail when NFS export is missing
       ansible.builtin.assert:
         that:
-          - mount_point in exportfs_verify.stdout
-        fail_msg: "NFS export for {{ mount_point }} is not active"
+          - nfs_mount_point in exportfs_verify.stdout
+        fail_msg: "NFS export for {{ nfs_mount_point }} is not active"
 
   handlers:
     - name: Reload nfs exports

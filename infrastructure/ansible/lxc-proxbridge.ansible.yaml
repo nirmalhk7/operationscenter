@@ -3,15 +3,6 @@
   hosts: proxmox
   become: true
   gather_facts: false
-  vars:
-    proxbridge_ct_id: 102
-    scrutiny_devices:
-      - device: /dev/sda
-        type: sat
-      - device: /dev/sdb
-        type: sat
-      - device: /dev/nvme0
-        type: nvme
 
   handlers:
     - name: Restart proxbridge CT
@@ -121,17 +112,6 @@
     - vars/versions.yaml
   vars:
     ssh_pubkey_ed25519: "{{ lookup('file', '~/.ssh/id_ed25519_homelab.pub') }}"
-    scrutiny_api_endpoint: "https://scrutiny.trusted.nirmalhk7.com"
-    scrutiny_api_host: scrutiny.trusted.nirmalhk7.com
-    scrutiny_api_host_ip: 172.16.0.101
-    scrutiny_host_id: milano
-    scrutiny_devices:
-      - device: /dev/sda
-        type: sat
-      - device: /dev/sdb
-        type: sat
-      - device: /dev/nvme0
-        type: nvme
 
   handlers:
     - name: Restart node exporter

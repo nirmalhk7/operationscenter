@@ -1,0 +1,5 @@
+---
+openclaw_user: root
+openclaw_home: /root
+openclaw_support_home: /root/openclaw_support
+openclaw_validate_home: /root/openclaw_validate_home

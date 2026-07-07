@@ -1,0 +1,18 @@
+---
+nfs_dev_path: "/dev/sdb"
+nfs_mount_point: "/mnt/2tbhdd"
+nfs_export_network: "172.16.0.0/24"
+nfs_export_options: "rw,sync,no_subtree_check,no_root_squash,insecure"
+nfs_app_dirs:
+  - nextcloud
+  - immich
+  - immich/upload
+  - immich/library
+  - gitea
+  - gitea/repositories
+  - gitea/lfs
+  - gitea/attachments
+  - gitea/avatars
+  - gitea/repo-avatars
+  - gitea/packages
+  - outline

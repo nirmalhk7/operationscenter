@@ -1,0 +1,13 @@
+---
+proxbridge_ct_id: 102
+scrutiny_api_endpoint: "https://scrutiny.trusted.nirmalhk7.com"
+scrutiny_api_host: scrutiny.trusted.nirmalhk7.com
+scrutiny_api_host_ip: 172.16.0.101
+scrutiny_host_id: milano
+scrutiny_devices:
+  - device: /dev/sda
+    type: sat
+  - device: /dev/sdb
+    type: sat
+  - device: /dev/nvme0
+    type: nvme
