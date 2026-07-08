@@ -223,12 +223,17 @@ export class AlpacaClient {
 
   async getDailyBars(symbols: readonly string[], limit = 260): Promise<Record<string, Bar[]>> {
     const normalized = symbols.map(normalizeSymbol).join(",");
+    const startDate = new Date();
+    // Lookback enough calendar days to cover weekends and holidays to satisfy the limit
+    startDate.setUTCDate(startDate.getUTCDate() - Math.ceil(limit * 1.5));
+    const start = startDate.toISOString().split("T")[0] + "T00:00:00Z";
     const url = buildUrl(this.config.alpaca_data_base_url, "/v2/stocks/bars", {
       symbols: normalized,
       timeframe: "1Day",
       adjustment: "raw",
       feed: this.config.alpaca_data_feed,
       limit,
+      start,
     });
     const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
     return normalizeBarsResponse(await response.json());
