@@ -142,10 +142,11 @@ function parseQuote(symbol: string, value: unknown): Quote {
   };
 }
 
-function parseBar(recordLike: unknown): Bar {
+function parseBar(recordLike: unknown, defaultSymbol?: string): Bar {
   const record = asRecord(recordLike);
+  const symbol = String(record.symbol ?? defaultSymbol ?? "");
   return {
-    symbol: normalizeSymbol(String(record.symbol ?? "")),
+    symbol: normalizeSymbol(symbol),
     t: String(record.t ?? record.timestamp ?? ""),
     o: Number(record.o ?? record.open ?? 0),
     h: Number(record.h ?? record.high ?? 0),
@@ -171,7 +172,7 @@ function normalizeBarsResponse(value: unknown): Record<string, Bar[]> {
   }
   const grouped: Record<string, Bar[]> = {};
   for (const [symbol, entries] of Object.entries(asRecord(bars))) {
-    grouped[normalizeSymbol(symbol)] = asArray(entries).map(parseBar);
+    grouped[normalizeSymbol(symbol)] = asArray(entries).map((entry) => parseBar(entry, symbol));
   }
   return grouped;
 }

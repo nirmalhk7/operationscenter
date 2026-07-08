@@ -19,8 +19,8 @@ export const MOUNTAINVALUE_TRADABLE_SYMBOLS = [
   "XLI",
 ] as const;
 
-export type WatchlistSymbol = typeof MOUNTAINVALUE_WATCHLIST[number];
-export type TradableSymbol = typeof MOUNTAINVALUE_TRADABLE_SYMBOLS[number];
+export type WatchlistSymbol = string;
+export type TradableSymbol = string;
 export type ExecutionMode = "paper" | "live";
 export type TradingSide = "buy" | "sell";
 export type OrderType = "market" | "limit" | "stop" | "stop_limit";
@@ -49,6 +49,8 @@ export interface TradingConfig {
   order_client_prefix: string;
   ledger_path: string;
   timezone: string;
+  watchlist_symbols: string[];
+  tradable_symbols: string[];
 }
 
 export interface TradingState {

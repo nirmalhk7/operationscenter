@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 
-import { createTradingCoreService, validateConfig } from "../src/agent-turns.js";
+import { createTradingCoreService, validateConfig, loadTradingConfig } from "../src/agent-turns.js";
 import { Bar, createDefaultState, ContractError, PositionSnapshot, TradingConfig } from "../src/contracts.js";
 import { ensureLedger, TradingLedger } from "../src/ledger.js";
 import { buildExecutionPlan, computeSignalPlan } from "../src/value-engine.js";
@@ -35,6 +35,8 @@ function makeConfig(overrides: Partial<TradingConfig> = {}): TradingConfig {
     order_client_prefix: "mvalue-paper-",
     ledger_path: join(tmpdir(), `mvalue-${Math.random().toString(36).slice(2)}.sqlite`),
     timezone: "America/New_York",
+    watchlist_symbols: ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"],
+    tradable_symbols: ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"],
     ...overrides,
   };
 }
@@ -550,3 +552,43 @@ test("requestResume refuses when reconciliation fails", async () => {
     cleanup();
   }
 });
+
+test("Alpaca daily bars parseBar defaults to symbol if missing", async () => {
+  const { ledger, cleanup } = tempLedger();
+  try {
+    const config = makeConfig();
+    const broker = new AlpacaClient(config, async (url) => {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          bars: {
+            "QQQ": [
+              { t: "2026-07-06T00:00:00Z", o: 100, h: 101, l: 99, c: 100, v: 1000 }
+            ]
+          }
+        })
+      } as unknown as Response;
+    });
+
+    const bars = await broker.getDailyBars(["QQQ"], 1);
+    assert.ok(bars["QQQ"]);
+    assert.equal(bars["QQQ"][0].symbol, "QQQ");
+  } finally {
+    cleanup();
+  }
+});
+
+test("loadTradingConfig reads custom watchlists and tradable symbols from env", () => {
+  const customEnv = {
+    ...process.env,
+    MOUNTAINVALUE_WATCHLIST: "SPY, AAPL, MSFT",
+    MOUNTAINVALUE_TRADABLE_SYMBOLS: "AAPL, MSFT",
+    ALPACA_API_KEY: "test-key",
+    ALPACA_SECRET_KEY: "test-secret"
+  };
+  const config = loadTradingConfig(customEnv);
+  assert.deepEqual(config.watchlist_symbols, ["SPY", "AAPL", "MSFT"]);
+  assert.deepEqual(config.tradable_symbols, ["AAPL", "MSFT"]);
+});
+

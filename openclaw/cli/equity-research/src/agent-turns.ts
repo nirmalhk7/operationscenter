@@ -125,7 +125,7 @@ export class TradingCoreService {
       const tracked = this.deps.ledger.getPosition(position.symbol);
       return tracked !== null && Math.abs((tracked.qty ?? 0) - (position.qty ?? 0)) > 1e-6;
     });
-    const unknownSymbols = positions.filter((position) => !isTradableSymbol(position.symbol));
+    const unknownSymbols = positions.filter((position) => !this.deps.config.tradable_symbols.includes(position.symbol));
     const checks: Record<string, boolean | string | number | null> = {
       account_present: Boolean(account),
       positions_present: positions.length,
@@ -209,13 +209,16 @@ export class TradingCoreService {
     }
     const currentTradeDate = await this.currentTradeDate();
     const executionDate = isAfterNewYorkTime(now, 16, 20) ? nextBusinessDay(currentTradeDate, now) : currentTradeDate;
-    const bars = await this.deps.broker.getDailyBars(["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"], 260);
+    const watchlist = this.deps.config.watchlist_symbols;
+    const bars = await this.deps.broker.getDailyBars(watchlist, 260);
     const positions = safePositions(this.deps.ledger.listOpenPositions());
     const signalPlan = computeSignalPlan({
       trade_date: executionDate,
       generated_at: now.toISOString(),
       bars_by_symbol: bars,
       holdings: positions,
+      watchlist_symbols: watchlist,
+      tradable_symbols: this.deps.config.tradable_symbols,
     });
     this.deps.ledger.saveSnapshot("signal_plan", signalPlan, now.toISOString());
     this.deps.ledger.saveDailyIntent(executionDate, now.toISOString(), signalPlan);
@@ -630,6 +633,12 @@ export function loadTradingConfig(env = process.env): TradingConfig {
   const baseUrl = env.ALPACA_TRADING_BASE_URL?.trim() || "https://paper-api.alpaca.markets";
   const dataBaseUrl = env.ALPACA_DATA_BASE_URL?.trim() || "https://data.alpaca.markets";
   const executionMode = (env.EXECUTION_MODE?.trim() as ExecutionMode | undefined) || "paper";
+  const watchlist = env.MOUNTAINVALUE_WATCHLIST?.trim()
+    ? env.MOUNTAINVALUE_WATCHLIST.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean)
+    : ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"];
+  const tradable = env.MOUNTAINVALUE_TRADABLE_SYMBOLS?.trim()
+    ? env.MOUNTAINVALUE_TRADABLE_SYMBOLS.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean)
+    : ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"];
   const config: TradingConfig = {
     execution_mode: executionMode,
     autonomous_execution_enabled: env.AUTONOMOUS_EXECUTION_ENABLED?.trim() !== "false",
@@ -650,6 +659,8 @@ export function loadTradingConfig(env = process.env): TradingConfig {
     order_client_prefix: env.MOUNTAINVALUE_ORDER_CLIENT_PREFIX?.trim() || "mvalue-paper-",
     ledger_path: env.MOUNTAINVALUE_LEDGER_PATH?.trim() || `${homeDirectory()}/.openclaw/mountainvalue/trading.sqlite`,
     timezone: env.MOUNTAINVALUE_TIMEZONE?.trim() || "America/New_York",
+    watchlist_symbols: watchlist,
+    tradable_symbols: tradable,
   };
   validateConfig(config);
   return config;

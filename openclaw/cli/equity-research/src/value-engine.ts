@@ -37,6 +37,8 @@ export function computeSignalPlan(input: {
   generated_at: string;
   bars_by_symbol: Record<string, Bar[]>;
   holdings: PositionSnapshot[];
+  watchlist_symbols?: string[];
+  tradable_symbols?: string[];
 }): SignalPlan {
   const barsBySymbol = normalizeBars(input.bars_by_symbol);
   const holdings = safeArray(input.holdings);
@@ -57,7 +59,10 @@ export function computeSignalPlan(input: {
     noTradeReason = "Missing SPY bars for regime detection.";
   }
 
-  for (const symbol of WATCHLIST) {
+  const watchlist = input.watchlist_symbols ?? WATCHLIST;
+  const tradable = input.tradable_symbols ?? TRADABLE;
+
+  for (const symbol of watchlist) {
     if (symbol === "SPY") {
       continue;
     }
@@ -67,7 +72,7 @@ export function computeSignalPlan(input: {
       continue;
     }
     const indicators = computeIndicators(symbol, bars, spyReturn20);
-    const checks = buildEligibilityChecks(symbol, indicators, holdingsSymbols, marketRegime);
+    const checks = buildEligibilityChecks(symbol, indicators, holdingsSymbols, marketRegime, tradable);
     const eligible = Object.values(checks).every((value) => value === true);
     const reason = eligible
       ? "eligible"
@@ -261,7 +266,9 @@ function buildEligibilityChecks(
   indicators: IndicatorSet,
   holdingsSymbols: Set<string>,
   marketRegime: SignalPlan["market_regime"],
+  tradableSymbols?: string[],
 ): Record<string, boolean | number | null> {
+  const allowed = tradableSymbols ? tradableSymbols.includes(symbol) : isTradableSymbol(symbol);
   return {
     regime_ok: marketRegime === "RISK_ON",
     above_50: indicators.sma_50 !== null ? indicators.previous_close > indicators.sma_50 : false,
@@ -270,7 +277,7 @@ function buildEligibilityChecks(
     positive_return: indicators.return_20d !== null ? indicators.return_20d > 0 : false,
     relative_strength: indicators.relative_strength_20d_vs_spy !== null ? indicators.relative_strength_20d_vs_spy >= 0.02 : false,
     volatility_cap: indicators.atr_percent !== null ? indicators.atr_percent <= 0.08 : false,
-    symbol_allowed: isTradableSymbol(symbol),
+    symbol_allowed: allowed,
     already_held: !holdingsSymbols.has(symbol),
     qqq_xlk_bucket_ok: !(holdingsSymbols.has("QQQ") && symbol === "XLK") && !(holdingsSymbols.has("XLK") && symbol === "QQQ"),
   };
