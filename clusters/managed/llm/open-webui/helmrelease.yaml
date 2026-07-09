@@ -19,6 +19,7 @@ spec:
     openaiBaseApiUrls:
       - "https://generativelanguage.googleapis.com/v1beta/openai"
       - "https://openrouter.ai/api/v1"
+      - "https://integrate.api.nvidia.com/v1"
     openaiApiKeysExistingSecret: open-webui-secrets
     openaiApiKeysExistingSecretKey: OPENAI_API_KEYS
     ollama:
@@ -74,23 +75,13 @@ spec:
               url_idx = m.get('urlIdx')
               base_url = api_base_urls[url_idx] if url_idx is not None and url_idx < len(api_base_urls) else ''
               hostname = urlparse(base_url).hostname or ''
+              model_id = str(m.get('id', ''))
               if hostname == 'openrouter.ai':
-                model_id = str(m.get('id', ''))
-                pricing = m.get('pricing') or {}
-                is_free = (
-                  model_id.endswith(':free')
-                  or model_id == 'openrouter/free'
-                  or (str(pricing.get('prompt', '1')) == '0' and str(pricing.get('completion', '1')) == '0')
-                )
-                if not is_free:
+                if model_id != 'openrouter/free' and not model_id.endswith('/free'):
                   continue
-                raw_name = str(m.get('name', model_id))
-                if ':' in raw_name:
-                  parts = raw_name.split(':', 1)
-                  m['name'] = f'openrouter/{parts[0].strip().lower()}/{parts[1].strip()}'
-                else:
-                  provider = model_id.split('/')[0].lower() if '/' in model_id else 'openrouter'
-                  m['name'] = f'openrouter/{provider}/{raw_name}'
+                m['name'] = 'openrouter/openrouter/free'
+              elif hostname == 'integrate.api.nvidia.com':
+                m['name'] = f'nvidia/{model_id}'
               filtered_data.append(m)
             res['data'] = filtered_data
             if hasattr(request.app, 'state'):
