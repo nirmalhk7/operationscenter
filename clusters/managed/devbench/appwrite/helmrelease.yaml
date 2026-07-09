@@ -30,8 +30,6 @@ spec:
           value: disabled
         - name: _APP_OPTIONS_ROUTER_FORCE_HTTPS
           value: disabled
-        - name: _APP_CONSOLE_WHITELIST_ROOT
-          value: enabled
         - name: _APP_CONSOLE_WHITELIST_EMAILS
           value: nirmalhk7@gmail.com
         - name: _APP_SMTP_HOST
