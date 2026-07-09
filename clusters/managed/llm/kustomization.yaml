@@ -5,6 +5,7 @@ resources:
   - ../_middlewares
   - _repositories
   - namespace.yaml
+  - ollama
   - langfuse
   - open-webui
   - searxng

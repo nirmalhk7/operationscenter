@@ -15,8 +15,21 @@ spec:
         name: open-webui
         namespace: mgd-llm
   values:
+    enableOpenaiApi: true
+    openaiBaseApiUrls:
+      - "https://generativelanguage.googleapis.com/v1beta/openai"
+      - "https://openrouter.ai/api/v1"
+    openaiApiKeysExistingSecret: open-webui-secrets
+    openaiApiKeysExistingSecretKey: OPENAI_API_KEYS
     ollama:
       enabled: false
+    ollamaUrls:
+      - "http://ollama.mgd-llm.svc.cluster.local:11434"
+    extraEnvVars:
+      - name: ENABLE_OLLAMA_API
+        value: "true"
+      - name: ENABLE_OPENAI_API
+        value: "true"
     redis:
       enabled: true
     command:
