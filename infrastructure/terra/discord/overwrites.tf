@@ -37,6 +37,14 @@ resource "discord_channel_permission" "voice_allow_nestor" {
   allow        = 3146752 # VIEW_CHANNEL | CONNECT | SPEAK
 }
 
+resource "discord_channel_permission" "general_voice_allow_nestor" {
+  channel_id   = discord_voice_channel.general_voice.id
+  type         = "user"
+  overwrite_id = local.nestor_bot_user_id
+  allow        = 3146752 # VIEW_CHANNEL | CONNECT | SPEAK
+}
+
+
 # Restrict Team Software to SWE only
 resource "discord_channel_permission" "software_deny_everyone" {
   channel_id   = discord_category_channel.software.channel_id

@@ -54,6 +54,23 @@
             "source": "env",
             "provider": "default",
             "id": "OPENCLAW_DISCORD_BOT_TOKEN_MAIN"
+          },
+          "voice": {
+            "enabled": true,
+            "mode": "stt-tts",
+            "model": "openrouter/free",
+            "allowedChannels": [
+              {
+                "guildId": "1487714737964716084",
+                "channelId": "1504282230875230329"
+              }
+            ],
+            "autoJoin": [
+              {
+                "guildId": "1487714737964716084",
+                "channelId": "1504282230875230329"
+              }
+            ]
           }
         },
         "rahul": {
