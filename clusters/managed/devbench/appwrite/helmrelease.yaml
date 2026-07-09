@@ -30,8 +30,27 @@ spec:
           value: disabled
         - name: _APP_OPTIONS_ROUTER_FORCE_HTTPS
           value: disabled
+        - name: _APP_CONSOLE_WHITELIST_ROOT
+          value: enabled
         - name: _APP_CONSOLE_WHITELIST_EMAILS
           value: nirmalhk7@gmail.com
+        - name: _APP_SMTP_HOST
+          value: smtp.maileroo.com
+        - name: _APP_SMTP_PORT
+          value: "587"
+        - name: _APP_SMTP_SECURE
+          value: tls
+        - name: _APP_SMTP_USERNAME
+          value: nestor@nirmalhk7.com
+        - name: _APP_SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: appwrite-env
+              key: _APP_SMTP_PASSWORD
+        - name: _APP_SYSTEM_EMAIL_ADDRESS
+          value: nestor@nirmalhk7.com
+        - name: _APP_SYSTEM_EMAIL_NAME
+          value: "Nirmal - Appwrite"
         - name: _APP_STORAGE_DEVICE
           value: Local
     api:
@@ -42,6 +61,8 @@ spec:
         milano.app: appwrite
     workers:
       audits:
+        enabled: true
+      mails:
         enabled: true
       builds:
         enabled: false
