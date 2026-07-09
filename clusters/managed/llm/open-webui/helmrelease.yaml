@@ -23,11 +23,7 @@ spec:
     openaiApiKeysExistingSecretKey: OPENAI_API_KEYS
     ollama:
       enabled: false
-    ollamaUrls:
-      - "http://ollama.mgd-llm.svc.cluster.local:11434"
     extraEnvVars:
-      - name: ENABLE_OLLAMA_API
-        value: "true"
       - name: ENABLE_OPENAI_API
         value: "true"
     redis:
@@ -59,6 +55,52 @@ spec:
 
           AsyncOAuth2Client.__init__ = _patched_init
           print('sitecustomize: patched authlib httpx client', flush=True)
+
+        try:
+          import functools
+          from urllib.parse import urlparse
+          import open_webui.routers.openai as _openai_router
+
+          _orig_get_all_models = _openai_router.get_all_models
+
+          @functools.wraps(_orig_get_all_models)
+          async def _patched_get_all_models(request, *args, **kwargs):
+            res = await _orig_get_all_models(request, *args, **kwargs)
+            if not res or 'data' not in res:
+              return res
+            api_base_urls = getattr(request.app.state.config, 'OPENAI_API_BASE_URLS', [])
+            filtered_data = []
+            for m in res['data']:
+              url_idx = m.get('urlIdx')
+              base_url = api_base_urls[url_idx] if url_idx is not None and url_idx < len(api_base_urls) else ''
+              hostname = urlparse(base_url).hostname or ''
+              if hostname == 'openrouter.ai':
+                model_id = str(m.get('id', ''))
+                pricing = m.get('pricing') or {}
+                is_free = (
+                  model_id.endswith(':free')
+                  or model_id == 'openrouter/free'
+                  or (str(pricing.get('prompt', '1')) == '0' and str(pricing.get('completion', '1')) == '0')
+                )
+                if not is_free:
+                  continue
+                raw_name = str(m.get('name', model_id))
+                if ':' in raw_name:
+                  parts = raw_name.split(':', 1)
+                  m['name'] = f'openrouter/{parts[0].strip().lower()}/{parts[1].strip()}'
+                else:
+                  provider = model_id.split('/')[0].lower() if '/' in model_id else 'openrouter'
+                  m['name'] = f'openrouter/{provider}/{raw_name}'
+              filtered_data.append(m)
+            res['data'] = filtered_data
+            if hasattr(request.app, 'state'):
+              request.app.state.OPENAI_MODELS = {m['id']: m for m in filtered_data}
+            return res
+
+          _openai_router.get_all_models = _patched_get_all_models
+          print('sitecustomize: patched openai model filter & naming', flush=True)
+        except Exception as e:
+          print('sitecustomize error patching openai models:', e, flush=True)
         PY
         exec /app/backend/start.sh
     podLabels:
