@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import test from "node:test";
 
 import { createTradingCoreService, validateConfig, loadTradingConfig } from "../src/agent-turns.js";
-import { Bar, createDefaultState, ContractError, PositionSnapshot, TradingConfig } from "../src/contracts.js";
+import { asNullableNumber, Bar, createDefaultState, ContractError, PositionSnapshot, TradingConfig } from "../src/contracts.js";
 import { ensureLedger, TradingLedger } from "../src/ledger.js";
 import { buildExecutionPlan, computeSignalPlan } from "../src/value-engine.js";
 import { AlpacaClient } from "../src/adapters.js";
@@ -590,5 +590,13 @@ test("loadTradingConfig reads custom watchlists and tradable symbols from env", 
   const config = loadTradingConfig(customEnv);
   assert.deepEqual(config.watchlist_symbols, ["SPY", "AAPL", "MSFT"]);
   assert.deepEqual(config.tradable_symbols, ["AAPL", "MSFT"]);
+});
+
+test("asNullableNumber parses numeric strings returned by broker APIs", () => {
+  assert.equal(asNullableNumber(100000), 100000);
+  assert.equal(asNullableNumber("100000"), 100000);
+  assert.equal(asNullableNumber("297.69"), 297.69);
+  assert.equal(asNullableNumber("invalid"), undefined);
+  assert.equal(asNullableNumber(undefined), undefined);
 });
 

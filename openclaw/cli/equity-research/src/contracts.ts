@@ -247,7 +247,16 @@ export function assertNumber(value: unknown, message: string): number {
 }
 
 export function asNullableNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return undefined;
 }
 
 export function isWatchlistSymbol(value: string): value is WatchlistSymbol {
