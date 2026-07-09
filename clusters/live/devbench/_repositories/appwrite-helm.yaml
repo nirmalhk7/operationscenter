@@ -1,8 +1,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: &app appwrite-helm
-  namespace: mgd-devbench
+  name: appwrite-helm
+  namespace: live-devbench
 spec:
   url: https://repo.helmforge.dev
   interval: 1h

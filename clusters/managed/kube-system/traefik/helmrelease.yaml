@@ -14,8 +14,6 @@ spec:
         name: traefik
         namespace: kube-system
   values:
-    crds:
-      enabled: true
     deployment:
       podAnnotations:
         prometheus.io/port: "8082"
@@ -44,5 +42,13 @@ spec:
         hostPort: 80
       websecure:
         hostPort: 443
+      livepublic:
+        port: 9443
+        hostPort: 8443
+        expose:
+          default: false
+        http:
+          tls:
+            enabled: true
     additionalArguments:
       - "--api.dashboard=true"

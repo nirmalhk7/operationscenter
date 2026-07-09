@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: live-devbench
+  labels:
+    milano.tier: live

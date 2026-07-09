@@ -1,0 +1,42 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: appwrite
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://dev.nirmalhk7.com"
+    gethomepage.dev/group: Live
+    gethomepage.dev/description: "Public backend platform"
+    gethomepage.dev/icon: appwrite
+    gethomepage.dev/app: appwrite
+    gethomepage.dev/name: Appwrite
+    gethomepage.dev/weight: "20"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=appwrite"
+spec:
+  entryPoints:
+    - livepublic
+  routes:
+    - match: Host(`dev.nirmalhk7.com`) && PathPrefix(`/v1/realtime`)
+      kind: Rule
+      middlewares:
+        - name: appwrite-public-headers
+        - name: appwrite-public-ratelimit
+      services:
+        - name: appwrite-realtime
+          port: 80
+    - match: Host(`dev.nirmalhk7.com`) && PathPrefix(`/console`)
+      kind: Rule
+      middlewares:
+        - name: appwrite-public-headers
+        - name: appwrite-public-ratelimit
+      services:
+        - name: appwrite-console
+          port: 80
+    - match: Host(`dev.nirmalhk7.com`)
+      kind: Rule
+      middlewares:
+        - name: appwrite-public-headers
+        - name: appwrite-public-ratelimit
+      services:
+        - name: appwrite-api
+          port: 80

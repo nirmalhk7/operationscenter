@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app appwrite
-  namespace: mgd-devbench
+  namespace: live-devbench
 spec:
   releaseName: *app
   interval: 10m
@@ -14,12 +14,19 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: appwrite-helm
-        namespace: mgd-devbench
+        namespace: live-devbench
   values:
     commonLabels:
       milano.app: appwrite
+    image:
+      repository: docker.io/appwrite/appwrite
+      tag: "1.9.0"
+    console:
+      image:
+        repository: docker.io/appwrite/console
+        tag: "7.5.7"
     appwrite:
-      domain: dev.trusted.nirmalhk7.com
+      domain: dev.nirmalhk7.com
       existingSecret: appwrite-env
       existingSecretOpenSslKey: _APP_OPENSSL_KEY_V1
       usageStats: enabled
@@ -27,11 +34,11 @@ spec:
         limit: "30000000"
       extraEnv:
         - name: _APP_OPTIONS_FORCE_HTTPS
-          value: disabled
+          value: enabled
         - name: _APP_OPTIONS_ROUTER_FORCE_HTTPS
-          value: disabled
-        - name: _APP_CONSOLE_WHITELIST_EMAILS
-          value: nirmalhk7@gmail.com
+          value: enabled
+        - name: _APP_OPTIONS_ABUSE
+          value: enabled
         - name: _APP_SMTP_HOST
           value: smtp.maileroo.com
         - name: _APP_SMTP_PORT
@@ -97,6 +104,7 @@ spec:
     mariadb:
       enabled: false
     database:
+      adapter: mariadb
       mode: external
       external:
         host: 172.16.0.106
@@ -108,41 +116,14 @@ spec:
     redis:
       enabled: true
       image:
-        repository: bitnamilegacy/redis
-        tag: 7.2.4-debian-11-r1
+        repository: docker.io/library/redis
+        tag: "8.8.0"
       metrics:
         enabled: false
       auth:
-        enabled: false
-      replica:
-        replicaCount: 0
-      master:
+        enabled: true
+      standalone:
         persistence:
           enabled: true
           storageClass: milano-v2
           size: 8Gi
-    influxdb:
-      enabled: true
-      image:
-        repository: bitnamilegacy/influxdb
-        tag: 2.7.5-debian-11-r0
-      auth:
-        admin:
-          password: supersecret-influx-password
-          token: supersecret-influx-token
-          org: appwrite
-          bucket: telegraf
-      persistence:
-        enabled: true
-        storageClass: milano-v2
-        size: 8Gi
-    telegraf:
-      enabled: true
-      config:
-        outputs:
-          - influxdb_v2:
-              urls:
-                - http://appwrite-influxdb:8086
-              token: supersecret-influx-token
-              bucket: telegraf
-              organization: appwrite

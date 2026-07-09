@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - secret.yaml
   - helmrelease.yaml
+  - middleware.yaml
   - ingressroute.yaml
 
 labels:

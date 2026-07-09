@@ -10,6 +10,7 @@
     certbot_cron: false
     certbot_email: "{{ lookup('env', 'CERTBOT_EMAIL') }}"
     cloudflare_api_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
+    cloudflared_tunnel_token: "{{ lookup('env', 'CLOUDFLARED_TUNNEL_TOKEN') }}"
     cert_path: /etc/letsencrypt/live/trusted.nirmalhk7.com/fullchain.pem
 
   pre_tasks:
@@ -55,6 +56,72 @@
         allow_unauthenticated: true
         update_cache: true
         name: "nginx={{ nginx_package_version }}"
+
+    - name: cloudflared_setup
+      block:
+        - name: Download cloudflared Debian package
+          ansible.builtin.get_url:
+            url: "https://github.com/cloudflare/cloudflared/releases/download/{{ cloudflared_version }}/cloudflared-linux-amd64.deb"
+            dest: "/tmp/cloudflared-{{ cloudflared_version }}-linux-amd64.deb"
+            mode: '0644'
+
+        - name: Install cloudflared
+          ansible.builtin.apt:
+            deb: "/tmp/cloudflared-{{ cloudflared_version }}-linux-amd64.deb"
+
+        - name: Ensure cloudflared user exists
+          ansible.builtin.user:
+            name: cloudflared
+            shell: /usr/sbin/nologin
+            system: true
+            state: present
+
+        - name: Ensure cloudflared directories exist
+          ansible.builtin.file:
+            path: "{{ item.path }}"
+            state: directory
+            owner: "{{ item.owner }}"
+            group: "{{ item.group }}"
+            mode: "{{ item.mode }}"
+          loop:
+            - { path: /etc/cloudflared, owner: root, group: cloudflared, mode: '0750' }
+            - { path: /var/log/cloudflared, owner: cloudflared, group: cloudflared, mode: '0750' }
+
+        - name: Write cloudflared tunnel environment
+          ansible.builtin.copy:
+            dest: /etc/default/cloudflared
+            content: "TUNNEL_TOKEN={{ cloudflared_tunnel_token }}\n"
+            owner: root
+            group: cloudflared
+            mode: '0640'
+          no_log: true
+          when: cloudflared_tunnel_token | length > 0
+
+        - name: Install cloudflared systemd unit
+          ansible.builtin.template:
+            src: cloudflared.service.j2
+            dest: /etc/systemd/system/cloudflared.service
+            owner: root
+            group: root
+            mode: '0644'
+
+        - name: Enable cloudflared when tunnel token is present
+          ansible.builtin.systemd:
+            daemon_reload: true
+            name: cloudflared
+            state: started
+            enabled: true
+          when: cloudflared_tunnel_token | length > 0
+
+        - name: Stop cloudflared when tunnel token is absent
+          ansible.builtin.systemd:
+            daemon_reload: true
+            name: cloudflared
+            state: stopped
+            enabled: false
+          failed_when: false
+          when: cloudflared_tunnel_token | length == 0
+      tags: [cloudflared_setup]
 
     - name: cloudflare_setup
       block:

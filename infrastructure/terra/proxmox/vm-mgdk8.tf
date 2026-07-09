@@ -55,7 +55,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 
   network_device {
     bridge   = "wmnet"
-    firewall = false
+    firewall = true
   }
 
   operating_system {
@@ -114,9 +114,53 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
+    dport   = "8443"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow Nginx tunnel origin to reach Traefik livepublic on k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "31216"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow Nginx to reach local Homepage on k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
     dport   = "32222"
     source  = local.proxmoxMachines.nginx.ip
     comment = "Allow Nginx to reach Gitea SSH on k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "30901"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow Nginx to reach Minecraft Java stream on k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "udp"
+    dport   = "30902"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow Nginx to reach Minecraft Bedrock stream on k8mgd"
     iface   = "net0"
     enabled = true
   }

@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - appwrite-helm.yaml
   - bitnami.yaml
   - deliveryhero-helm-charts.yaml
   - grafana.yaml

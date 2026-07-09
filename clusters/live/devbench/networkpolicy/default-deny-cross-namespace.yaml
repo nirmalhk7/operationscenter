@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: isolate-live-namespaces
+  namespace: live-devbench
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from pods in any namespace labeled `milano.tier: live`
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              milano.tier: live
+  egress:
+    # Allow traffic to pods in any namespace labeled `milano.tier: live`
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              milano.tier: live
