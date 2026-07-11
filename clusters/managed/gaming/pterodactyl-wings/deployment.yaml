@@ -14,7 +14,7 @@ spec:
       labels:
         milano.app: *app
       annotations:
-        milano.nirmalhk7.com/config-revision: bedrock-mtu-1400
+        milano.nirmalhk7.com/config-revision: websocket-origin-v1
     spec:
       initContainers:
         - name: apply-minecraft-settings
