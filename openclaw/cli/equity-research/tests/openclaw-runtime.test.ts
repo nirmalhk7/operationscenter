@@ -109,6 +109,8 @@ test("MountainValue workflow is deterministic and trader-facing docs mention pap
   assert.match(repoText(join("openclaw", "plugins", "lobster", "openclaw.plugin.json")), /"id": "lobster"/u);
   assert.match(repoText(join("openclaw", "plugins", "lobster", "src", "index.js")), /name: "lobster"/u);
   const ansible = repoText(join("infrastructure", "ansible", "lxc-openclaw.ansible.yaml"));
+  assert.match(ansible, /Build local equity-research package/u);
+  assert.match(ansible, /npm run build/u);
   assert.match(ansible, /MountainValue evaluate buy sell/u);
   assert.doesNotMatch(ansible, /channels[\s\S]*?- add[\s\S]*?OPENCLAW_DISCORD_BOT_TOKEN_VICTOR/u);
   assert.match(ansible, /OPENCLAW_DISCORD_BOT_TOKEN_MAIN/u);
@@ -124,4 +126,5 @@ test("MountainValue workflow is deterministic and trader-facing docs mention pap
   const envTemplate = repoText(join("infrastructure", "ansible", "templates", "openclaw.env.j2"));
   assert.match(envTemplate, /EXECUTION_MODE=paper/u);
   assert.doesNotMatch(envTemplate, /^DISCORD_BOT_TOKEN=/mu);
+  assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "TOOLS.md")), /daily_report\.execution/u);
 });

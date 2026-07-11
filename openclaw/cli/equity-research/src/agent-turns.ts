@@ -3,6 +3,7 @@ import {
   AccountSnapshot,
   AuditRecord,
   ContractError,
+  CycleResult,
   ExecutionMode,
   OrderSnapshot,
   PositionSnapshot,
@@ -232,32 +233,32 @@ export class TradingCoreService {
     };
   }
 
-  async cycleIfDue(): Promise<Record<string, unknown>> {
+  async cycleIfDue(): Promise<CycleResult> {
     const now = this.now();
+    const tradeDate = await this.currentTradeDate();
     if (!isWeekday(now)) {
-      return this.skip("cycle-if-due", "Not a trading day.");
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "Not a trading day."));
     }
     if (!isAfterNewYorkTime(now, 10, 5)) {
-      return this.skip("cycle-if-due", "Execution cycle starts after the open.");
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "Execution cycle starts after the open."));
     }
-    const tradeDate = await this.currentTradeDate();
     if (!this.state().trading_enabled) {
-      return this.block("cycle-if-due", `Paused: ${this.state().pause_reason ?? "unknown reason"}`);
+      return this.recordCycleResult(this.cycleBlock(tradeDate, `Paused: ${this.state().pause_reason ?? "unknown reason"}`));
     }
     if (this.state().last_entry_date === tradeDate) {
-      return this.skip("cycle-if-due", "Daily entry cap already used.");
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "Daily entry cap already used."));
     }
     const reconcile = await this.reconcile();
     if (reconcile.paused) {
-      return this.block("cycle-if-due", reconcile.reason ?? "reconciliation blocked trading");
+      return this.recordCycleResult(this.cycleBlock(tradeDate, reconcile.reason ?? "reconciliation blocked trading"));
     }
     const clock = await this.safeGetClock();
     if (!clock?.is_open) {
-      return this.skip("cycle-if-due", "Market is not open.");
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "Market is not open."));
     }
     const signalPlan = this.deps.ledger.readDailyIntent<SignalPlan>(tradeDate) ?? this.deps.ledger.readSnapshot<SignalPlan>("signal_plan");
     if (!signalPlan || signalPlan.trade_date !== tradeDate) {
-      return this.skip("cycle-if-due", "No saved trade intent for today.");
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "No saved trade intent for today."));
     }
     const positions = safePositions(this.deps.ledger.listOpenPositions());
     const executionPlan = buildExecutionPlan({
@@ -272,7 +273,7 @@ export class TradingCoreService {
       minimum_order_notional_usd: this.deps.config.minimum_order_notional_usd,
     });
     if (this.deps.config.max_new_entries_per_day < 1) {
-      return this.skip("cycle-if-due", "Daily entry limit is zero.");
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "Daily entry limit is zero."));
     }
     const actions: Array<Record<string, unknown>> = [];
     const skipped: Array<Record<string, unknown>> = [...executionPlan.skipped];
@@ -288,14 +289,19 @@ export class TradingCoreService {
       }
     }
     this.writeState({ last_cycle_for: tradeDate });
-    this.audit("cycle", actions.length > 0 ? "info" : "info", actions.length > 0 ? "Cycle executed." : "Cycle completed with no orders.", { actions, skipped, trade_date: tradeDate, clock });
-    return {
-      status: actions.length > 0 ? "ORDER_SUBMITTED" : "NO_TRADE",
+    const status = actions.some((action) => action.status === "ORDER_SUBMITTED" || action.status === "EXIT_SUBMITTED")
+      ? "ORDER_SUBMITTED"
+      : actions.length > 0
+        ? "SKIPPED"
+        : "NO_TRADE";
+    this.audit("cycle", "info", actions.length > 0 ? "Cycle executed." : "Cycle completed with no orders.", { actions, skipped, trade_date: tradeDate, clock });
+    return this.recordCycleResult({
+      status,
       trade_date: tradeDate,
       actions,
       skipped,
       paused: false,
-    };
+    });
   }
 
   async cancelStaleEntriesIfDue(): Promise<Record<string, unknown>> {
@@ -331,7 +337,10 @@ export class TradingCoreService {
     const positions = safePositions(this.deps.ledger.listOpenPositions());
     const openOrders = this.deps.ledger.listOpenOrders();
     const signalPlan = this.deps.ledger.readSnapshot<SignalPlan>("signal_plan");
-    const signalDecisions = Array.isArray(signalPlan?.decisions) ? signalPlan.decisions : [];
+    const todaySignalPlan = signalPlan?.trade_date === tradeDate ? signalPlan : null;
+    const cycle = this.deps.ledger.readSnapshot<CycleResult>("cycle");
+    const execution = cycle?.trade_date === tradeDate ? cycle : null;
+    const signalDecisions = Array.isArray(todaySignalPlan?.decisions) ? todaySignalPlan.decisions : [];
     const audits = this.deps.ledger.countAudits();
     let openValue = 0;
     for (const position of safePositions(positions)) {
@@ -349,14 +358,15 @@ export class TradingCoreService {
       invested: openValue,
       open_positions: positions,
       open_orders: openOrders,
-      today_intent: signalPlan ? {
-        trade_date: signalPlan.trade_date,
-        created_at: signalPlan.generated_at,
-        symbol: signalPlan.buy_candidate?.symbol ?? "SPY",
-        action: signalPlan.buy_candidate ? "buy" : "none",
-        reason: signalPlan.no_trade_reason ?? (signalPlan.buy_candidate ? signalPlan.buy_candidate.reason : "no trade"),
-        signal: signalPlan.buy_candidate ?? undefined,
+      today_intent: todaySignalPlan ? {
+        trade_date: todaySignalPlan.trade_date,
+        created_at: todaySignalPlan.generated_at,
+        symbol: todaySignalPlan.buy_candidate?.symbol ?? "SPY",
+        action: todaySignalPlan.buy_candidate ? "buy" : "none",
+        reason: todaySignalPlan.no_trade_reason ?? (todaySignalPlan.buy_candidate ? todaySignalPlan.buy_candidate.reason : "no trade"),
+        signal: todaySignalPlan.buy_candidate ?? undefined,
       } : null,
+      execution,
       signals: signalDecisions,
       skipped_trades: signalDecisions
         .filter((decision) => !decision.eligible)
@@ -431,7 +441,7 @@ export class TradingCoreService {
     try {
       const quote = await this.deps.broker.getLatestQuote(intent.symbol);
       this.validateEntryQuote(quote.timestamp, quote.bid, quote.ask, intent.signal?.indicators.previous_close ?? quote.ask);
-      const limitPrice = round(quote.ask * 1.001);
+      const limitPrice = roundPrice(quote.ask * 1.001);
       const clientOrderId = `${this.deps.config.order_client_prefix}${intent.trade_date}-${intent.symbol}-buy`;
       const order = await this.deps.broker.submitOrder({
         symbol: intent.symbol,
@@ -448,7 +458,7 @@ export class TradingCoreService {
       if (filled && filled.status === "filled") {
         const atrPercent = intent.signal?.indicators.atr_percent ?? 0.03;
         const stopPercent = clamp(atrPercent * 2, 0.03, 0.06);
-        const stopPrice = round((filled.filled_avg_price ?? limitPrice) * (1 - stopPercent));
+        const stopPrice = roundPrice((filled.filled_avg_price ?? limitPrice) * (1 - stopPercent));
         const position: PositionSnapshot = {
           symbol: intent.symbol,
           qty: filled.filled_qty ?? intent.quantity ?? 0,
@@ -485,7 +495,7 @@ export class TradingCoreService {
     try {
       const quote = await this.deps.broker.getLatestQuote(intent.symbol);
       this.validateSellQuote(quote.timestamp, quote.bid);
-      const limitPrice = round(quote.bid * 0.999);
+      const limitPrice = roundPrice(quote.bid * 0.999);
       const clientOrderId = `${this.deps.config.order_client_prefix}${intent.trade_date}-${intent.symbol}-sell`;
       const order = await this.deps.broker.submitOrder({
         symbol: intent.symbol,
@@ -536,10 +546,20 @@ export class TradingCoreService {
     return { status: "SKIPPED", reason, step };
   }
 
-  private block(step: string, reason: string): Record<string, unknown> {
+  private cycleSkip(tradeDate: string, reason: string): CycleResult {
+    this.audit("cycle-if-due", "info", reason, { reason });
+    return { status: "SKIPPED", trade_date: tradeDate, actions: [], skipped: [{ reason }], paused: false, reason };
+  }
+
+  private cycleBlock(tradeDate: string, reason: string): CycleResult {
     this.pause(reason);
-    this.audit(step, "warn", reason, { reason });
-    return { status: "BLOCKED", reason, step };
+    this.audit("cycle-if-due", "warn", reason, { reason });
+    return { status: "BLOCKED", trade_date: tradeDate, actions: [], skipped: [], paused: true, reason };
+  }
+
+  private recordCycleResult(result: CycleResult): CycleResult {
+    this.deps.ledger.saveSnapshot("cycle", result, this.now().toISOString());
+    return result;
   }
 
   private strategyEquity(positions: PositionSnapshot[], account: AccountSnapshot | null): number {
@@ -721,6 +741,10 @@ function homeDirectory(): string {
 
 function round(value: number): number {
   return Math.round(value * 10_000) / 10_000;
+}
+
+function roundPrice(value: number): number {
+  return Number(value.toFixed(2));
 }
 
 function clamp(value: number, min: number, max: number): number {

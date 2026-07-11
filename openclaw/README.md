@@ -98,7 +98,7 @@ Main, route this to the right agent and keep status updates in this thread.
 ### Configured subagents
 
 These profiles are also active in `agents.list`, but they have no Discord
-bindings. MountainValue v1 does not use them for trade execution. The
+bindings. MountainValue v1 does not use them for trade selection or execution. The
 `eq_*` profiles remain available for separate research work, and `newswire`
 is a reusable news-context worker currently allowlisted only for Victor.
 
@@ -200,6 +200,10 @@ The LXC deployment copies `mountainvalue.lobster` to:
 /root/.openclaw/mountainvalue.lobster
 ```
 
+The same playbook builds the repository-owned `equity-research` package from
+the checked-out source before copying its compiled output to the LXC, so a
+clean Git checkout cannot deploy stale local build artifacts.
+
 Run the pipeline from Discord or the OpenClaw UI by telling Victor exactly:
 
 ```text
@@ -224,8 +228,9 @@ The workflow is deterministic:
 `cancel-stale-entries-if-due` → `daily-report`
 
 Signals are generated after the close, execution happens the next morning, and
-watchdog checks are supervision only. Victor should report the workflow result,
-not invent trades. The deployed default forum target remains
+watchdog checks are supervision only. The deterministic equity-research CLI
+submits paper orders; Victor should report its `daily_report.execution` result,
+not invent trades or treat a saved intent as an accepted order. The deployed default forum target remains
 `1504282224789295134` for ordinary OpenClaw posting when explicitly requested.
 
 MountainValue worker roles are configured OpenClaw profiles with no Discord

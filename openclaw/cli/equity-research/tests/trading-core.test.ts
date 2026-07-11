@@ -101,6 +101,8 @@ function makeBrokerMock(options: {
   openOrders?: Array<Record<string, unknown>>;
   quotes?: Record<string, { timestamp: string; bid: number; ask: number }>;
   dailyBars?: Record<string, Bar[]>;
+  submitOrderError?: Error;
+  onSubmitOrder?: (payload: Record<string, unknown>) => void;
 }) {
   const orders = new Map<string, Record<string, unknown>>();
   let counter = 0;
@@ -132,6 +134,10 @@ function makeBrokerMock(options: {
       return state.quotes[symbol] ?? { symbol, timestamp: options.nowIso, bid: 100, ask: 100.1 };
     },
     async submitOrder(payload: Record<string, unknown>) {
+      options.onSubmitOrder?.(payload);
+      if (options.submitOrderError) {
+        throw options.submitOrderError;
+      }
       counter += 1;
       const id = `${String(payload.symbol)}-${counter}`;
       const order = {
@@ -403,6 +409,79 @@ test("cycle submits a filled buy order and records a position", async () => {
   }
 });
 
+test("cycle submits stock limit prices with two-decimal precision", async () => {
+  const nowIso = "2026-07-06T14:10:00.000Z";
+  const config = makeConfig();
+  const { ledger, cleanup } = tempLedger();
+  try {
+    ledger.writeState(createDefaultState("paper"));
+    const plan = computeSignalPlan({
+      trade_date: "2026-07-06",
+      generated_at: "2026-07-03T20:30:00.000Z",
+      bars_by_symbol: universe(),
+      holdings: [],
+    });
+    ledger.saveSnapshot("signal_plan", plan, nowIso);
+    ledger.saveDailyIntent("2026-07-06", nowIso, plan);
+    const submittedPayloads: Array<Record<string, unknown>> = [];
+    const quotePrice = plan.buy_candidate?.indicators.previous_close ?? 100;
+    const broker = makeBrokerMock({
+      nowIso,
+      onSubmitOrder: (payload) => { submittedPayloads.push(payload); },
+      quotes: {
+        [String(plan.buy_candidate?.symbol)]: { timestamp: nowIso, bid: quotePrice * 0.999, ask: quotePrice * 1.001 },
+      },
+    });
+    const service = createTradingCoreService({ config, ledger, broker, now: () => new Date(nowIso) });
+
+    await service.cycleIfDue();
+
+    assert.equal(submittedPayloads.length, 1);
+    const payload = submittedPayloads[0]!;
+    assert.equal(Number(payload.limit_price).toFixed(2), String(payload.limit_price));
+  } finally {
+    cleanup();
+  }
+});
+
+test("rejected buy is reported as skipped separately from the saved intent", async () => {
+  const nowIso = "2026-07-06T14:10:00.000Z";
+  const config = makeConfig();
+  const { ledger, cleanup } = tempLedger();
+  try {
+    ledger.writeState(createDefaultState("paper"));
+    const plan = computeSignalPlan({
+      trade_date: "2026-07-06",
+      generated_at: "2026-07-03T20:30:00.000Z",
+      bars_by_symbol: universe(),
+      holdings: [],
+    });
+    ledger.saveSnapshot("signal_plan", plan, nowIso);
+    ledger.saveDailyIntent("2026-07-06", nowIso, plan);
+    const quotePrice = plan.buy_candidate?.indicators.previous_close ?? 100;
+    const broker = makeBrokerMock({
+      nowIso,
+      submitOrderError: new ContractError("https://paper-api.alpaca.markets/v2/orders returned 422: 42210000: invalid limit_price"),
+      quotes: {
+        [String(plan.buy_candidate?.symbol)]: { timestamp: nowIso, bid: quotePrice * 0.999, ask: quotePrice * 1.001 },
+      },
+    });
+    const service = createTradingCoreService({ config, ledger, broker, now: () => new Date(nowIso) });
+
+    const cycle = await service.cycleIfDue();
+    const report = await service.dailyReport();
+
+    assert.equal(cycle.status, "SKIPPED");
+    assert.equal(report.today_intent?.symbol, plan.buy_candidate?.symbol);
+    assert.equal(report.execution?.status, "SKIPPED");
+    assert.equal(report.execution?.actions[0]?.status, "SKIPPED");
+    assert.match(String(report.execution?.actions[0]?.reason), /42210000/u);
+    assert.deepEqual(report.open_orders, []);
+  } finally {
+    cleanup();
+  }
+});
+
 test("cycle submits exits before buys and removes the sold position", async () => {
   const nowIso = "2026-07-06T14:10:00.000Z";
   const config = makeConfig();
@@ -579,6 +658,32 @@ test("Alpaca daily bars parseBar defaults to symbol if missing", async () => {
   }
 });
 
+test("Alpaca order errors include the broker response body", async () => {
+  const { cleanup } = tempLedger();
+  try {
+    const config = makeConfig();
+    const broker = new AlpacaClient(config, async () => new Response(JSON.stringify({
+      code: 42210000,
+      message: "invalid limit_price 123.457. sub-penny increment does not fulfill minimum pricing criteria",
+    }), { status: 422, headers: { "content-type": "application/json" } }));
+
+    await assert.rejects(
+      () => broker.submitOrder({
+        symbol: "XLI",
+        side: "buy",
+        type: "limit",
+        time_in_force: "day",
+        qty: 1,
+        limit_price: 123.457,
+        client_order_id: "test-order",
+      }),
+      /42210000: invalid limit_price/u,
+    );
+  } finally {
+    cleanup();
+  }
+});
+
 test("loadTradingConfig reads custom watchlists and tradable symbols from env", () => {
   const customEnv = {
     ...process.env,
@@ -599,4 +704,3 @@ test("asNullableNumber parses numeric strings returned by broker APIs", () => {
   assert.equal(asNullableNumber("invalid"), undefined);
   assert.equal(asNullableNumber(undefined), undefined);
 });
-

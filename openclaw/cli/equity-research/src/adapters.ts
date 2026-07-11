@@ -14,11 +14,24 @@ import {
 
 type FetchLike = typeof fetch;
 
-function assertOk(response: Response, url: string): Promise<Response> {
+async function assertOk(response: Response, url: string): Promise<Response> {
   if (!response.ok) {
-    throw new ContractError(`${url} returned ${response.status}`);
+    const body = await response.text();
+    let detail = body.trim();
+    if (detail) {
+      try {
+        const parsed = JSON.parse(detail) as Record<string, unknown>;
+        detail = [parsed.code, parsed.message]
+          .filter((value) => value !== undefined && value !== null && String(value).trim() !== "")
+          .map(String)
+          .join(": ") || detail;
+      } catch {
+        // Preserve non-JSON response bodies as returned by the broker.
+      }
+    }
+    throw new ContractError(`${url} returned ${response.status}${detail ? `: ${detail}` : ""}`);
   }
-  return Promise.resolve(response);
+  return response;
 }
 
 function authHeaders(config: TradingConfig): Record<string, string> {

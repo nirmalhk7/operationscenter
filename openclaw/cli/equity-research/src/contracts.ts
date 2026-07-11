@@ -202,6 +202,7 @@ export interface ReportSummary {
   open_positions: PositionSnapshot[];
   open_orders: OrderSnapshot[];
   today_intent: TradeIntent | null;
+  execution: CycleResult | null;
   signals: SignalDecision[];
   skipped_trades: Array<Record<string, unknown>>;
   audit_count: number;

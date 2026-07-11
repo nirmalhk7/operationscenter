@@ -147,6 +147,7 @@ function validateContract(contract: string | undefined, document: unknown): unkn
         open_orders: Array.isArray(record.open_orders) ? record.open_orders : [],
         signals: Array.isArray(record.signals) ? record.signals : [],
         skipped_trades: Array.isArray(record.skipped_trades) ? record.skipped_trades : [],
+        execution: record.execution ?? null,
       };
     case "audit":
       return {

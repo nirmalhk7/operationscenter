@@ -8,7 +8,9 @@ scorecard stages, JSON contract validation, value ranking, and configured OpenCl
 
 ## Package Boundary
 
-`equity-research` produces research handoffs. It does not execute trades.
+`equity-research` produces deterministic research handoffs and executes the
+configured MountainValue paper orders against Alpaca's paper endpoint. It
+rejects non-paper execution modes at configuration load time.
 Victor is the only Discord-facing MountainValue configured agent.
 `eq_quantsieve`, `eq_eventhound`, `eq_riskskeptic`, and
 `eq_thesis_depth_reviewer` are MountainValue OpenClaw profiles with no Discord
@@ -64,6 +66,11 @@ npm pack --dry-run
 
 Each Lobster step prints compact JSON to stdout. Steps after
 `seed-configured-universe` accept the previous step JSON on stdin.
+
+For MountainValue trading runs, `daily-report.execution` is the authoritative
+result of the execution cycle. `today_intent` records the deterministic signal
+that was saved; it does not mean that Alpaca accepted an order. The execution
+status and action reasons must be used when reporting whether a trade happened.
 
 ```text
 equity-research seed-configured-universe [--limit N] [--tickers ABC,XYZ]

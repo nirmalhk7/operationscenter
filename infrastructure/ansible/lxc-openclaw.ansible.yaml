@@ -290,6 +290,24 @@
       tags:
         - openclaw-equity-cli
       block:
+        - name: Install local equity-research build dependencies
+          ansible.builtin.command: npm ci --ignore-scripts
+          args:
+            chdir: "{{ playbook_dir }}/../../openclaw/cli/equity-research"
+          delegate_to: localhost
+          become: false
+          run_once: true
+          changed_when: false
+
+        - name: Build local equity-research package
+          ansible.builtin.command: npm run build
+          args:
+            chdir: "{{ playbook_dir }}/../../openclaw/cli/equity-research"
+          delegate_to: localhost
+          become: false
+          run_once: true
+          changed_when: true
+
         - name: Ensure local equity-research deployment directory exists
           ansible.builtin.file:
             path: "{{ openclaw_home }}/.openclaw/cli/equity-research"
