@@ -24,8 +24,8 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
   }
 
   memory {
-    dedicated = 2560
-    floating  = 1024
+    dedicated = 4096
+    floating  = 4096
   }
 
   disk {

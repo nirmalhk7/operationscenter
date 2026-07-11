@@ -1,6 +1,8 @@
 ---
 k8docker_db_bind_ip: 172.16.0.106
 k8docker_clickhouse_users_xml: /root/operationscenter-artifacts/langfuse-clickhouse-users.xml
+k8docker_clickhouse_config_xml: /root/operationscenter-artifacts/langfuse-clickhouse-config.xml
+k8docker_clickhouse_users_config_xml: /root/operationscenter-artifacts/langfuse-clickhouse-users-config.xml
 k8docker_db_metrics_dir: /var/lib/node_exporter/textfile_collector
 k8docker_db_backup_stamps_dir: /var/lib/k8docker-db-backups
 vectorchord_image: "tensorchord/vchord-postgres:pg17-v0.4.3"

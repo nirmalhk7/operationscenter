@@ -93,23 +93,6 @@ spec:
         before-starting: |-
           #!/bin/sh
           set -eu
-          php occ app:install user_oidc || true
-          php occ app:enable user_oidc || true
-          php occ user_oidc:provider Authelia \
-            --clientid="${OIDC_CLIENT_ID}" \
-            --clientsecret="${OIDC_CLIENT_SECRET}" \
-            --mapping-uid="email" \
-            --mapping-email="email" \
-            --discoveryuri="https://secure.trusted.nirmalhk7.com/.well-known/openid-configuration"
-          php occ config:system:set mail_smtpmode --value=smtp
-          php occ config:system:set mail_smtphost --value=smtp.maileroo.com
-          php occ config:system:set mail_smtpport --value=587 --type=integer
-          php occ config:system:set mail_smtpsecure --value=tls
-          php occ config:system:set mail_smtpauth --value=1 --type=integer
-          php occ config:system:set mail_smtpname --value=nestor@nirmalhk7.com
-          php occ config:system:set mail_smtppassword --value="${SMTP_PASSWORD}"
-          php occ config:system:set mail_from_address --value=nestor
-          php occ config:system:set mail_domain --value=nirmalhk7.com
     podAnnotations:
       milano.io/nextcloud-oidc-revision: "2026-06-12a"
 

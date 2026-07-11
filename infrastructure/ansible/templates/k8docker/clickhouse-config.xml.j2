@@ -1,0 +1,10 @@
+<clickhouse>
+  <trace_log>
+    <ttl>event_date + INTERVAL 7 DAY DELETE</ttl>
+  </trace_log>
+
+  <logger>
+    <size>100M</size>
+    <count>3</count>
+  </logger>
+</clickhouse>
