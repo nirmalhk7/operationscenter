@@ -7,9 +7,302 @@ spec:
     name: discord
   eventSeverity: error
   eventSources:
+    # Alert event sources are namespace-scoped. Keep the namespace list in
+    # sync with the Flux Kustomizations under clusters/managed and clusters/live.
+    - kind: Bucket
+      name: '*'
+      namespace: flux-system
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: flux-system
+    - kind: GitRepository
+      name: '*'
+      namespace: flux-system
+    - kind: HelmChart
+      name: '*'
+      namespace: flux-system
     - kind: HelmRepository
       name: '*'
-    - kind: HelmRelease
+      namespace: flux-system
+    - kind: OCIRepository
       name: '*'
+      namespace: flux-system
     - kind: Kustomization
       name: '*'
+      namespace: flux-system
+    - kind: HelmRelease
+      name: '*'
+      namespace: flux-system
+    - kind: ImagePolicy
+      name: '*'
+      namespace: flux-system
+    - kind: ImageRepository
+      name: '*'
+      namespace: flux-system
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: flux-system
+    - kind: Bucket
+      name: '*'
+      namespace: kube-system
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: kube-system
+    - kind: GitRepository
+      name: '*'
+      namespace: kube-system
+    - kind: HelmChart
+      name: '*'
+      namespace: kube-system
+    - kind: HelmRepository
+      name: '*'
+      namespace: kube-system
+    - kind: OCIRepository
+      name: '*'
+      namespace: kube-system
+    - kind: Kustomization
+      name: '*'
+      namespace: kube-system
+    - kind: HelmRelease
+      name: '*'
+      namespace: kube-system
+    - kind: ImagePolicy
+      name: '*'
+      namespace: kube-system
+    - kind: ImageRepository
+      name: '*'
+      namespace: kube-system
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: kube-system
+    - kind: Bucket
+      name: '*'
+      namespace: live-devbench
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: live-devbench
+    - kind: GitRepository
+      name: '*'
+      namespace: live-devbench
+    - kind: HelmChart
+      name: '*'
+      namespace: live-devbench
+    - kind: HelmRepository
+      name: '*'
+      namespace: live-devbench
+    - kind: OCIRepository
+      name: '*'
+      namespace: live-devbench
+    - kind: Kustomization
+      name: '*'
+      namespace: live-devbench
+    - kind: HelmRelease
+      name: '*'
+      namespace: live-devbench
+    - kind: ImagePolicy
+      name: '*'
+      namespace: live-devbench
+    - kind: ImageRepository
+      name: '*'
+      namespace: live-devbench
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: live-devbench
+    - kind: Bucket
+      name: '*'
+      namespace: mgd-default
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: mgd-default
+    - kind: GitRepository
+      name: '*'
+      namespace: mgd-default
+    - kind: HelmChart
+      name: '*'
+      namespace: mgd-default
+    - kind: HelmRepository
+      name: '*'
+      namespace: mgd-default
+    - kind: OCIRepository
+      name: '*'
+      namespace: mgd-default
+    - kind: Kustomization
+      name: '*'
+      namespace: mgd-default
+    - kind: HelmRelease
+      name: '*'
+      namespace: mgd-default
+    - kind: ImagePolicy
+      name: '*'
+      namespace: mgd-default
+    - kind: ImageRepository
+      name: '*'
+      namespace: mgd-default
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: mgd-default
+    - kind: Bucket
+      name: '*'
+      namespace: mgd-devbench
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: mgd-devbench
+    - kind: GitRepository
+      name: '*'
+      namespace: mgd-devbench
+    - kind: HelmChart
+      name: '*'
+      namespace: mgd-devbench
+    - kind: HelmRepository
+      name: '*'
+      namespace: mgd-devbench
+    - kind: OCIRepository
+      name: '*'
+      namespace: mgd-devbench
+    - kind: Kustomization
+      name: '*'
+      namespace: mgd-devbench
+    - kind: HelmRelease
+      name: '*'
+      namespace: mgd-devbench
+    - kind: ImagePolicy
+      name: '*'
+      namespace: mgd-devbench
+    - kind: ImageRepository
+      name: '*'
+      namespace: mgd-devbench
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: mgd-devbench
+    - kind: Bucket
+      name: '*'
+      namespace: mgd-llm
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: mgd-llm
+    - kind: GitRepository
+      name: '*'
+      namespace: mgd-llm
+    - kind: HelmChart
+      name: '*'
+      namespace: mgd-llm
+    - kind: HelmRepository
+      name: '*'
+      namespace: mgd-llm
+    - kind: OCIRepository
+      name: '*'
+      namespace: mgd-llm
+    - kind: Kustomization
+      name: '*'
+      namespace: mgd-llm
+    - kind: HelmRelease
+      name: '*'
+      namespace: mgd-llm
+    - kind: ImagePolicy
+      name: '*'
+      namespace: mgd-llm
+    - kind: ImageRepository
+      name: '*'
+      namespace: mgd-llm
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: mgd-llm
+    - kind: Bucket
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: GitRepository
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: HelmChart
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: HelmRepository
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: OCIRepository
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: Kustomization
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: HelmRelease
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: ImagePolicy
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: ImageRepository
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: mgd-monitoring
+    - kind: Bucket
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: GitRepository
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: HelmChart
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: HelmRepository
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: OCIRepository
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: Kustomization
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: HelmRelease
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: ImagePolicy
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: ImageRepository
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: mgd-multimedia
+    - kind: Bucket
+      name: '*'
+      namespace: mgd-security
+    - kind: ExternalArtifact
+      name: '*'
+      namespace: mgd-security
+    - kind: GitRepository
+      name: '*'
+      namespace: mgd-security
+    - kind: HelmChart
+      name: '*'
+      namespace: mgd-security
+    - kind: HelmRepository
+      name: '*'
+      namespace: mgd-security
+    - kind: OCIRepository
+      name: '*'
+      namespace: mgd-security
+    - kind: Kustomization
+      name: '*'
+      namespace: mgd-security
+    - kind: HelmRelease
+      name: '*'
+      namespace: mgd-security
+    - kind: ImagePolicy
+      name: '*'
+      namespace: mgd-security
+    - kind: ImageRepository
+      name: '*'
+      namespace: mgd-security
+    - kind: ImageUpdateAutomation
+      name: '*'
+      namespace: mgd-security
