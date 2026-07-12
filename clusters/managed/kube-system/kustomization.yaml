@@ -7,6 +7,7 @@ resources:
   - traefik
   - coredns
   - sealedsecrets
+  - reloader
   - bot-openclaw
 
 namespace: kube-system

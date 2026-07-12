@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: &app pterodactyl-wings
+  annotations:
+    secret.reloader.stakater.com/reload: pterodactyl-wings-config
 spec:
   replicas: 1
   strategy:
@@ -13,8 +15,6 @@ spec:
     metadata:
       labels:
         milano.app: *app
-      annotations:
-        milano.nirmalhk7.com/config-revision: websocket-origin-v1
     spec:
       initContainers:
         - name: apply-minecraft-settings
