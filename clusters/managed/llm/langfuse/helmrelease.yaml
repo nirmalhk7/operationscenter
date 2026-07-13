@@ -48,8 +48,11 @@ spec:
       web:
         pod:
           # Langfuse's NextAuth OIDC discovery reaches the Traefik ingress IP from inside
-          # the cluster, where the certificate is currently self-signed.
+          # the cluster. Use Authelia's in-cluster proxy for discovery and back-channel
+          # endpoints; it retains the public authorization endpoint for browser redirects.
           additionalEnv:
+            - name: AUTH_CUSTOM_ISSUER
+              value: http://authelia-oidc.mgd-security.svc
             # Use the userinfo response as the profile source. Authelia already emits the
             # standard email claim there, while the ID-token-only path was still missing it.
             - name: AUTH_CUSTOM_ID_TOKEN
