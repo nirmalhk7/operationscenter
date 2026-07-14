@@ -19,10 +19,11 @@ spec:
     openaiBaseApiUrls:
       - "https://generativelanguage.googleapis.com/v1beta/openai"
       - "https://openrouter.ai/api/v1"
-      - "https://integrate.api.nvidia.com/v1"
     openaiApiKeysExistingSecret: open-webui-secrets
     openaiApiKeysExistingSecretKey: OPENAI_API_KEYS
     ollama:
+      enabled: false
+    pipelines:
       enabled: false
     extraEnvVars:
       - name: ENABLE_OPENAI_API
@@ -62,7 +63,6 @@ spec:
           if '/app/backend' not in sys.path:
             sys.path.insert(0, '/app/backend')
           import functools
-          from urllib.parse import urlparse
           import open_webui.routers.openai as _openai_router
 
           _orig_get_all_models = _openai_router.get_all_models
@@ -73,26 +73,22 @@ spec:
             if not res or 'data' not in res:
               return res
             api_base_urls = getattr(request.app.state.config, 'OPENAI_API_BASE_URLS', [])
-            filtered_data = []
             for m in res['data']:
               url_idx = m.get('urlIdx')
               base_url = api_base_urls[url_idx] if url_idx is not None and url_idx < len(api_base_urls) else ''
-              hostname = urlparse(base_url).hostname or ''
               model_id = str(m.get('id', ''))
-              if hostname == 'openrouter.ai':
-                if model_id != 'openrouter/free' and not model_id.endswith('/free'):
-                  continue
-                m['name'] = 'openrouter/openrouter/free'
-              elif hostname == 'integrate.api.nvidia.com':
-                m['name'] = f'nvidia/{model_id}'
-              filtered_data.append(m)
-            res['data'] = filtered_data
-            if hasattr(request.app, 'state'):
-              request.app.state.OPENAI_MODELS = {m['id']: m for m in filtered_data}
+              if 'generativelanguage.googleapis.com' in base_url:
+                m['name'] = f'gemini/google/{model_id}'
+              elif 'openrouter.ai' in base_url:
+                company, separator, name = model_id.partition('/')
+                if separator:
+                  m['name'] = f'openrouter/{company}/{name}'
+                else:
+                  m['name'] = f'openrouter/openrouter/{model_id}'
             return res
 
           _openai_router.get_all_models = _patched_get_all_models
-          print('sitecustomize: patched openai model filter & naming', flush=True)
+          print('sitecustomize: patched openai model naming', flush=True)
         except Exception as e:
           print('sitecustomize error patching openai models:', e, flush=True)
         PY
@@ -101,7 +97,7 @@ spec:
       milano.app: *app
       milano.level: managed
     podAnnotations:
-      milano.io/open-webui-auth-revision: "2026-06-03c"
+      milano.io/open-webui-config-revision: "2026-07-14a"
     persistence:
       storageClass: milano-v2
     extraEnvFrom:
