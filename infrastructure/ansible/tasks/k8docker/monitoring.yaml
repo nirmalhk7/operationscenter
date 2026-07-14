@@ -51,12 +51,13 @@
 - name: Run cAdvisor for per-container Docker metrics
   community.docker.docker_container:
     name: cadvisor
-    image: "gcr.io/cadvisor/cadvisor:v0.49.1"
+    image: "ghcr.io/google/cadvisor:v0.57.0"
     state: started
     restart_policy: unless-stopped
     network_mode: host
     privileged: true
     cgroupns_mode: host
+    command: --disable_metrics=disk,diskIO
     devices:
       - /dev/kmsg:/dev/kmsg
     volumes:
