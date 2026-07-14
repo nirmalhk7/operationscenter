@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/local/bin/node_exporter --web.listen-address=:9100
+ExecStart=/usr/local/bin/node_exporter --web.listen-address=:9100 --collector.systemd
 Restart=on-failure
 
 [Install]
