@@ -1,17 +1,13 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: docker-cadvisor-metrics
+  name: openclaw-node-metrics
   labels:
     prometheus: prometheus_scraper
 spec:
   staticConfigs:
     - labels:
-        job: k8docker-cadvisor
+        job: openclaw-node
       targets:
-        - 172.16.0.106:8080
-    - labels:
-        job: homesecurity-cadvisor
-      targets:
-        - 172.16.0.103:8080
+        - 172.16.0.104:9100
   metricsPath: /metrics

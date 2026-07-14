@@ -72,3 +72,9 @@ configMapGenerator:
     options:
       labels:
         milano_grafana_dashboard: "true"
+  - name: grafana-dash-openclaw
+    files:
+      - dashboards/openclaw.json
+    options:
+      labels:
+        milano_grafana_dashboard: "true"

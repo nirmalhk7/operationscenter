@@ -52,6 +52,14 @@
         enabled: true
         state: restarted
         daemon_reload: yes
+    - name: Restart OpenClaw node exporter
+      tags:
+        - always
+      ansible.builtin.systemd:
+        name: node_exporter
+        enabled: true
+        state: restarted
+        daemon_reload: yes
   tasks:
     - name: Bootstrap OpenClaw filesystem
       tags:
@@ -116,6 +124,48 @@
             purge: yes
           tags:
             - openclaw_migrations
+
+    - name: Install OpenClaw host metrics exporter
+      tags:
+        - openclaw-monitoring
+      block:
+        - name: Download node_exporter
+          ansible.builtin.get_url:
+            url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+            dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+            mode: '0644'
+
+        - name: Unarchive node_exporter
+          ansible.builtin.unarchive:
+            src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+            dest: /tmp
+            remote_src: true
+
+        - name: Install node_exporter binary
+          ansible.builtin.copy:
+            src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+            dest: /usr/local/bin/node_exporter
+            owner: root
+            group: root
+            mode: '0755'
+            remote_src: true
+          notify: Restart OpenClaw node exporter
+
+        - name: Install node_exporter systemd unit
+          ansible.builtin.template:
+            src: templates/openclaw-node-exporter.service.j2
+            dest: /etc/systemd/system/node_exporter.service
+            owner: root
+            group: root
+            mode: '0644'
+          notify: Restart OpenClaw node exporter
+
+        - name: Ensure node_exporter is running
+          ansible.builtin.systemd:
+            daemon_reload: true
+            name: node_exporter
+            state: started
+            enabled: true
 
     - name: Configure package repositories
       tags:

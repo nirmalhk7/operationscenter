@@ -246,12 +246,14 @@ spec:
       prometheusSpec:
         externalUrl: https://prometheus.trusted.nirmalhk7.com
         routePrefix: /
+        externalLabels:
+          cluster: managed
         scrapeConfigSelector:
           matchLabels:
             prometheus: prometheus_scraper
         serviceMonitorSelector:
           matchLabels:
-            prometheus: prometheus_servicemonitor
+            release: main
         resources:
           requests:
             cpu: 200m

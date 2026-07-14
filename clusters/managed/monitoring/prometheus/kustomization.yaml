@@ -9,6 +9,7 @@ resources:
   - flux_podmonitor.yaml
   - tailscale_scrapeconfigs.yaml
   - docker_scrapeconfigs.yaml
+  - openclaw_scrapeconfigs.yaml
   - proxbridge_scrapeconfigs.yaml
   - homesecurity_scrapeconfigs.yaml
   - k8docker_scrapeconfigs.yaml

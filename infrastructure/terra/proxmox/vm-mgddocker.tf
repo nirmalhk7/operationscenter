@@ -166,6 +166,17 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
     iface   = "net0"
     enabled = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "8080"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow Prometheus to scrape cAdvisor"
+    iface   = "net0"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "vm-k8docker-config" {

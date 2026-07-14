@@ -87,6 +87,17 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
+    dport   = "9100"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow Prometheus to scrape OpenClaw node metrics"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
     dport   = "18789"
     source  = local.proxmoxMachines.nginx.ip
     comment = "Allow Nginx to reach OpenClaw robot service"
