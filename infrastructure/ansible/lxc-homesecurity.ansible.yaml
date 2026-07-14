@@ -77,6 +77,7 @@
         - netalertx
 
     - name: Sync homesecurity stack files
+      tags: [monitoring]
       ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ homesecurity_install_dir }}/{{ item.dest }}"
@@ -99,6 +100,16 @@
       community.docker.docker_compose_v2:
         project_name: "{{ homesecurity_compose_project }}"
         project_src: "{{ homesecurity_install_dir }}"
+        state: present
+        pull: always
+
+    - name: Deploy cAdvisor metrics container only
+      tags: [monitoring]
+      community.docker.docker_compose_v2:
+        project_name: "{{ homesecurity_compose_project }}"
+        project_src: "{{ homesecurity_install_dir }}"
+        services:
+          - cadvisor
         state: present
         pull: always
 
