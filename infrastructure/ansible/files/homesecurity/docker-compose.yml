@@ -73,6 +73,7 @@ services:
     image: gcr.io/cadvisor/cadvisor:v0.49.1
     restart: unless-stopped
     privileged: true
+    cgroup: host
     ports:
       - "8080:8080"
     volumes:

@@ -56,6 +56,7 @@
     restart_policy: unless-stopped
     network_mode: host
     privileged: true
+    cgroupns_mode: host
     devices:
       - /dev/kmsg:/dev/kmsg
     volumes:
