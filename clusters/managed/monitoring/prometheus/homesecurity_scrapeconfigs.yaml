@@ -21,7 +21,6 @@ metadata:
     prometheus: prometheus_scraper
 spec:
   scrapeInterval: 1m
-  scrapeTimeout: 55s
   staticConfigs:
     - labels:
         job: lan-path-quality
@@ -37,6 +36,7 @@ metadata:
     prometheus: prometheus_scraper
 spec:
   scrapeInterval: 1m
+  scrapeTimeout: 55s
   staticConfigs:
     - labels:
         job: lan-speedtest
