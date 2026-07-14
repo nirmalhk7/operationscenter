@@ -7,7 +7,11 @@ metadata:
 spec:
   staticConfigs:
     - labels:
-        job: main-nginx
+        job: private-nginx
       targets:
         - 172.16.0.101:9113
+    - labels:
+        job: live-nginx
+      targets:
+        - 172.16.0.108:9113
   metricsPath: /metrics
