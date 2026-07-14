@@ -35,7 +35,7 @@ metadata:
   labels:
     prometheus: prometheus_scraper
 spec:
-  scrapeInterval: 6h
+  scrapeInterval: 1m
   staticConfigs:
     - labels:
         job: lan-speedtest
