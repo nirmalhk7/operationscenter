@@ -33,49 +33,55 @@ export class TradingLedger {
   static open(path: string, mode: TradingState["execution_mode"]): TradingLedger {
     mkdirSync(dirname(path), { recursive: true });
     const db = new DatabaseSync(path);
-    db.exec(`
-      PRAGMA journal_mode = WAL;
-      PRAGMA synchronous = NORMAL;
-      PRAGMA foreign_keys = ON;
-      CREATE TABLE IF NOT EXISTS state (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        payload TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS snapshots (
-        kind TEXT PRIMARY KEY,
-        updated_at TEXT NOT NULL,
-        payload TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS daily_intents (
-        trade_date TEXT PRIMARY KEY,
-        generated_at TEXT NOT NULL,
-        payload TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS positions (
-        symbol TEXT PRIMARY KEY,
-        updated_at TEXT NOT NULL,
-        payload TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS orders (
-        id TEXT PRIMARY KEY,
-        updated_at TEXT NOT NULL,
-        payload TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS audit_events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        timestamp TEXT NOT NULL,
-        step TEXT NOT NULL,
-        kind TEXT NOT NULL,
-        symbol TEXT,
-        message TEXT NOT NULL,
-        payload TEXT NOT NULL
-      );
-    `);
-    const ledger = new TradingLedger(db);
-    if (!ledger.readState()) {
-      ledger.writeState(createDefaultState(mode));
+    try {
+      db.exec(`
+        PRAGMA busy_timeout = 30000;
+        PRAGMA journal_mode = WAL;
+        PRAGMA synchronous = NORMAL;
+        PRAGMA foreign_keys = ON;
+        CREATE TABLE IF NOT EXISTS state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          payload TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS snapshots (
+          kind TEXT PRIMARY KEY,
+          updated_at TEXT NOT NULL,
+          payload TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS daily_intents (
+          trade_date TEXT PRIMARY KEY,
+          generated_at TEXT NOT NULL,
+          payload TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS positions (
+          symbol TEXT PRIMARY KEY,
+          updated_at TEXT NOT NULL,
+          payload TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS orders (
+          id TEXT PRIMARY KEY,
+          updated_at TEXT NOT NULL,
+          payload TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS audit_events (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          timestamp TEXT NOT NULL,
+          step TEXT NOT NULL,
+          kind TEXT NOT NULL,
+          symbol TEXT,
+          message TEXT NOT NULL,
+          payload TEXT NOT NULL
+        );
+      `);
+      const ledger = new TradingLedger(db);
+      if (!ledger.readState()) {
+        ledger.writeState(createDefaultState(mode));
+      }
+      return ledger;
+    } catch (error) {
+      db.close();
+      throw error;
     }
-    return ledger;
   }
 
   readState(): TradingState | null {
