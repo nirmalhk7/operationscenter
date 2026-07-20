@@ -3,8 +3,9 @@
 Gitea Actions runs Devbench automation through the `gitea-actions-runner`
 deployment in `mgd-devbench`.
 
-The runner exposes two labels:
+The runner exposes three labels:
 
+- `ubuntu-latest` for workflows using the standard Gitea Actions label.
 - `devbench` for general build, test, release, and smoke-test workflows.
 - `sonarqube` for SonarQube analysis workflows.
 
