@@ -54,11 +54,10 @@ This inventory reflects the deployed OpenClaw runtime configuration in
 - Long-running Discord tasks should produce short progress updates at start,
   major stage changes, and completion or blockage. Final replies should include
   the result, validation performed, and any live follow-up still required.
-- Discord progress drafts are intentionally enabled with
-  `channels.discord.streaming.mode: progress` in `openclaw/openclaw.json`.
-  OpenClaw v2026.5.28 surfaces
-  commentary in those drafts, so long-running runs should show useful live
-  context before the final reply.
+- Discord replies use in-place partial streaming with
+  `channels.discord.streaming.mode: partial` in `openclaw/openclaw.json`.
+  This makes the same model response visible as it is generated, rather than
+  waiting for the completed reply.
 - Discord is configured as three account-scoped bots: `main`, `rahul`, and
   `victor`. Each account must be invited to the OperationCenter Discord server,
   have Message Content intent enabled in the Discord developer portal, and have
@@ -248,15 +247,25 @@ The playbook deploys focused Lobster pipelines:
 - `/root/.openclaw/mountainvalue-signals.lobster`
 - `/root/.openclaw/mountainvalue.lobster`
 
-The OpenClaw cron uses `America/Denver` and runs the buy/sell evaluation
-workflow with:
+The OpenClaw intraday execution cron uses `America/Denver` and runs the
+buy/sell evaluation workflow with:
 
 ```cron
-0 8-13 * * 1-5
+5,20,35,50 8-13 * * 1-5
+```
+
+The next-trading-day signal lock runs separately at:
+
+```cron
+20 14 * * 1-5
 ```
 
 The `*-if-due` CLI commands still perform their own market-day and clock gates.
 Cron provides autonomy; the strategy code decides whether anything is due.
+The Lobster wrapper serializes MountainValue runs with a PID-backed lock in
+`/root/.openclaw`; a dead owner is recovered as stale. The equity-research CLI
+also waits up to 30 seconds for transient SQLite contention and explicitly
+closes its ledger connection on both success and failure.
 
 ## Remove Old MountainValue Cron
 
@@ -269,9 +278,10 @@ openclaw cron list --agent victor
 crontab -l
 ```
 
-There should be one OpenClaw cron named `MountainValue evaluate buy sell`, and
-no MountainValue entries in root's crontab. If a stale OpenClaw cron job exists,
-remove it with the job id from the list output:
+There should be two OpenClaw cron jobs named `MountainValue execute locked
+signal` and `MountainValue lock next-day signal`, and no MountainValue entries
+in root's crontab. If a stale OpenClaw cron job exists, remove it with the job
+id from the list output:
 
 ```sh
 openclaw cron rm <job-id>

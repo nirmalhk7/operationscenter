@@ -71,6 +71,14 @@ For MountainValue trading runs, `daily-report.execution` is the authoritative
 result of the execution cycle. `today_intent` records the deterministic signal
 that was saved; it does not mean that Alpaca accepted an order. The execution
 status and action reasons must be used when reporting whether a trade happened.
+`daily-report.discord_summary` is the deterministic Discord-ready outcome card
+and must be posted verbatim by Victor.
+
+MountainValue remains paper-only. It locks a dual-momentum ETF signal after
+16:20 ET for the next trading day, executes only the locked intent after 10:05
+ET, uses BIL as the defensive allocation in risk-off markets, and pauses new
+entries after a 10% peak-to-trough strategy drawdown. Quote guard failures can
+retry every 15 minutes through 15:30 ET without changing the locked signal.
 
 ```text
 equity-research seed-configured-universe [--limit N] [--tickers ABC,XYZ]
@@ -89,6 +97,7 @@ equity-research narrow-review-pool [--limit N]
 equity-research review-thesis-depth
 equity-research review-risks
 equity-research publish-final-report
+equity-research backtest
 equity-research validate-contract reviews|event|final
 ```
 

@@ -234,7 +234,7 @@ export class AlpacaClient {
     return asRecord(await response.json());
   }
 
-  async getDailyBars(symbols: readonly string[], limit = 260): Promise<Record<string, Bar[]>> {
+  async getDailyBars(symbols: readonly string[], limit = 260, options: { adjustment?: "raw" | "all"; end?: string } = {}): Promise<Record<string, Bar[]>> {
     const results = await Promise.all(
       symbols.map(async (symbol) => {
         const normalized = normalizeSymbol(symbol);
@@ -245,10 +245,11 @@ export class AlpacaClient {
         const url = buildUrl(this.config.alpaca_data_base_url, "/v2/stocks/bars", {
           symbols: normalized,
           timeframe: "1Day",
-          adjustment: "raw",
+          adjustment: options.adjustment ?? "all",
           feed: this.config.alpaca_data_feed,
           limit,
           start,
+          end: options.end,
         });
         const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
         const parsed = normalizeBarsResponse(await response.json());

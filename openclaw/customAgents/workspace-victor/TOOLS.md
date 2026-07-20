@@ -32,3 +32,5 @@ For a Lobster result, the `daily_report.execution` object is the source of
 truth for order activity. Report the saved intent separately from execution:
 `ORDER_SUBMITTED`/`EXIT_SUBMITTED` means an order was accepted by Alpaca;
 `SKIPPED`, `BLOCKED`, or `NO_TRADE` means no broker order was accepted.
+For autonomous runs, return `daily_report.discord_summary` verbatim rather than
+rewriting it. This preserves the execution outcome and retry information.

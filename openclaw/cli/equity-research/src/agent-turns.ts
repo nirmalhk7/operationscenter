@@ -2,6 +2,7 @@ import { AlpacaClient } from "./adapters.js";
 import {
   AccountSnapshot,
   AuditRecord,
+  BacktestResult,
   ContractError,
   CycleResult,
   ExecutionMode,
@@ -18,6 +19,7 @@ import {
 import { TradingLedger } from "./ledger.js";
 import { buildExecutionPlan, computeSignalPlan, ExecutionPlan } from "./value-engine.js";
 import type { SignalPlan } from "./value-engine.js";
+import { runDualMomentumBacktest } from "./backtest.js";
 
 export interface ReconciliationResult {
   status: WorkflowStatus;
@@ -143,6 +145,15 @@ export class TradingCoreService {
       ...(mismatchedPositions.length > 0 ? [`position mismatches: ${mismatchedPositions.map((position) => position.symbol).join(", ")}`] : []),
       ...(unknownSymbols.length > 0 ? [`non-universe positions: ${unknownSymbols.map((position) => position.symbol).join(", ")}`] : []),
     ];
+    const strategyEquity = this.strategyEquity(positions, account);
+    const storedHighWaterMark = state.strategy_high_water_mark_usd === 100000 && this.deps.config.paper_strategy_capital_usd !== 100000
+      ? this.deps.config.paper_strategy_capital_usd
+      : state.strategy_high_water_mark_usd;
+    const highWaterMark = Math.max(storedHighWaterMark || strategyEquity, strategyEquity);
+    const drawdown = highWaterMark > 0 ? (strategyEquity - highWaterMark) / highWaterMark : 0;
+    if (drawdown <= -this.deps.config.max_strategy_drawdown_pct) {
+      failed.push(`strategy drawdown ${round(Math.abs(drawdown) * 100)}% exceeded ${round(this.deps.config.max_strategy_drawdown_pct * 100)}% limit`);
+    }
     const paused = failed.length > 0;
     if (paused) {
       this.pause(`Reconciliation failed: ${failed.join("; ")}`);
@@ -153,7 +164,8 @@ export class TradingCoreService {
       }
       this.writeState({
         virtual_cash_usd: account?.cash ?? state.virtual_cash_usd,
-        last_strategy_equity_usd: (account?.cash ?? state.virtual_cash_usd) + openValue,
+        last_strategy_equity_usd: strategyEquity,
+        strategy_high_water_mark_usd: highWaterMark,
       });
       this.deps.ledger.replacePositions(positions.map(normalizeBrokerPosition), this.now().toISOString());
       this.deps.ledger.saveSnapshot("account", account, this.now().toISOString());
@@ -169,8 +181,8 @@ export class TradingCoreService {
       account,
       positions,
       open_orders: openOrders,
-      strategy_equity: this.strategyEquity(positions, account),
-      checks,
+      strategy_equity: strategyEquity,
+      checks: { ...checks, strategy_drawdown_pct: round(drawdown) },
     };
   }
 
@@ -208,8 +220,18 @@ export class TradingCoreService {
     if (!isWeekday(now)) {
       return this.skip("signals-if-due", "Not a trading day.");
     }
+    if (!isAfterNewYorkTime(now, 16, 20)) {
+      return this.skip("signals-if-due", "Signals are locked after 16:20 ET for the next trading day.");
+    }
     const currentTradeDate = await this.currentTradeDate();
-    const executionDate = isAfterNewYorkTime(now, 16, 20) ? nextBusinessDay(currentTradeDate, now) : currentTradeDate;
+    const executionDate = nextBusinessDay(currentTradeDate, now);
+    if (this.deps.ledger.hasDailyIntent(executionDate)) {
+      return this.skip("signals-if-due", `Signal already locked for ${executionDate}.`);
+    }
+    const validation = this.deps.ledger.readSnapshot<BacktestResult>("backtest");
+    if (!validation) {
+      return this.skip("signals-if-due", "No validated backtest is recorded; run equity-research backtest before locking signals.");
+    }
     const watchlist = this.deps.config.watchlist_symbols;
     const bars = await this.deps.broker.getDailyBars(watchlist, 260);
     const positions = safePositions(this.deps.ledger.listOpenPositions());
@@ -220,6 +242,7 @@ export class TradingCoreService {
       holdings: positions,
       watchlist_symbols: watchlist,
       tradable_symbols: this.deps.config.tradable_symbols,
+      strategy: validation.selected_strategy,
     });
     this.deps.ledger.saveSnapshot("signal_plan", signalPlan, now.toISOString());
     this.deps.ledger.saveDailyIntent(executionDate, now.toISOString(), signalPlan);
@@ -242,11 +265,19 @@ export class TradingCoreService {
     if (!isAfterNewYorkTime(now, 10, 5)) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "Execution cycle starts after the open."));
     }
+    if (isAfterNewYorkTime(now, 15, 30)) {
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "Entry retry cutoff reached at 15:30 ET."));
+    }
     if (!this.state().trading_enabled) {
       return this.recordCycleResult(this.cycleBlock(tradeDate, `Paused: ${this.state().pause_reason ?? "unknown reason"}`));
     }
     if (this.state().last_entry_date === tradeDate) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "Daily entry cap already used."));
+    }
+    const retryFor = this.state().entry_retry_for;
+    const retryAfter = this.state().entry_retry_after;
+    if (retryFor?.startsWith(`${tradeDate}:`) && retryAfter && new Date(retryAfter).getTime() > now.getTime()) {
+      return this.recordCycleResult(this.cycleSkip(tradeDate, `Next entry retry is scheduled for ${retryAfter}.`));
     }
     const reconcile = await this.reconcile();
     if (reconcile.paused) {
@@ -256,7 +287,7 @@ export class TradingCoreService {
     if (!clock?.is_open) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "Market is not open."));
     }
-    const signalPlan = this.deps.ledger.readDailyIntent<SignalPlan>(tradeDate) ?? this.deps.ledger.readSnapshot<SignalPlan>("signal_plan");
+    const signalPlan = this.deps.ledger.readDailyIntent<SignalPlan>(tradeDate);
     if (!signalPlan || signalPlan.trade_date !== tradeDate) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "No saved trade intent for today."));
     }
@@ -271,6 +302,7 @@ export class TradingCoreService {
       max_position_notional_pct: this.deps.config.max_position_notional_pct,
       max_total_invested_pct: this.deps.config.max_total_invested_pct,
       minimum_order_notional_usd: this.deps.config.minimum_order_notional_usd,
+      target_portfolio_volatility_pct: this.deps.config.target_portfolio_volatility_pct,
     });
     if (this.deps.config.max_new_entries_per_day < 1) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "Daily entry limit is zero."));
@@ -285,7 +317,13 @@ export class TradingCoreService {
       const buyResult = await this.executeBuyIntent(executionPlan.buy_intent);
       actions.push(buyResult);
       if (buyResult.status === "ORDER_SUBMITTED") {
-        this.writeState({ last_entry_date: tradeDate });
+        this.writeState({ last_entry_date: tradeDate, entry_retry_for: null, entry_retry_after: null, entry_retry_attempts: 0 });
+      } else if (buyResult.status === "SKIPPED" && this.isRetriableEntrySkip(String(buyResult.reason ?? ""))) {
+        const retryAfter = new Date(now.getTime() + this.deps.config.execution_retry_interval_minutes * 60_000).toISOString();
+        const attempts = (this.state().entry_retry_attempts ?? 0) + 1;
+        this.writeState({ entry_retry_for: `${tradeDate}:${executionPlan.buy_intent.symbol}`, entry_retry_after: retryAfter, entry_retry_attempts: attempts });
+        buyResult.retry_after = retryAfter;
+        buyResult.retry_scheduled = true;
       }
     }
     this.writeState({ last_cycle_for: tradeDate });
@@ -348,6 +386,14 @@ export class TradingCoreService {
     }
     const strategyEquity = this.strategyEquity(positions, account);
     const state = this.state();
+    const retry = state.entry_retry_for?.startsWith(`${tradeDate}:`) ? {
+      trade_date: tradeDate,
+      symbol: state.entry_retry_for.split(":").at(-1) ?? "",
+      attempts: state.entry_retry_attempts ?? 0,
+      retry_after: state.entry_retry_after,
+      cutoff_at: `${tradeDate}T15:30:00-04:00`,
+      reason: actionReason(execution?.actions?.[0]),
+    } : null;
     const summary: ReportSummary = {
       mode: state.execution_mode,
       trading_enabled: state.trading_enabled,
@@ -367,6 +413,8 @@ export class TradingCoreService {
         signal: todaySignalPlan.buy_candidate ?? undefined,
       } : null,
       execution,
+      execution_retry: retry,
+      discord_summary: "",
       signals: signalDecisions,
       skipped_trades: signalDecisions
         .filter((decision) => !decision.eligible)
@@ -375,6 +423,7 @@ export class TradingCoreService {
       pause_reason: state.pause_reason,
       watchdog: this.deps.ledger.readSnapshot("watchdog") ?? {},
     };
+    summary.discord_summary = formatDiscordSummary(summary);
     this.deps.ledger.saveSnapshot("report", summary, this.now().toISOString());
     this.audit("report", "info", "Daily report assembled.", { trade_date: tradeDate, strategy_equity: strategyEquity, open_positions: positions.length, open_orders: openOrders.length });
     return summary;
@@ -386,6 +435,21 @@ export class TradingCoreService {
       status: this.state().trading_enabled ? "ACTIVE" : "PAUSED",
       ...report,
     };
+  }
+
+  async backtest(): Promise<Record<string, unknown>> {
+    const symbols = this.deps.config.tradable_symbols.filter((symbol) => symbol !== this.deps.config.defensive_symbol);
+    const bars = await this.deps.broker.getDailyBars(["SPY", ...symbols, this.deps.config.defensive_symbol], 2_520, { adjustment: "all" });
+    const result = runDualMomentumBacktest({
+      bars_by_symbol: bars,
+      symbols,
+      defensive_symbol: this.deps.config.defensive_symbol,
+      transaction_cost_bps: 10,
+      slippage_bps: 10,
+    });
+    this.deps.ledger.saveSnapshot("backtest", result, this.now().toISOString());
+    this.audit("backtest", "info", "Dual-momentum ETF backtest completed.", { result });
+    return { ...result };
   }
 
   pause(reason: string): TradingState {
@@ -563,7 +627,7 @@ export class TradingCoreService {
   }
 
   private strategyEquity(positions: PositionSnapshot[], account: AccountSnapshot | null): number {
-    const cash = this.state().virtual_cash_usd ?? account?.cash ?? this.deps.config.paper_strategy_capital_usd;
+    const cash = account?.cash ?? this.state().virtual_cash_usd ?? this.deps.config.paper_strategy_capital_usd;
     let marketValue = 0;
     for (const position of safePositions(positions)) {
       marketValue += position.market_value ?? position.qty * (position.current_price ?? position.avg_entry_price ?? 0);
@@ -634,6 +698,10 @@ export class TradingCoreService {
     }
   }
 
+  private isRetriableEntrySkip(reason: string): boolean {
+    return /Entry quote (is stale|spread too wide|midpoint deviates too far)/u.test(reason);
+  }
+
   private validateSellQuote(timestamp: string, bid: number): void {
     const ageSeconds = Math.abs((this.now().getTime() - new Date(timestamp).getTime()) / 1000);
     if (!Number.isFinite(ageSeconds) || ageSeconds > this.deps.config.max_quote_age_seconds) {
@@ -649,16 +717,48 @@ export function createTradingCoreService(deps: RuntimeDependencies): TradingCore
   return new TradingCoreService(deps);
 }
 
+function actionReason(action: Record<string, unknown> | undefined): string | null {
+  return typeof action?.reason === "string" ? action.reason : null;
+}
+
+export function formatDiscordSummary(report: ReportSummary): string {
+  const action = report.execution?.actions[0];
+  const actionStatus = typeof action?.status === "string" ? action.status : null;
+  const outcome = report.execution?.paused || !report.trading_enabled
+    ? "BLOCKED"
+    : actionStatus === "ORDER_SUBMITTED"
+      ? "ORDER SUBMITTED"
+      : actionStatus === "EXIT_SUBMITTED"
+        ? "EXIT SUBMITTED"
+        : "NO ORDER";
+  const intent = report.today_intent;
+  const intentLine = intent?.action === "buy"
+    ? `Intent: BUY ${intent.symbol}${intent.signal?.rank ? ` (rank ${intent.signal.rank}, score ${intent.signal.score})` : ""}.`
+    : "Intent: no new entry.";
+  const reason = actionReason(action) ?? report.execution?.reason ?? report.pause_reason ?? intent?.reason ?? "No action was due.";
+  const retryLine = report.execution_retry?.retry_after
+    ? `Next: retry ${report.execution_retry.symbol} after ${report.execution_retry.retry_after} if quote guards pass.`
+    : "Next: wait for the next scheduled strategy step.";
+  return [
+    `[PAPER] ${outcome}`,
+    `Execution: ${actionStatus ?? report.execution?.status ?? "NO_TRADE"} — ${reason}`,
+    intentLine,
+    `Account: cash $${round(report.cash).toFixed(2)} | invested $${round(report.invested).toFixed(2)} | positions ${report.open_positions.length} | orders ${report.open_orders.length}.`,
+    `Risk: ${report.pause_reason ? `paused (${report.pause_reason})` : "active"}.`,
+    retryLine,
+  ].join("\n");
+}
+
 export function loadTradingConfig(env = process.env): TradingConfig {
   const baseUrl = env.ALPACA_TRADING_BASE_URL?.trim() || "https://paper-api.alpaca.markets";
   const dataBaseUrl = env.ALPACA_DATA_BASE_URL?.trim() || "https://data.alpaca.markets";
   const executionMode = (env.EXECUTION_MODE?.trim() as ExecutionMode | undefined) || "paper";
   const watchlist = env.MOUNTAINVALUE_WATCHLIST?.trim()
     ? env.MOUNTAINVALUE_WATCHLIST.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean)
-    : ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"];
+    : ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"];
   const tradable = env.MOUNTAINVALUE_TRADABLE_SYMBOLS?.trim()
     ? env.MOUNTAINVALUE_TRADABLE_SYMBOLS.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean)
-    : ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"];
+    : ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"];
   const config: TradingConfig = {
     execution_mode: executionMode,
     autonomous_execution_enabled: env.AUTONOMOUS_EXECUTION_ENABLED?.trim() !== "false",
@@ -676,6 +776,11 @@ export function loadTradingConfig(env = process.env): TradingConfig {
     max_quote_age_seconds: parseNumber(env.MOUNTAINVALUE_MAX_QUOTE_AGE_SECONDS, 60),
     max_spread_bps: parseNumber(env.MOUNTAINVALUE_MAX_SPREAD_BPS, 25),
     max_midpoint_deviation_pct: parseNumber(env.MOUNTAINVALUE_MAX_MIDPOINT_DEVIATION_PCT, 0.015),
+    max_strategy_drawdown_pct: parseNumber(env.MOUNTAINVALUE_MAX_STRATEGY_DRAWDOWN_PCT, 0.10),
+    target_portfolio_volatility_pct: parseNumber(env.MOUNTAINVALUE_TARGET_PORTFOLIO_VOLATILITY_PCT, 0.10),
+    execution_retry_interval_minutes: parseNumber(env.MOUNTAINVALUE_EXECUTION_RETRY_INTERVAL_MINUTES, 15),
+    execution_retry_cutoff_hour_et: parseNumber(env.MOUNTAINVALUE_EXECUTION_RETRY_CUTOFF_HOUR_ET, 15.5),
+    defensive_symbol: env.MOUNTAINVALUE_DEFENSIVE_SYMBOL?.trim().toUpperCase() || "BIL",
     order_client_prefix: env.MOUNTAINVALUE_ORDER_CLIENT_PREFIX?.trim() || "mvalue-paper-",
     ledger_path: env.MOUNTAINVALUE_LEDGER_PATH?.trim() || `${homeDirectory()}/.openclaw/mountainvalue/trading.sqlite`,
     timezone: env.MOUNTAINVALUE_TIMEZONE?.trim() || "America/New_York",
@@ -776,9 +881,9 @@ function nextBusinessDay(tradeDate: string, now: Date): string {
   const current = new Date(`${tradeDate}T00:00:00Z`);
   current.setUTCDate(current.getUTCDate() + 1);
   while (true) {
-    const parts = getNewYorkParts(current);
-    if (parts.weekday >= 1 && parts.weekday <= 5) {
-      return `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
+    const weekday = current.getUTCDay();
+    if (weekday >= 1 && weekday <= 5) {
+      return current.toISOString().slice(0, 10);
     }
     current.setUTCDate(current.getUTCDate() + 1);
   }

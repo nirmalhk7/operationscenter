@@ -960,7 +960,9 @@
               | selectattr('name', 'in', [
                 'MountainValue Daily Equity Research',
                 'MountainValue Paper Trading',
-                'MountainValue evaluate buy sell'
+                'MountainValue evaluate buy sell',
+                'MountainValue execute locked signal',
+                'MountainValue lock next-day signal'
               ])
               | map(attribute='id')
               | list
@@ -969,16 +971,16 @@
           tags:
             - openclaw_migrations
 
-        - name: Create MountainValue hourly buy/sell OpenClaw cron
+        - name: Create MountainValue intraday execution OpenClaw cron
           ansible.builtin.command:
             argv:
               - openclaw
               - cron
               - add
               - --name
-              - MountainValue evaluate buy sell
+              - MountainValue execute locked signal
               - --cron
-              - "0 8-13 * * 1-5"
+              - "5,20,35,50 8-13 * * 1-5"
               - --tz
               - America/Denver
               - --agent
@@ -1003,3 +1005,36 @@
                 to 1800000, and maxStdoutBytes to 1048576. Do not choose assets,
                 place orders, or bypass the deterministic MountainValue workflow;
                 the Lobster pipeline decides whether any action is due.
+
+        - name: Create MountainValue next-day signal OpenClaw cron
+          ansible.builtin.command:
+            argv:
+              - openclaw
+              - cron
+              - add
+              - --name
+              - MountainValue lock next-day signal
+              - --cron
+              - "20 14 * * 1-5"
+              - --tz
+              - America/Denver
+              - --agent
+              - victor
+              - --session
+              - isolated
+              - --announce
+              - --channel
+              - discord
+              - --account
+              - victor
+              - --to
+              - "channel:{{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504282224789295134', true) }}"
+              - --timeout
+              - "1800000"
+              - --message
+              - >-
+                Lock MountainValue's next-trading-day signal now. Use the Lobster
+                tool with action "run" and pipeline "/root/.openclaw/mountainvalue.lobster".
+                Set cwd to "..", timeoutMs to 1800000, and maxStdoutBytes to 1048576.
+                Return the daily_report.discord_summary verbatim; do not describe a
+                saved intent as an order unless execution confirms submission.

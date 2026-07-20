@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.5.28",
+    "lastTouchedVersion": "2026.6.1",
     "lastTouchedAt": "2026-07-02T00:00:00.000Z"
   },
   "wizard": {
@@ -85,7 +85,7 @@
         }
       },
       "streaming": {
-        "mode": "progress"
+        "mode": "partial"
       },
       "groupPolicy": "allowlist",
       "guilds": {
@@ -240,7 +240,7 @@
         "isolatedSession": true
       },
       "typingMode": "thinking",
-      "maxConcurrent": 16,
+      "maxConcurrent": 4,
       "subagents": {
         "maxConcurrent": 10,
         "allowAgents": [

@@ -7,6 +7,7 @@ export const MOUNTAINVALUE_WATCHLIST = [
   "XLV",
   "XLE",
   "XLI",
+  "BIL",
 ] as const;
 
 export const MOUNTAINVALUE_TRADABLE_SYMBOLS = [
@@ -17,6 +18,7 @@ export const MOUNTAINVALUE_TRADABLE_SYMBOLS = [
   "XLV",
   "XLE",
   "XLI",
+  "BIL",
 ] as const;
 
 export type WatchlistSymbol = string;
@@ -28,6 +30,8 @@ export type TimeInForce = "day" | "gtc";
 export type StrategySignal = "BUY_CANDIDATE" | "NO_BUY" | "EXIT_POSITION" | "NO_EXIT";
 export type WorkflowStatus = "NO_TRADE" | "ORDER_SUBMITTED" | "ORDER_FILLED" | "EXIT_SUBMITTED" | "BLOCKED" | "SKIPPED" | "ERROR";
 export type AuditKind = "info" | "warn" | "error";
+
+export type ExecutionOutcome = "ORDER_SUBMITTED" | "EXIT_SUBMITTED" | "NO_ORDER" | "BLOCKED";
 
 export interface TradingConfig {
   execution_mode: ExecutionMode;
@@ -46,6 +50,11 @@ export interface TradingConfig {
   max_quote_age_seconds: number;
   max_spread_bps: number;
   max_midpoint_deviation_pct: number;
+  max_strategy_drawdown_pct: number;
+  target_portfolio_volatility_pct: number;
+  execution_retry_interval_minutes: number;
+  execution_retry_cutoff_hour_et: number;
+  defensive_symbol: string;
   order_client_prefix: string;
   ledger_path: string;
   timezone: string;
@@ -69,6 +78,10 @@ export interface TradingState {
   last_watchdog_for: string | null;
   last_cancel_for: string | null;
   last_entry_date: string | null;
+  strategy_high_water_mark_usd: number;
+  entry_retry_for: string | null;
+  entry_retry_after: string | null;
+  entry_retry_attempts: number;
 }
 
 export interface ClockSnapshot {
@@ -152,10 +165,12 @@ export interface IndicatorSet {
   sma_50: number | null;
   sma_200: number | null;
   return_20d: number | null;
+  return_126d: number | null;
   highest_high_20d: number | null;
   atr_14: number | null;
   atr_percent: number | null;
   relative_strength_20d_vs_spy: number | null;
+  relative_strength_126d_vs_spy: number | null;
   above_20d_high_ratio: number | null;
 }
 
@@ -182,6 +197,48 @@ export interface TradeIntent {
   signal?: SignalDecision;
 }
 
+export interface ExecutionRetryState {
+  trade_date: string;
+  symbol: string;
+  attempts: number;
+  retry_after: string | null;
+  cutoff_at: string;
+  reason: string | null;
+}
+
+export interface PerformanceMetrics {
+  cumulative_return: number;
+  cagr: number;
+  annualized_volatility: number;
+  sharpe: number | null;
+  sortino: number | null;
+  max_drawdown: number;
+  turnover: number;
+  win_rate: number | null;
+  average_exposure: number;
+}
+
+export interface BacktestResult {
+  strategy: "baseline" | "dual_momentum";
+  start_date: string;
+  end_date: string;
+  trading_days: number;
+  metrics: PerformanceMetrics;
+  baseline: PerformanceMetrics;
+  benchmark: PerformanceMetrics;
+  selected_strategy: "dual_momentum" | "baseline";
+  walk_forward: {
+    windows: number;
+    dual_momentum_wins: number;
+    passes: boolean;
+  };
+  assumptions: {
+    transaction_cost_bps: number;
+    slippage_bps: number;
+    rebalance_frequency: "daily";
+  };
+}
+
 export interface CycleResult {
   status: WorkflowStatus;
   trade_date: string;
@@ -203,6 +260,8 @@ export interface ReportSummary {
   open_orders: OrderSnapshot[];
   today_intent: TradeIntent | null;
   execution: CycleResult | null;
+  execution_retry: ExecutionRetryState | null;
+  discord_summary: string;
   signals: SignalDecision[];
   skipped_trades: Array<Record<string, unknown>>;
   audit_count: number;
@@ -289,5 +348,9 @@ export function createDefaultState(mode: ExecutionMode): TradingState {
     last_watchdog_for: null,
     last_cancel_for: null,
     last_entry_date: null,
+    strategy_high_water_mark_usd: 100000,
+    entry_retry_for: null,
+    entry_retry_after: null,
+    entry_retry_attempts: 0,
   };
 }

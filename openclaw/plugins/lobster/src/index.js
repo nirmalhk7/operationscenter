@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { closeSync, openSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { Type } from "typebox";
 import { jsonResult } from "openclaw/plugin-sdk/core";
@@ -33,8 +34,77 @@ function normalizeRunParameters(params, toolContext) {
   return { resolvedCwd, resolvedPipeline, timeoutMs, maxStdoutBytes };
 }
 
+function processIsAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error?.code === "EPERM";
+  }
+}
+
+function readLockOwner(lockPath) {
+  try {
+    const pid = Number.parseInt(readFileSync(lockPath, "utf8").trim(), 10);
+    return Number.isInteger(pid) && pid > 0 ? pid : null;
+  } catch {
+    return null;
+  }
+}
+
+function acquireWorkflowLock(lockPath) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const fd = openSync(lockPath, "wx", 0o600);
+      writeFileSync(fd, `${process.pid}\n`);
+      return fd;
+    } catch (error) {
+      if (error?.code !== "EEXIST") {
+        throw error;
+      }
+      const owner = readLockOwner(lockPath);
+      if (owner === null || processIsAlive(owner)) {
+        return null;
+      }
+      try {
+        unlinkSync(lockPath);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+function releaseWorkflowLock(lockPath, fd) {
+  try {
+    closeSync(fd);
+  } finally {
+    try {
+      unlinkSync(lockPath);
+    } catch {
+      // The file may already have been removed as stale after process termination.
+    }
+  }
+}
+
 function runLobsterBinary({ resolvedCwd, resolvedPipeline, timeoutMs, maxStdoutBytes, signal }) {
   return new Promise((resolve) => {
+    const lockPath = path.join(path.dirname(resolvedPipeline), ".mountainvalue-workflow.lock");
+    const lockFd = acquireWorkflowLock(lockPath);
+    if (lockFd === null) {
+      resolve({
+        ok: true,
+        busy: true,
+        resolvedCwd,
+        resolvedPipeline,
+        error: "MountainValue workflow already running; this run was not started.",
+        stdout: "",
+        stderr: ""
+      });
+      return;
+    }
+
     const child = spawn("lobster", ["run", "--mode", "tool", "--file", resolvedPipeline], {
       cwd: resolvedCwd,
       env: process.env,
@@ -53,6 +123,7 @@ function runLobsterBinary({ resolvedCwd, resolvedPipeline, timeoutMs, maxStdoutB
         return;
       }
       settled = true;
+      releaseWorkflowLock(lockPath, lockFd);
       resolve(result);
     };
 
@@ -164,6 +235,15 @@ export default defineToolPlugin({
           });
 
           if (result.ok) {
+            if (result.busy) {
+              return jsonResult({
+                ok: true,
+                status: "SKIPPED",
+                reason: result.error,
+                resolvedCwd: result.resolvedCwd,
+                resolvedPipeline: result.resolvedPipeline
+              });
+            }
             const text = result.stdout.trim();
             if (text) {
               try {

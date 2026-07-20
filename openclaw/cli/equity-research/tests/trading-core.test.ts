@@ -4,11 +4,12 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 
-import { createTradingCoreService, validateConfig, loadTradingConfig } from "../src/agent-turns.js";
-import { asNullableNumber, Bar, createDefaultState, ContractError, PositionSnapshot, TradingConfig } from "../src/contracts.js";
+import { createTradingCoreService, formatDiscordSummary, validateConfig, loadTradingConfig } from "../src/agent-turns.js";
+import { asNullableNumber, BacktestResult, Bar, createDefaultState, ContractError, PositionSnapshot, TradingConfig } from "../src/contracts.js";
 import { ensureLedger, TradingLedger } from "../src/ledger.js";
 import { buildExecutionPlan, computeSignalPlan } from "../src/value-engine.js";
 import { AlpacaClient } from "../src/adapters.js";
+import { runDualMomentumBacktest } from "../src/backtest.js";
 
 function round(value: number): number {
   return Math.round(value * 10_000) / 10_000;
@@ -32,12 +33,27 @@ function makeConfig(overrides: Partial<TradingConfig> = {}): TradingConfig {
     max_quote_age_seconds: 60,
     max_spread_bps: 25,
     max_midpoint_deviation_pct: 0.015,
+    max_strategy_drawdown_pct: 0.10,
+    target_portfolio_volatility_pct: 0.10,
+    execution_retry_interval_minutes: 15,
+    execution_retry_cutoff_hour_et: 15.5,
+    defensive_symbol: "BIL",
     order_client_prefix: "mvalue-paper-",
     ledger_path: join(tmpdir(), `mvalue-${Math.random().toString(36).slice(2)}.sqlite`),
     timezone: "America/New_York",
-    watchlist_symbols: ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"],
-    tradable_symbols: ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"],
+    watchlist_symbols: ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"],
+    tradable_symbols: ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"],
     ...overrides,
+  };
+}
+
+function approvedBacktest(): BacktestResult {
+  const metrics = { cumulative_return: 0.2, cagr: 0.1, annualized_volatility: 0.1, sharpe: 1, sortino: 1, max_drawdown: -0.05, turnover: 1, win_rate: 0.5, average_exposure: 0.8 };
+  return {
+    strategy: "dual_momentum", start_date: "2020-01-01", end_date: "2026-01-01", trading_days: 1000,
+    metrics, baseline: metrics, benchmark: metrics, selected_strategy: "dual_momentum",
+    walk_forward: { windows: 3, dual_momentum_wins: 3, passes: true },
+    assumptions: { transaction_cost_bps: 10, slippage_bps: 10, rebalance_frequency: "daily" },
   };
 }
 
@@ -191,20 +207,41 @@ test("validateConfig rejects non-paper mode and non-IEX feed", () => {
   assert.throws(() => validateConfig({ ...config, alpaca_data_feed: "sip" }), ContractError);
 });
 
-test("signals generate same-day intents during hourly market evaluation", async () => {
-  const nowIso = "2026-07-06T15:00:00.000Z";
+test("signals lock next-business-day intents after the close", async () => {
+  const nowIso = "2026-07-06T21:00:00.000Z";
   const config = makeConfig();
   const { ledger, cleanup } = tempLedger();
   try {
     ledger.writeState(createDefaultState("paper"));
+    ledger.saveSnapshot("backtest", approvedBacktest(), nowIso);
     const broker = makeBrokerMock({ nowIso, dailyBars: universe() });
     const service = createTradingCoreService({ config, ledger, broker, now: () => new Date(nowIso) });
 
     const result = await service.signalsIfDue();
 
     assert.equal(result.generated, true);
-    assert.equal(result.trade_date, "2026-07-06");
-    assert.ok(ledger.hasDailyIntent("2026-07-06"));
+    assert.equal(result.trade_date, "2026-07-07");
+    assert.ok(ledger.hasDailyIntent("2026-07-07"));
+  } finally {
+    cleanup();
+  }
+});
+
+test("signals retain the baseline strategy when the dual-momentum backtest is rejected", async () => {
+  const nowIso = "2026-07-06T21:00:00.000Z";
+  const config = makeConfig();
+  const { ledger, cleanup } = tempLedger();
+  try {
+    ledger.writeState(createDefaultState("paper"));
+    ledger.saveSnapshot("backtest", { ...approvedBacktest(), selected_strategy: "baseline" }, nowIso);
+    const service = createTradingCoreService({ config, ledger, broker: makeBrokerMock({ nowIso, dailyBars: universe() }), now: () => new Date(nowIso) });
+
+    const result = await service.signalsIfDue();
+
+    assert.equal(result.generated, true);
+    const intent = ledger.readDailyIntent<ReturnType<typeof computeSignalPlan>>("2026-07-07");
+    assert.ok(intent);
+    assert.notEqual(intent?.buy_candidate?.symbol, "BIL");
   } finally {
     cleanup();
   }
@@ -263,6 +300,19 @@ test("computeSignalPlan blocks XLK when QQQ is already held and exits weak holdi
   assert.ok(xlk);
   assert.equal(xlk?.checks.qqq_xlk_bucket_ok, false);
   assert.ok(plan.exit_symbols.includes("XLE"));
+});
+
+test("computeSignalPlan selects BIL as the defensive allocation in a risk-off regime", () => {
+  const plan = computeSignalPlan({
+    trade_date: "2026-07-06",
+    generated_at: "2026-07-03T20:30:00.000Z",
+    bars_by_symbol: { ...riskOffUniverse(), BIL: series("BIL", 100, 0.01) },
+    holdings: [],
+    watchlist_symbols: ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"],
+    tradable_symbols: ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"],
+  });
+  assert.equal(plan.market_regime, "RISK_OFF");
+  assert.equal(plan.buy_candidate?.symbol, "BIL");
 });
 
 test("buildExecutionPlan enforces max positions, position sizing, and daily entry limits", () => {
@@ -598,6 +648,22 @@ test("watchdog pauses on missing stops and stale data", async () => {
   }
 });
 
+test("reconciliation pauses new entries after the configured strategy drawdown", async () => {
+  const nowIso = "2026-07-06T14:10:00.000Z";
+  const config = makeConfig({ paper_strategy_capital_usd: 100, max_strategy_drawdown_pct: 0.10 });
+  const { ledger, cleanup } = tempLedger();
+  try {
+    ledger.writeState({ ...createDefaultState("paper"), strategy_high_water_mark_usd: 100, virtual_cash_usd: 100 });
+    const broker = makeBrokerMock({ nowIso, account: { cash: 89, equity: 89, portfolio_value: 89, buying_power: 89, status: "ACTIVE" } });
+    const service = createTradingCoreService({ config, ledger, broker, now: () => new Date(nowIso) });
+    const result = await service.reconcile();
+    assert.equal(result.status, "BLOCKED");
+    assert.match(String(result.reason), /strategy drawdown/u);
+  } finally {
+    cleanup();
+  }
+});
+
 test("requestResume refuses when reconciliation fails", async () => {
   const nowIso = "2026-07-06T14:10:00.000Z";
   const config = makeConfig();
@@ -703,4 +769,41 @@ test("asNullableNumber parses numeric strings returned by broker APIs", () => {
   assert.equal(asNullableNumber("297.69"), 297.69);
   assert.equal(asNullableNumber("invalid"), undefined);
   assert.equal(asNullableNumber(undefined), undefined);
+});
+
+test("dual-momentum backtest reports baseline, benchmark, and a bounded drawdown selection", () => {
+  const bars = { ...universe(), BIL: series("BIL", 100, 0.01) };
+  const result = runDualMomentumBacktest({
+    bars_by_symbol: bars,
+    symbols: ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI"],
+    defensive_symbol: "BIL",
+  });
+  assert.ok(result.trading_days > 0);
+  assert.equal(result.strategy, "dual_momentum");
+  assert.ok(Number.isFinite(result.baseline.cagr));
+  assert.ok(Number.isFinite(result.benchmark.cagr));
+  assert.ok(["dual_momentum", "baseline"].includes(result.selected_strategy));
+});
+
+test("quote-guard skips schedule a bounded retry and Discord summary leads with no order", async () => {
+  const nowIso = "2026-07-06T14:10:00.000Z";
+  const config = makeConfig();
+  const { ledger, cleanup } = tempLedger();
+  try {
+    ledger.writeState(createDefaultState("paper"));
+    const plan = computeSignalPlan({ trade_date: "2026-07-06", generated_at: nowIso, bars_by_symbol: universe(), holdings: [] });
+    ledger.saveDailyIntent("2026-07-06", nowIso, plan);
+    const candidate = String(plan.buy_candidate?.symbol);
+    const prior = plan.buy_candidate?.indicators.previous_close ?? 100;
+    const broker = makeBrokerMock({ nowIso, quotes: { [candidate]: { timestamp: nowIso, bid: prior * 1.03, ask: prior * 1.031 } } });
+    const service = createTradingCoreService({ config, ledger, broker, now: () => new Date(nowIso) });
+    const cycle = await service.cycleIfDue();
+    const report = await service.dailyReport();
+    assert.equal(cycle.status, "SKIPPED");
+    assert.ok(report.execution_retry?.retry_after);
+    assert.match(formatDiscordSummary(report), /^\[PAPER\] NO ORDER/mu);
+    assert.match(report.discord_summary, /retry/mu);
+  } finally {
+    cleanup();
+  }
 });

@@ -39,13 +39,16 @@ export function computeSignalPlan(input: {
   holdings: PositionSnapshot[];
   watchlist_symbols?: string[];
   tradable_symbols?: string[];
+  strategy?: "dual_momentum" | "baseline";
 }): SignalPlan {
+  const strategy = input.strategy ?? "dual_momentum";
   const barsBySymbol = normalizeBars(input.bars_by_symbol);
   const holdings = safeArray(input.holdings);
   const holdingsSymbols = new Set(holdings.map((holding) => holding.symbol.toUpperCase()));
   const spyBars = barsBySymbol.SPY ?? [];
   const spyIndicators = spyBars.length > 0 ? computeIndicators("SPY", spyBars, null) : null;
   const spyReturn20 = spyIndicators?.return_20d ?? null;
+  const spyReturn126 = spyIndicators?.return_126d ?? null;
   const marketRegime = spyIndicators && spyIndicators.sma_200 !== null
     ? spyIndicators.previous_close > spyIndicators.sma_200
       ? "RISK_ON"
@@ -55,7 +58,7 @@ export function computeSignalPlan(input: {
   const decisions: SignalDecision[] = [];
   let noTradeReason: string | null = null;
 
-  if (!spyIndicators || spyReturn20 === null || marketRegime === "UNKNOWN") {
+  if (!spyIndicators || (strategy === "dual_momentum" ? spyReturn126 === null : spyReturn20 === null) || marketRegime === "UNKNOWN") {
     noTradeReason = "Missing SPY bars for regime detection.";
   }
 
@@ -63,16 +66,16 @@ export function computeSignalPlan(input: {
   const tradable = input.tradable_symbols ?? TRADABLE;
 
   for (const symbol of watchlist) {
-    if (symbol === "SPY") {
+    if (symbol === "SPY" || (strategy === "dual_momentum" && symbol === "BIL")) {
       continue;
     }
     const bars = barsBySymbol[symbol] ?? [];
-    if (bars.length < 200 || spyIndicators === null || spyReturn20 === null) {
+    if (bars.length < 200 || spyIndicators === null || (strategy === "dual_momentum" ? spyReturn126 === null : spyReturn20 === null)) {
       decisions.push(blankDecision(symbol, "insufficient data"));
       continue;
     }
-    const indicators = computeIndicators(symbol, bars, spyReturn20);
-    const checks = buildEligibilityChecks(symbol, indicators, holdingsSymbols, marketRegime, tradable);
+    const indicators = computeIndicators(symbol, bars, spyReturn20, spyReturn126);
+    const checks = buildEligibilityChecks(symbol, indicators, holdingsSymbols, marketRegime, tradable, strategy);
     const eligible = Object.values(checks).every((value) => value === true);
     const reason = eligible
       ? "eligible"
@@ -93,26 +96,48 @@ export function computeSignalPlan(input: {
     });
   }
 
+  // BIL is the defensive allocation. It is eligible only when the broad market
+  // is below its 200-day average; it is never ranked against risk assets.
+  if (strategy === "dual_momentum" && watchlist.includes("BIL")) {
+    const bilBars = barsBySymbol.BIL ?? [];
+    if (bilBars.length >= 200 && spyIndicators !== null) {
+      const indicators = computeIndicators("BIL", bilBars, spyReturn20, spyReturn126);
+      const defensive = marketRegime === "RISK_OFF";
+      decisions.push({
+        symbol: "BIL",
+        action: defensive ? "BUY_CANDIDATE" : "NO_BUY",
+        eligible: defensive && !holdingsSymbols.has("BIL"),
+        score: defensive ? 1 : 0,
+        rank: defensive ? 1 : null,
+        reason: defensive ? "Defensive Treasury allocation while SPY is below its 200-day average." : "Risk-on market; defensive allocation not required.",
+        checks: { regime_ok: defensive, symbol_allowed: tradable.includes("BIL"), already_held: !holdingsSymbols.has("BIL") },
+        indicators,
+      });
+    }
+  }
+
   const eligible = decisions.filter((decision) => decision.eligible);
   const ranked = [...eligible]
     .sort((left, right) => {
-      const leftStrength = left.indicators.relative_strength_20d_vs_spy ?? Number.NEGATIVE_INFINITY;
-      const rightStrength = right.indicators.relative_strength_20d_vs_spy ?? Number.NEGATIVE_INFINITY;
+      const leftStrength = strategy === "dual_momentum" ? left.indicators.relative_strength_126d_vs_spy ?? Number.NEGATIVE_INFINITY : left.indicators.relative_strength_20d_vs_spy ?? Number.NEGATIVE_INFINITY;
+      const rightStrength = strategy === "dual_momentum" ? right.indicators.relative_strength_126d_vs_spy ?? Number.NEGATIVE_INFINITY : right.indicators.relative_strength_20d_vs_spy ?? Number.NEGATIVE_INFINITY;
       const leftVol = left.indicators.atr_percent ?? Number.POSITIVE_INFINITY;
       const rightVol = right.indicators.atr_percent ?? Number.POSITIVE_INFINITY;
       return (rightStrength - leftStrength)
         || (leftVol - rightVol)
         || left.symbol.localeCompare(right.symbol);
     })
-    .map((decision, index) => ({ ...decision, rank: index + 1, score: scoreDecision(decision, index + 1) }));
+    .map((decision, index) => ({ ...decision, rank: index + 1, score: scoreDecision(decision, index + 1, strategy) }));
 
   const rankedBySymbol = new Map(ranked.map((decision) => [decision.symbol, decision]));
   const decisionsWithRank = decisions.map((decision) => rankedBySymbol.get(decision.symbol) ?? decision);
   const exitSymbols = holdings
-    .filter((holding) => shouldExitHolding(holding, marketRegime, decisionsWithRank, ranked, input.generated_at))
+    .filter((holding) => shouldExitHolding(holding, marketRegime, decisionsWithRank, ranked, input.generated_at, strategy))
     .map((holding) => holding.symbol.toUpperCase());
 
-  const buyCandidate = ranked.find((decision) => !holdingsSymbols.has(decision.symbol)) ?? null;
+  const buyCandidate = strategy === "dual_momentum" && marketRegime === "RISK_OFF"
+    ? decisions.find((decision) => decision.symbol === "BIL" && decision.eligible) ?? null
+    : ranked.find((decision) => !holdingsSymbols.has(decision.symbol)) ?? null;
   if (!buyCandidate && !noTradeReason) {
     noTradeReason = marketRegime === "RISK_OFF"
       ? "Market regime is risk-off."
@@ -141,6 +166,7 @@ export function buildExecutionPlan(input: {
   max_position_notional_pct: number;
   max_total_invested_pct: number;
   minimum_order_notional_usd: number;
+  target_portfolio_volatility_pct?: number;
 }): ExecutionPlan {
   const skipped: Array<Record<string, unknown>> = [];
   const sell_intents: TradeIntent[] = [];
@@ -192,8 +218,13 @@ export function buildExecutionPlan(input: {
   }
 
   const quotePrice = buyCandidate.indicators.previous_close;
+  const targetVolatility = input.target_portfolio_volatility_pct ?? 0.10;
+  const annualizedVolatility = (buyCandidate.indicators.atr_percent ?? 0.03) * Math.sqrt(252);
+  const volatilityScaledNotional = annualizedVolatility > 0
+    ? input.strategy_equity * Math.min(input.max_position_notional_pct, targetVolatility / annualizedVolatility)
+    : input.strategy_equity * input.max_position_notional_pct;
   const maxNotional = Math.min(
-    input.strategy_equity * input.max_position_notional_pct,
+    volatilityScaledNotional,
     remainingTotal,
     input.cash_available,
   );
@@ -224,7 +255,7 @@ export function buildExecutionPlan(input: {
   };
 }
 
-export function computeIndicators(symbol: string, bars: Bar[], spyReturn20: number | null): IndicatorSet {
+export function computeIndicators(symbol: string, bars: Bar[], spyReturn20: number | null, spyReturn126: number | null = null): IndicatorSet {
   const ordered = [...bars]
     .map(normalizeBar)
     .sort((left, right) => left.t.localeCompare(right.t));
@@ -239,6 +270,8 @@ export function computeIndicators(symbol: string, bars: Bar[], spyReturn20: numb
   const sma200 = sma(closes, 200);
   const close20Ago = closes.length >= 21 ? closes.at(-21) ?? null : null;
   const return20d = close20Ago && close20Ago !== 0 ? round((previousClose - close20Ago) / close20Ago) : null;
+  const close126Ago = closes.length >= 127 ? closes.at(-127) ?? null : null;
+  const return126d = close126Ago && close126Ago !== 0 ? round((previousClose - close126Ago) / close126Ago) : null;
   let highestHigh20d = Number.NEGATIVE_INFINITY;
   for (const value of highs.slice(-20)) {
     highestHigh20d = Math.max(highestHigh20d, value);
@@ -246,6 +279,7 @@ export function computeIndicators(symbol: string, bars: Bar[], spyReturn20: numb
   const atr14 = atr(ordered, 14);
   const atrPercent = atr14 !== null && previousClose !== 0 ? round(atr14 / previousClose) : null;
   const relativeStrength = spyReturn20 !== null && return20d !== null ? round(return20d - spyReturn20) : null;
+  const relativeStrength126 = spyReturn126 !== null && return126d !== null ? round(return126d - spyReturn126) : null;
   return {
     symbol: normalizeSymbol(symbol) as WatchlistSymbol,
     previous_close: previousClose,
@@ -253,10 +287,12 @@ export function computeIndicators(symbol: string, bars: Bar[], spyReturn20: numb
     sma_50: sma50,
     sma_200: sma200,
     return_20d: return20d,
+    return_126d: return126d,
     highest_high_20d: Number.isFinite(highestHigh20d) ? round(highestHigh20d) : null,
     atr_14: atr14,
     atr_percent: atrPercent,
     relative_strength_20d_vs_spy: relativeStrength,
+    relative_strength_126d_vs_spy: relativeStrength126,
     above_20d_high_ratio: Number.isFinite(highestHigh20d) && highestHigh20d !== 0 ? round(previousClose / highestHigh20d) : null,
   };
 }
@@ -267,15 +303,29 @@ function buildEligibilityChecks(
   holdingsSymbols: Set<string>,
   marketRegime: SignalPlan["market_regime"],
   tradableSymbols?: string[],
+  strategy: "dual_momentum" | "baseline" = "dual_momentum",
 ): Record<string, boolean | number | null> {
   const allowed = tradableSymbols ? tradableSymbols.includes(symbol) : isTradableSymbol(symbol);
+  if (strategy === "baseline") {
+    return {
+      regime_ok: marketRegime === "RISK_ON",
+      above_50: indicators.sma_50 !== null ? indicators.previous_close > indicators.sma_50 : false,
+      sma_50_above_200: indicators.sma_50 !== null && indicators.sma_200 !== null ? indicators.sma_50 > indicators.sma_200 : false,
+      near_high: indicators.highest_high_20d !== null ? indicators.previous_close >= indicators.highest_high_20d * 0.98 : false,
+      positive_return: indicators.return_20d !== null ? indicators.return_20d > 0 : false,
+      relative_strength: indicators.relative_strength_20d_vs_spy !== null ? indicators.relative_strength_20d_vs_spy >= 0.02 : false,
+      volatility_cap: indicators.atr_percent !== null ? indicators.atr_percent <= 0.08 : false,
+      symbol_allowed: allowed,
+      already_held: !holdingsSymbols.has(symbol),
+      qqq_xlk_bucket_ok: !(holdingsSymbols.has("QQQ") && symbol === "XLK") && !(holdingsSymbols.has("XLK") && symbol === "QQQ"),
+    };
+  }
   return {
     regime_ok: marketRegime === "RISK_ON",
     above_50: indicators.sma_50 !== null ? indicators.previous_close > indicators.sma_50 : false,
     sma_50_above_200: indicators.sma_50 !== null && indicators.sma_200 !== null ? indicators.sma_50 > indicators.sma_200 : false,
-    near_high: indicators.highest_high_20d !== null ? indicators.previous_close >= indicators.highest_high_20d * 0.98 : false,
-    positive_return: indicators.return_20d !== null ? indicators.return_20d > 0 : false,
-    relative_strength: indicators.relative_strength_20d_vs_spy !== null ? indicators.relative_strength_20d_vs_spy >= 0.02 : false,
+    positive_6_month_return: indicators.return_126d !== null ? indicators.return_126d > 0 : false,
+    relative_strength_6_month: indicators.relative_strength_126d_vs_spy !== null ? indicators.relative_strength_126d_vs_spy > 0 : false,
     volatility_cap: indicators.atr_percent !== null ? indicators.atr_percent <= 0.08 : false,
     symbol_allowed: allowed,
     already_held: !holdingsSymbols.has(symbol),
@@ -299,7 +349,20 @@ function shouldExitHolding(
   decisions: SignalDecision[],
   ranked: SignalDecision[],
   referenceTime: string,
+  strategy: "dual_momentum" | "baseline",
 ): boolean {
+  if (strategy === "baseline") {
+    if (marketRegime === "RISK_OFF") return true;
+    const decision = decisions.find((entry) => entry.symbol === holding.symbol);
+    if (!decision) return false;
+    if (decision.indicators.sma_20 !== null && decision.indicators.previous_close < decision.indicators.sma_20) return true;
+    if (!new Set(ranked.slice(0, 3).map((entry) => entry.symbol)).has(holding.symbol as TradableSymbol)) return true;
+    const entryDate = holding.entry_date ? new Date(`${holding.entry_date}T00:00:00Z`) : null;
+    return Boolean(entryDate && Number.isFinite(new Date(referenceTime).getTime()) && businessDaySpan(entryDate, new Date(referenceTime)) >= 30);
+  }
+  if (holding.symbol === "BIL") {
+    return marketRegime === "RISK_ON";
+  }
   if (marketRegime === "RISK_OFF") {
     return true;
   }
@@ -307,26 +370,20 @@ function shouldExitHolding(
   if (!decision) {
     return false;
   }
-  if (decision.indicators.sma_20 !== null && decision.indicators.previous_close < decision.indicators.sma_20) {
+  if (decision.indicators.sma_50 !== null && decision.indicators.previous_close < decision.indicators.sma_50) {
     return true;
   }
-  const topThree = new Set(ranked.slice(0, 3).map((entry) => entry.symbol));
-  if (!topThree.has(holding.symbol as TradableSymbol)) {
+  const topTwo = new Set(ranked.slice(0, 2).map((entry) => entry.symbol));
+  if (!topTwo.has(holding.symbol as TradableSymbol)) {
     return true;
   }
   const entryDate = holding.entry_date ? new Date(`${holding.entry_date}T00:00:00Z`) : null;
   const nowDate = new Date(referenceTime);
-  if (entryDate && Number.isFinite(nowDate.getTime())) {
-    const ageDays = businessDaySpan(entryDate, nowDate);
-    if (ageDays >= 30) {
-      return true;
-    }
-  }
   return false;
 }
 
-function scoreDecision(decision: SignalDecision, rank: number): number {
-  const strength = decision.indicators.relative_strength_20d_vs_spy ?? 0;
+function scoreDecision(decision: SignalDecision, rank: number, strategy: "dual_momentum" | "baseline" = "dual_momentum"): number {
+  const strength = strategy === "dual_momentum" ? decision.indicators.relative_strength_126d_vs_spy ?? 0 : decision.indicators.relative_strength_20d_vs_spy ?? 0;
   const volPenalty = decision.indicators.atr_percent ?? 1;
   return round((strength * 100) - (volPenalty * 10) - rank / 100);
 }
@@ -435,10 +492,12 @@ function blankDecision(symbol: WatchlistSymbol, reason: string): SignalDecision 
       sma_50: null,
       sma_200: null,
       return_20d: null,
+      return_126d: null,
       highest_high_20d: null,
       atr_14: null,
       atr_percent: null,
       relative_strength_20d_vs_spy: null,
+      relative_strength_126d_vs_spy: null,
       above_20d_high_ratio: null,
     },
   };

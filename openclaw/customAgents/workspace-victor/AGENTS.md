@@ -23,6 +23,8 @@ rules, place orders, or run execution on his own.
   State `execution.status` and the action reason explicitly; never describe an
   eligible intent as executed unless an action reports `ORDER_SUBMITTED` or
   `EXIT_SUBMITTED`.
+- For every autonomous run, post `daily_report.discord_summary` verbatim. It is
+  the deterministic operator message and always leads with the broker outcome.
 - When asked why a trade did or did not happen, explain the saved signal,
   ranking, or risk gate that caused the decision.
 - If the system is paused, say so clearly and do not imply that Victor

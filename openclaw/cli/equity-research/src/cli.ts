@@ -4,7 +4,6 @@ import { createAlpacaClient } from "./adapters.js";
 import { ContractError, assertRecord, assertString } from "./contracts.js";
 import { TradingLedger, ensureLedger } from "./ledger.js";
 import { createTradingCoreService, loadTradingConfig, validateConfig } from "./agent-turns.js";
-import { observeLangfuse, shutdownLangfuse } from "./langfuse.js";
 
 interface ParsedArgs {
   command: string;
@@ -14,26 +13,18 @@ interface ParsedArgs {
 
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
+  let ledger: TradingLedger | undefined;
   try {
-    const output = await observeLangfuse(
-      "mountainvalue-cli",
-      {
-        command: args.command,
-        options: Object.fromEntries(args.options.entries()),
-        positionals: args.positionals,
-      },
-      async () => {
-        if (args.command === "validate-contract") {
-          return validateContract(args.positionals[0], await readRequiredStdinPayload());
-        }
-        const config = loadTradingConfig();
-        validateConfig(config);
-        const ledger = ensureLedger(config.ledger_path, config.execution_mode);
-        const broker = createAlpacaClient(config);
-        const service = createTradingCoreService({ config, ledger, broker });
-        return await commandOutput(service, args);
-      },
-    );
+    const output = args.command === "validate-contract"
+      ? validateContract(args.positionals[0], await readRequiredStdinPayload())
+      : await (async () => {
+          const config = loadTradingConfig();
+          validateConfig(config);
+          ledger = ensureLedger(config.ledger_path, config.execution_mode);
+          const broker = createAlpacaClient(config);
+          const service = createTradingCoreService({ config, ledger, broker });
+          return await commandOutput(service, args);
+        })();
     process.stdout.write(`${JSON.stringify(output)}\n`);
     return 0;
   } catch (error) {
@@ -43,7 +34,7 @@ async function main(): Promise<number> {
     }
     throw error;
   } finally {
-    await shutdownLangfuse();
+    ledger?.close();
   }
 }
 
@@ -65,6 +56,8 @@ async function commandOutput(service: ReturnType<typeof createTradingCoreService
       return await service.dailyReport();
     case "status":
       return await service.status();
+    case "backtest":
+      return await service.backtest();
     case "pause":
       return service.pause(option(args, "reason") ?? args.positionals.join(" ") ?? "manual pause");
     case "request-resume":
@@ -161,7 +154,7 @@ function validateContract(contract: string | undefined, document: unknown): unkn
 
 function usage(command: string): string {
   const suffix = command ? `unknown command ${command}` : "command required";
-  return `${suffix}; use preflight, reconcile, watchdog, signals-if-due, cycle-if-due, cancel-stale-entries-if-due, daily-report, status, pause, request-resume, audit-log, or validate-contract`;
+  return `${suffix}; use preflight, reconcile, watchdog, signals-if-due, cycle-if-due, cancel-stale-entries-if-due, daily-report, status, backtest, pause, request-resume, audit-log, or validate-contract`;
 }
 
 main().then((code) => {
