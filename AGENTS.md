@@ -211,6 +211,7 @@ Changing Traefik requires both Git (Flux) and, on first migration, Ansible on th
 ### Shared NFS storage
 
 - `vm-mgdnfs1.ansible.yaml` exports `/mnt/2tbhdd`. Apps use static NFS PVs pointing at subdirs (`nextcloud`, `immich`, `gitea`, …).
+- **Use NFS (`milano-v3`) only for user-valuable, irreplaceable data** such as files, images, or source code. Application caches, runtime state, and other recreatable app data must use node-local `milano-v2`; Appwrite is an explicit `milano-v2` workload.
 - PVCs are namespace-scoped — no cross-namespace PVC mounts.
 - Immich and Gitea NFS roots are **application-owned**; do not expose via Nextcloud external storage without explicit authorization review.
 - Read-only cross-mounts prevent writes but not source-app ACL semantics.
