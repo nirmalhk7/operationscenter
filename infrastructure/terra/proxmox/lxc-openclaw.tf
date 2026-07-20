@@ -73,6 +73,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-openclaw.vm_id
 
+  # ALLOWED FROM ANY TO OpenClaw
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -83,6 +84,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM k8mgd TO OpenClaw
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -94,6 +96,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM private Nginx TO OpenClaw
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -105,6 +108,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM k8mgd TO OpenClaw
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -116,6 +120,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO k8mgd
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -127,6 +132,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO ANY
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -137,6 +143,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # BLOCKED FROM OpenClaw TO RFC1918 10/8
   rule {
     action  = "DROP"
     type    = "out"
@@ -147,6 +154,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # BLOCKED FROM OpenClaw TO RFC1918 172.16/12
   rule {
     action  = "DROP"
     type    = "out"
@@ -157,6 +165,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # BLOCKED FROM OpenClaw TO RFC1918 192.168/16
   rule {
     action  = "DROP"
     type    = "out"
@@ -167,6 +176,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # BLOCKED FROM OpenClaw TO CGNAT and Tailscale range
   rule {
     action  = "DROP"
     type    = "out"
@@ -177,6 +187,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO public internet
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -187,6 +198,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO public internet
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -197,6 +209,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO public internet
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -207,6 +220,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO public internet
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -217,6 +231,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO public internet
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -227,6 +242,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO public internet
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -237,6 +253,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO public internet
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -247,6 +264,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM OpenClaw TO public internet
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -257,6 +275,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM k8mgd TO OpenClaw
   rule {
     action  = "ACCEPT"
     type    = "in"

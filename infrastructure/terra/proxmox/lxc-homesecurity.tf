@@ -72,6 +72,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-homesecurity-sg" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-homesecurity.vm_id
 
+  # ALLOWED FROM managed security group TO homesecurity
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Managed Group Rules"
@@ -79,50 +80,19 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-homesecurity-sg" {
     enabled        = true
   }
 
+  # ALLOWED FROM k8mgd TO homesecurity
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
-    dport   = "9115"
+    dport   = "9115,9427,9798,9919"
     source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow Prometheus to scrape blackbox_exporter"
+    comment = "Allow Prometheus to scrape application exporters"
     iface   = "net0"
     enabled = true
   }
 
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "9427"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow Prometheus to scrape network_exporter"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "9798"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow Prometheus to scrape speedtest_exporter"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "9919"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow Prometheus to scrape openport_exporter"
-    iface   = "net0"
-    enabled = true
-  }
-
+  # ALLOWED FROM private Nginx TO homesecurity
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -134,24 +104,14 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-homesecurity-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM k8mgd TO homesecurity
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
-    dport   = "2375"
+    dport   = "2375,8080"
     source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow Homepage Docker discovery from k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "8080"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow Prometheus to scrape cAdvisor"
+    comment = "Allow Homepage Docker discovery and Prometheus cAdvisor scrape"
     iface   = "net0"
     enabled = true
   }

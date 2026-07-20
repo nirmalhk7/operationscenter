@@ -2,6 +2,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
   name    = "sg-dev"
   comment = "Dev"
 
+  # ALLOWED FROM ANY TO dev resources
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -11,6 +12,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     enabled = true
   }
 
+  # ALLOWED FROM ANY TO dev IP set
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -19,6 +21,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     enabled = true
   }
 
+  # ALLOWED FROM dev resources TO ANY
   rule {
     action  = "ACCEPT"
     type    = "out"
@@ -28,33 +31,17 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     enabled = true
   }
 
+  # ALLOWED FROM dev resources TO ANY
   rule {
     action  = "ACCEPT"
     type    = "out"
-    comment = "Allow outbound DNS over TCP"
     proto   = "tcp"
-    dport   = "53"
+    dport   = "53,80,443"
+    comment = "Allow outbound DNS, HTTP, and HTTPS over TCP"
     enabled = true
   }
 
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    comment = "Allow outbound HTTP"
-    proto   = "tcp"
-    dport   = "80"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    comment = "Allow outbound HTTPS"
-    proto   = "tcp"
-    dport   = "443"
-    enabled = true
-  }
-
+  # BLOCKED FROM dev IP set TO managed IP set
   rule {
     action  = "DROP"
     type    = "out"
@@ -65,6 +52,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-dev" 
     enabled = true
   }
 
+  # ALLOWED FROM dev resources TO ANY
   rule {
     enabled = true
     action  = "ACCEPT"

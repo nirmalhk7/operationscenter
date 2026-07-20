@@ -66,6 +66,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-nginx.vm_id
 
+  # ALLOWED FROM managed security group TO private Nginx
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Managed Group Rules"
@@ -73,82 +74,24 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
     enabled        = true
   }
 
+  # ALLOWED FROM ANY TO private Nginx
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
-    dport   = "80"
-    comment = "Allow HTTP ingress"
+    dport   = "80,443,2222,6901,3306,5432,27017"
+    comment = "Allow HTTP(S), Gitea, game, and database TCP proxy ingress"
     iface   = "net0"
     enabled = true
   }
 
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "443"
-    comment = "Allow HTTPS ingress"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "2222"
-    comment = "Allow Gitea SSH ingress"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "6901"
-    comment = "Allow Minecraft Java stream proxy ingress"
-    iface   = "net0"
-    enabled = true
-  }
-
+  # ALLOWED FROM ANY TO private Nginx
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "udp"
     dport   = "6901"
     comment = "Allow Minecraft Bedrock stream proxy ingress"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "3306"
-    comment = "Allow MariaDB stream proxy ingress"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "5432"
-    comment = "Allow PostgreSQL stream proxy ingress"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "27017"
-    comment = "Allow MongoDB stream proxy ingress"
     iface   = "net0"
     enabled = true
   }

@@ -32,6 +32,7 @@ resource "proxmox_virtual_environment_time" "milano" {
 resource "proxmox_virtual_environment_firewall_rules" "inbound" {
   node_name = local.nodeName
 
+  # ALLOWED FROM trusted LAN TO Proxmox node
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -40,6 +41,7 @@ resource "proxmox_virtual_environment_firewall_rules" "inbound" {
     enabled = true
   }
 
+  # ALLOWED FROM internal bridge TO Proxmox node
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -48,6 +50,7 @@ resource "proxmox_virtual_environment_firewall_rules" "inbound" {
     enabled = true
   }
 
+  # ALLOWED FROM Tailscale clients TO Proxmox node
   rule {
     action  = "ACCEPT"
     type    = "in"

@@ -67,6 +67,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-proxbridge-sg" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-proxbridge.vm_id
 
+  # ALLOWED FROM managed security group TO proxbridge
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Managed Group Rules"

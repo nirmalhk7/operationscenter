@@ -101,6 +101,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_vm.vm-mgdnfs1.vm_id
 
+  # ALLOWED FROM managed security group TO mgdnfs1
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Managed Group Rules"
@@ -108,28 +109,19 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
     enabled        = true
   }
 
+  # ALLOWED FROM k8mgd TO mgdnfs1
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
-    dport   = "2049"
+    dport   = "111,2049"
     source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow NFS ingress"
+    comment = "Allow NFS and RPC bind TCP ingress"
     iface   = "net0"
     enabled = true
   }
 
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "111"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow RPC bind TCP ingress"
-    iface   = "net0"
-    enabled = true
-  }
-
+  # ALLOWED FROM k8mgd TO mgdnfs1
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -141,6 +133,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdnfs1-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM k8mgd TO mgdnfs1
   rule {
     action  = "ACCEPT"
     type    = "in"

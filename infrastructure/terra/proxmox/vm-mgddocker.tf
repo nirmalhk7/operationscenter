@@ -83,6 +83,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_vm.vm-k8docker.vm_id
 
+  # ALLOWED FROM managed security group TO k8docker
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Managed Group Rules"
@@ -90,90 +91,26 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
     enabled        = true
   }
 
+  # ALLOWED FROM private Nginx and k8mgd TO k8docker
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
-    dport   = "3306"
-    source  = local.proxmoxMachines.nginx.ip
-    comment = "Allow MariaDB from nginx stream proxy"
+    dport   = "3306,5432,27017"
+    source  = "${local.proxmoxMachines.nginx.ip},${local.proxmoxMachines.k8mgd.ip}"
+    comment = "Allow database traffic from private Nginx and k8mgd"
     iface   = "net0"
     enabled = true
   }
 
+  # ALLOWED FROM k8mgd TO k8docker
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
-    dport   = "5432"
-    source  = local.proxmoxMachines.nginx.ip
-    comment = "Allow PostgreSQL from nginx stream proxy"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "27017"
-    source  = local.proxmoxMachines.nginx.ip
-    comment = "Allow MongoDB from nginx stream proxy"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "3306"
+    dport   = "2375,8080"
     source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow MariaDB from k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "5432"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow PostgreSQL from k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "27017"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow MongoDB from k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "2375"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow Homepage Docker discovery from k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "8080"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow Prometheus to scrape cAdvisor"
+    comment = "Allow Homepage Docker discovery and Prometheus cAdvisor scrape"
     iface   = "net0"
     enabled = true
   }

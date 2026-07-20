@@ -82,6 +82,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
 
+  # ALLOWED FROM managed security group TO k8mgd
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
     comment        = "Managed Group Rules"
@@ -89,6 +90,7 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     enabled        = true
   }
 
+  # ALLOWED FROM ANY TO k8mgd
   rule {
     action  = "ACCEPT"
     type    = "in"
@@ -99,61 +101,31 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     enabled = true
   }
 
+  # ALLOWED FROM private Nginx TO k8mgd
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
-    dport   = "443"
+    dport   = "443,31216,32222,30901"
     source  = local.proxmoxMachines.nginx.ip
-    comment = "Allow Nginx to reach k8mgd for wildcard trusted subdomains"
+    comment = "Allow private Nginx to reach HTTPS, Homepage, Gitea, and Minecraft Java"
     iface   = "net0"
     enabled = true
   }
 
+  # ALLOWED FROM live Nginx TO k8mgd
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
     dport   = "8443"
-    source  = local.proxmoxMachines.nginx.ip
-    comment = "Allow Nginx tunnel origin to reach Traefik livepublic on k8mgd"
+    source  = local.proxmoxMachines.live_nginx.ip
+    comment = "Allow dedicated live Nginx to reach Traefik livepublic on k8mgd"
     iface   = "net0"
     enabled = true
   }
 
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "31216"
-    source  = local.proxmoxMachines.nginx.ip
-    comment = "Allow Nginx to reach local Homepage on k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "32222"
-    source  = local.proxmoxMachines.nginx.ip
-    comment = "Allow Nginx to reach Gitea SSH on k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "30901"
-    source  = local.proxmoxMachines.nginx.ip
-    comment = "Allow Nginx to reach Minecraft Java stream on k8mgd"
-    iface   = "net0"
-    enabled = true
-  }
-
+  # ALLOWED FROM private Nginx TO k8mgd
   rule {
     action  = "ACCEPT"
     type    = "in"
