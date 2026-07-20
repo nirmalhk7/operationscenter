@@ -55,6 +55,11 @@ locals {
       ip    = "${local.machineSubnet}101"
       cidr  = "${local.machineSubnet}101/${local.machinePrefix}"
     }
+    live_nginx = {
+      vm_id = 108
+      ip    = "${local.machineSubnet}108"
+      cidr  = "${local.machineSubnet}108/${local.machinePrefix}"
+    }
     proxbridge = {
       vm_id = 102
       ip    = "${local.machineSubnet}102"

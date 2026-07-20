@@ -9,6 +9,7 @@ HOST_IP="${HOST_IP:?}"
 INT_SUBNET="${INT_SUBNET:?}"
 
 NGINX_IP="${NGINX_IP:?}"
+LIVE_NGINX_IP="${LIVE_NGINX_IP:?}"
 K8S_IP="${K8S_IP:?}"
 VPN_IP="${VPN_IP:?}"
 
@@ -48,6 +49,21 @@ iptables -A FORWARD -i "$LAN_IFACE" -j ACCEPT
 iptables -A FORWARD -o "$LAN_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -i "$LAN_IFACE" -o "$WAN_IFACE" -j ACCEPT
 iptables -A FORWARD -i "$LAN_IFACE" -o "$VPN_IFACE" -j ACCEPT
+
+# The dedicated public ingress may reach only the live Traefik entrypoint on
+# the internal bridge. These rules must precede the host's public port-forward
+# ACCEPT rules below, which otherwise bypass the guest firewall for same-bridge
+# traffic.
+iptables -I FORWARD 1 -s "$LIVE_NGINX_IP" -d "$K8S_IP" -p tcp --dport 8443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+# Preserve replies to Prometheus scraper ephemeral ports before the broad
+# private-network deny rules below.
+iptables -I FORWARD 2 -s "$LIVE_NGINX_IP" -d "$K8S_IP" -p tcp --dport 1024:65535 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -I FORWARD 3 -s "$LIVE_NGINX_IP" -d "$INT_SUBNET" -j DROP
+iptables -I FORWARD 4 -s "$LIVE_NGINX_IP" -d 10.0.0.0/8 -j DROP
+iptables -I FORWARD 5 -s "$LIVE_NGINX_IP" -d 192.168.0.0/16 -j DROP
+iptables -I FORWARD 6 -s "$LIVE_NGINX_IP" -d 169.254.0.0/16 -j DROP
+iptables -I FORWARD 7 -s "$LIVE_NGINX_IP" -d 100.64.0.0/10 -j DROP
+iptables -I FORWARD 8 -s "$K8S_IP" -d "$LIVE_NGINX_IP" -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # D. Allow ICMP
 iptables -A INPUT -i "$LAN_IFACE" -p icmp -j ACCEPT

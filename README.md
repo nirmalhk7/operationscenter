@@ -12,7 +12,7 @@ The system is built on **Proxmox Virtual Environment (PVE)** and follows an **In
 2. **Provisioning**: **Terraform** (`infrastructure/terra/`) manages LXCs and VM resources via the Proxmox provider.
 3. **Configuration**: **Ansible** (`infrastructure/ansible/`) handles post-provisioning setup for Docker, Kubernetes nodes, NFS, and Nginx.
 4. **Container Orchestration**: **Kubernetes (K3s/K8s)** managed via **FluxCD** (GitOps) in `clusters/managed/`.
-5. **Ingress & Networking**: A dedicated **Nginx LXC** (`nginx/`) acts as the primary reverse proxy and entry point for all internal and external services.
+5. **Ingress & Networking**: A private Nginx LXC (`172.16.0.101`) serves VPN/internal services, while a smaller dedicated live-Nginx LXC (`172.16.0.108`) handles the Cloudflare Tunnel entry for public Appwrite traffic.
 6. **Secrets Management**: **Sealed Secrets** (`kubeseal`) allows encrypted secrets to be safely stored in Git.
 
 
@@ -21,7 +21,8 @@ The system is built on **Proxmox Virtual Environment (PVE)** and follows an **In
 graph TD
     subgraph Proxmox["Proxmox"]
         subgraph ManagedTier["Managed Tier"]
-            NginxLXC["Nginx LXC"]
+            NginxLXC["Private Nginx LXC<br/>172.16.0.101"]
+            LiveNginxLXC["Live Nginx LXC<br/>172.16.0.108"]
             DockerVM["Docker VM"]
             K8VM["K8 VM"]
             OpenclawLXC["Openclaw LXC"]
@@ -33,6 +34,7 @@ graph TD
     LocalTraffic["Local Traffic"] -->|"80/443"| NginxLXC
     VPNTraffic["VPN Traffic"] -->|"80/443/6443"| Tailscale
     Tailscale -->|"80/443"| NginxLXC
+    LiveNginxLXC -->|"Cloudflare Tunnel"| K8VM
     NginxLXC -->|"docker.trusted"| DockerVM
     NginxLXC -->|"*.trusted"| K8VM
     NginxLXC -->|"robot.trusted"| OpenclawLXC
@@ -47,7 +49,8 @@ graph TD
 - `/clusters/`: Kubernetes manifests organized by tier (`managed`, `dev`, `live`).
 - `/infrastructure/terra/`: Terraform configurations for provisioning hardware resources.
 - `/infrastructure/ansible/`: Ansible playbooks, roles, and inventory (`inventory.ini`).
-- `/nginx/`: Configuration files for the Nginx LXC proxy.
+- `/nginx/`: Configuration files for the private Nginx LXC proxy.
+- `/nginx-live/`: Minimal public Appwrite gateway configuration for the dedicated live-Nginx LXC.
 - `/charts/`: Custom Helm charts for services.
 - `/Makefile`: Central hub for operational tasks (encryption, backup, applying infra).
 - [`TAILSCALE.md`](TAILSCALE.md): Authorized operator guide for joining the tailnet and reaching private services.

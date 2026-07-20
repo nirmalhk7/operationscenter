@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: appwrite-redis-auth
+  namespace: live-devbench
+type: Opaque
+# The Helm chart always wires this key into Appwrite pods. It must remain
+# present when Redis auth is disabled, but intentionally contains no secret.
+data:
+  redis-password: ""

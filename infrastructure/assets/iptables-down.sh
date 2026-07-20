@@ -9,6 +9,7 @@ HOST_IP="${HOST_IP:?}"
 INT_SUBNET="${INT_SUBNET:?}"
 
 NGINX_IP="${NGINX_IP:?}"
+LIVE_NGINX_IP="${LIVE_NGINX_IP:?}"
 K8S_IP="${K8S_IP:?}"
 VPN_IP="${VPN_IP:?}"
 NFS_IP="${NFS_IP:?}"
@@ -26,6 +27,14 @@ iptables -t nat -D POSTROUTING -o "$VPN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
 iptables -t nat -D POSTROUTING -o "$WAN_IFACE" -s "$INT_SUBNET" -j MASQUERADE
 
 # 2. Remove Forwarding
+iptables -D FORWARD -s "$K8S_IP" -d "$LIVE_NGINX_IP" -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
+iptables -D FORWARD -s "$LIVE_NGINX_IP" -d 100.64.0.0/10 -j DROP 2>/dev/null
+iptables -D FORWARD -s "$LIVE_NGINX_IP" -d 169.254.0.0/16 -j DROP 2>/dev/null
+iptables -D FORWARD -s "$LIVE_NGINX_IP" -d 192.168.0.0/16 -j DROP 2>/dev/null
+iptables -D FORWARD -s "$LIVE_NGINX_IP" -d 10.0.0.0/8 -j DROP 2>/dev/null
+iptables -D FORWARD -s "$LIVE_NGINX_IP" -d "$INT_SUBNET" -j DROP 2>/dev/null
+iptables -D FORWARD -s "$LIVE_NGINX_IP" -d "$K8S_IP" -p tcp --dport 1024:65535 -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
+iptables -D FORWARD -s "$LIVE_NGINX_IP" -d "$K8S_IP" -p tcp --dport 8443 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
 iptables -D FORWARD -i "$LAN_IFACE" -j ACCEPT
 iptables -D FORWARD -o "$LAN_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -D FORWARD -i "$LAN_IFACE" -o "$WAN_IFACE" -j ACCEPT

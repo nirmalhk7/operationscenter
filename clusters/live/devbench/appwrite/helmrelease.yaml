@@ -29,10 +29,15 @@ spec:
       domain: dev.nirmalhk7.com
       existingSecret: appwrite-env
       existingSecretOpenSslKey: _APP_OPENSSL_KEY_V1
-      usageStats: enabled
+      # Disable Appwrite's internal usage dashboard and its aggregation work.
+      usageStats: disabled
       storage:
         limit: "30000000"
       extraEnv:
+        # The Appwrite default is six API/realtime workers per available core.
+        # This node is CPU-constrained, so keep a smaller process pool.
+        - name: _APP_WORKER_PER_CORE
+          value: "2"
         - name: _APP_OPTIONS_FORCE_HTTPS
           value: enabled
         - name: _APP_OPTIONS_ROUTER_FORCE_HTTPS
@@ -78,7 +83,7 @@ spec:
       statsResources:
         enabled: false
       statsUsage:
-        enabled: true
+        enabled: false
     schedulers:
       executions:
         enabled: true
@@ -86,8 +91,13 @@ spec:
         enabled: false
       messages:
         enabled: true
+    tasks:
+      statsResources:
+        enabled: false
     persistence:
       enabled: true
+      # Existing Appwrite PVCs are bound to milano-v3; storageClass is
+      # immutable after binding and must not be changed in-place.
       storageClass: milano-v3
       uploads:
         size: 10Gi
@@ -121,7 +131,10 @@ spec:
       metrics:
         enabled: false
       auth:
-        enabled: true
+        # Appwrite 1.9.0's queue adapter does not authenticate its Redis
+        # connections. Disable requirepass to prevent an unauthenticated
+        # BRPOP retry loop while this instance has no users.
+        enabled: false
       standalone:
         persistence:
           enabled: true

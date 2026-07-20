@@ -55,12 +55,13 @@ Feature-local READMEs explain operator procedures; **`AGENTS.md` holds cross-cut
 | `clusters/dev/`, `clusters/live/` | Other tiers (lower priority than `managed`) |
 | `infrastructure/terra/` | Terraform — Proxmox, Discord, etc. |
 | `infrastructure/ansible/` | Inventory, vars, roles, `*.ansible.yaml` playbooks |
-| `nginx/` | Reverse-proxy source of truth (`make nginx-build` syncs to Nginx LXC) |
+| `nginx/` | Private/VPN reverse-proxy source of truth for CT 101 |
+| `nginx-live/` | Dedicated public Appwrite gateway source of truth for CT 108 |
 | `charts/` | Local Helm charts referenced by Flux `HelmRelease` |
 | `renovate.json` | Automated dependency updates (Flux, Kubernetes, Ansible versions) |
 | `Makefile` | Operational entry points — treat as privileged |
 
-**Traffic path (managed apps):** Client → Nginx LXC (`172.16.0.101`) → K8s node Traefik (`172.16.0.105:443`) → Traefik `IngressRoute` → Service.
+**Traffic paths:** private/VPN services use the shared Nginx LXC (`172.16.0.101`) → K8s node Traefik (`172.16.0.105:443`); the public Appwrite path uses Cloudflare Tunnel → dedicated live-Nginx LXC (`172.16.0.108`) → Traefik `livepublic` (`172.16.0.105:8443`) → Appwrite.
 
 ---
 

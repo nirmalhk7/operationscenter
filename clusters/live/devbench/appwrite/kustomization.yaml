@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - secret.yaml
+  - redis-auth.yaml
   - helmrelease.yaml
   - middleware.yaml
   - ingressroute.yaml

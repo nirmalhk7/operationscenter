@@ -193,8 +193,8 @@
                   bridge-ports none
                   bridge-stp off
                   bridge-fd 0
-                  post-up HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-up.sh
-                  post-down HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-down.sh
+                  post-up HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} LIVE_NGINX_IP={{ live_nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-up.sh
+                  post-down HOST_IP={{ host_ip }} INT_SUBNET={{ int_subnet }} NGINX_IP={{ nginx_ip }} LIVE_NGINX_IP={{ live_nginx_ip }} K8S_IP={{ k8s_ip }} NFS_IP={{ nfs_ip }} VPN_IP={{ vpn_ip }} WAN_IFACE={{ wan_iface }} LAN_IFACE={{ lan_iface }} VPN_IFACE={{ vpn_iface }} {{ homelab_path }}/networking/iptables-down.sh
           register: managed_network_interfaces
 
         - name: Reload network configuration

@@ -9,6 +9,7 @@
 - import_playbook: playbooks/nfs.ansible.yaml
 - import_playbook: playbooks/docker-db.ansible.yaml
 - import_playbook: playbooks/nginx.ansible.yaml
+- import_playbook: playbooks/live-nginx.ansible.yaml
 - import_playbook: playbooks/proxbridge.ansible.yaml
 - import_playbook: playbooks/homesecurity.ansible.yaml
 - import_playbook: playbooks/k3s-managed.ansible.yaml

@@ -12,7 +12,8 @@ flowchart LR
   VPN[(VPN 100.87.0.43)]
   DNS[(DNS resolvers)]
   Internet[(Internet)]
-  Nginx["nginx<br/>172.16.0.101"]
+  Nginx["private nginx<br/>172.16.0.101"]
+  LiveNginx["live-nginx<br/>172.16.0.108"]
   K8s["k8mgd<br/>172.16.0.105"]
   OpenClaw["OpenClaw<br/>172.16.0.104"]
   ProxmoxUI["Proxmox UI<br/>172.16.0.1:8006"]
@@ -23,6 +24,7 @@ flowchart LR
   Local -->|direct Proxmox UI 8006| ProxmoxUI
   Local -->|trusted web entry 80/443| Nginx
   VPN -->|trusted web entry 443| Nginx
+  LiveNginx -->|livepublic 8443| K8s
 
   Nginx -->|mgd.conf: HTTPS 443| K8s
   Nginx -->|proxmox.conf: HTTPS 8006| ProxmoxUI
@@ -57,8 +59,14 @@ flowchart LR
 - Inbound: allow SSH on `22/tcp` through `sg-managed`.
 - Inbound: allow public proxy ports `80/tcp`, `443/tcp`, robot stream proxy `6901/tcp`, and database stream proxy `3306/tcp`, `5432/tcp`, `27017/tcp`.
 - Nginx network device has `firewall = true` so its guest firewall rules are enforced.
-- Outbound policy remains `ACCEPT`; this preserves certbot DNS-01 renewal, package repository access, and GitHub downloads used by the Nginx Ansible workflow.
+- Outbound policy remains `ACCEPT`; this preserves certbot DNS-01 renewal, package repository access, and GitHub downloads used by the private Nginx Ansible workflow.
 - Runtime proxy traffic goes to private backends: `172.16.0.105:443`, `172.16.0.105:31216`, `172.16.0.106:3306`, `172.16.0.106:5432`, `172.16.0.106:27017`, `172.16.0.1:8006`, and `172.16.0.104:18789`.
+
+### `lxc-live-nginx`
+- CT 108 at `172.16.0.108` is a smaller dedicated public Appwrite ingress LXC.
+- It runs only `cloudflared`, a loopback-only Nginx listener, and the Nginx Prometheus exporter.
+- Inbound access is limited to Proxmox bridge SSH and the k8mgd metrics scrape.
+- Outbound policy is `DROP`: only `172.16.0.105:8443`, public HTTP/HTTPS, Cloudflare Tunnel `7844/tcp+udp`, DNS, and NTP are allowed. RFC1918, link-local, and CGNAT/Tailscale destinations are explicitly dropped.
 
 ### `sg-dev`
 - Inbound: allow SSH on `22/tcp`.
