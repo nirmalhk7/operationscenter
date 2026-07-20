@@ -31,15 +31,12 @@ docker_compose_plugin_version: "5.1.1-1~debian.13~trixie"
 # renovate: datasource=deb depName=containerd.io versioning=loose registryUrl=https://download.docker.com/linux/debian?suite=bookworm&components=stable&binaryArch=amd64
 containerd_version: "2.2.2-1~debian.13~trixie"
 
-# renovate: datasource=docker depName=clickhouse/clickhouse-server versioning=docker
-clickhouse_server_version: "25.2.1"
-
 # renovate: datasource=docker depName=tecnativa/docker-socket-proxy versioning=docker
 docker_socket_proxy_version: "v0.4.2"
 docker_socket_proxy_image: "tecnativa/docker-socket-proxy:{{ docker_socket_proxy_version }}"
 
 # renovate: datasource=npm depName=openclaw
-openclaw_version: "2026.5.28"
+openclaw_version: "2026.6.1"
 
 # renovate: datasource=npm depName=@clawdbot/lobster
 lobster_version: "2026.6.11"

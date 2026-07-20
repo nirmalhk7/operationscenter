@@ -11,14 +11,13 @@
     k8docker_mariadb_login_password: "{{ k8docker_db_passwords.mariadb.root }}"
     k8docker_postgres_login_password: "{{ k8docker_db_passwords.postgres.bootstrap }}"
     k8docker_postgres_root_login_password: "{{ k8docker_db_passwords.postgres.root }}"
-    k8docker_clickhouse_login_password: "{{ k8docker_db_passwords.clickhouse.root }}"
     k8docker_mongodb_login_password: "{{ lookup('env', 'MONGODB_ROOT_PASSWORD') | default(k8docker_db_passwords.mongodb.root, true) }}"
 
   tasks:
     - name: Ensure DB management dependencies are installed
       ansible.builtin.apt:
         update_cache: true
-        name: [python3-pymysql, python3-psycopg2, python3-pymongo, python3-clickhouse-driver]
+        name: [python3-pymysql, python3-psycopg2, python3-pymongo]
 
     - name: Validate k8docker DB configuration
       ansible.builtin.import_tasks: tasks/k8docker/validate-vars.yaml
@@ -55,10 +54,6 @@
     - name: VectorChord deployment
       tags: vectorchord
       ansible.builtin.import_tasks: tasks/k8docker/postgres.yaml
-
-    - name: ClickHouse deployment
-      tags: clickhouse
-      ansible.builtin.import_tasks: tasks/k8docker/clickhouse.yaml
 
     - name: MongoDB deployment
       tags: mongodb

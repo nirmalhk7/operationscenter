@@ -1,7 +1,6 @@
 ---
 collections:
   - name: ansible.posix
-  - name: community.clickhouse
   - name: community.mysql
   - name: community.mongodb
   - name: community.postgresql

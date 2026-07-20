@@ -9,14 +9,12 @@ ts_now="$(date +%s)"
 declare -A containers=(
   [mariadb]=maria
   [postgres]=vectorchorddb
-  [clickhouse]=langfuse-clickhouse
   [mongodb]=mongo
 )
 
 declare -A volumes=(
   [mariadb]=mariadb_data
   [postgres]=vectorchorddb_data
-  [clickhouse]=langfuse_clickhouse_data
   [mongodb]=mongodb_data
 )
 
@@ -24,7 +22,7 @@ emit() {
   printf '%s %s\n' "$1" "$2" >>"$tmp"
 }
 
-for engine in mariadb postgres clickhouse mongodb; do
+for engine in mariadb postgres mongodb; do
   container="${containers[$engine]}"
   volume="${volumes[$engine]}"
 
@@ -45,11 +43,6 @@ for engine in mariadb postgres clickhouse mongodb; do
       ;;
     postgres)
       if docker exec "$container" sh -c "PGPASSWORD='{{ k8docker_db_passwords.postgres.root }}' psql -h 127.0.0.1 -U root -d postgres -c 'SELECT 1' >/dev/null" >/dev/null 2>&1; then
-        healthy=1
-      fi
-      ;;
-    clickhouse)
-      if docker exec "$container" clickhouse-client --user root --password '{{ k8docker_db_passwords.clickhouse.root }}' --query 'SELECT 1' >/dev/null 2>&1; then
         healthy=1
       fi
       ;;
