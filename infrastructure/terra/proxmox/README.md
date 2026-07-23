@@ -31,13 +31,13 @@ flowchart LR
   Nginx -->|robot.conf: HTTP 18789| OpenClaw
   Proxbridge -->|Scrutiny collector HTTPS| Nginx
 
-  ManagedNet -->|all outbound allowed| Internet
+  ManagedNet -->|TCP 53/80/443 + UDP 53| Internet
   DevNet -->|all outbound allowed| Internet
   DevNet -.->|blocked by sg-dev| ManagedNet
 
   OpenClaw -->|allow to Nginx any port| Nginx
   OpenClaw -->|allow to K8s any port| K8s
-  OpenClaw -->|HTTP/HTTPS/alt HTTPS/DNS/NTP allowed| Internet
+  OpenClaw -->|HTTP/HTTPS/DNS + Discord UDP| Internet
 ```
 
 ## Rule Summary
@@ -52,21 +52,26 @@ flowchart LR
 
 ### `sg-managed`
 - Inbound: allow SSH on `22/tcp`.
-- Outbound: allow all traffic.
-- Managed guests keep unrestricted egress; the Nginx backend paths now work because they are not blocked by a managed-subnet drop rule.
+- Inbound ICMP follows every permitted TCP ingress source; managed-to-managed rules allow ICMP as part of their all-protocol service access.
+- Inbound and outbound: allow all traffic within `+dc/ipset-mgd`.
+- Outbound: block `8.8.8.8` and private/CGNAT destinations, then allow TCP `53,80,443` and UDP `53` to the public Internet.
+
+### `sg-homesecurity-lan`
+- Attached only to HomeSecurity.
+- Inbound and outbound: allow every protocol and port for `10.0.0.0/24`.
 
 ### `lxc-nginx`
 - Inbound: allow SSH on `22/tcp` through `sg-managed`.
 - Inbound: allow public proxy ports `80/tcp`, `443/tcp`, robot stream proxy `6901/tcp`, and database stream proxy `3306/tcp`, `5432/tcp`, `27017/tcp`.
 - Nginx network device has `firewall = true` so its guest firewall rules are enforced.
-- Outbound policy remains `ACCEPT`; this preserves certbot DNS-01 renewal, package repository access, and GitHub downloads used by the private Nginx Ansible workflow.
+- Outbound policy is `DROP`; the managed group allows TCP `53,80,443` and UDP `53`, preserving certbot DNS-01 renewal, package repository access, and GitHub downloads used by the private Nginx Ansible workflow.
 - Runtime proxy traffic goes to private backends: `172.16.0.105:443`, `172.16.0.105:31216`, `172.16.0.106:3306`, `172.16.0.106:5432`, `172.16.0.106:27017`, `172.16.0.1:8006`, and `172.16.0.104:18789`.
 
 ### `lxc-live-nginx`
 - CT 108 at `172.16.0.108` is a smaller dedicated public Appwrite ingress LXC.
 - It runs only `cloudflared`, a loopback-only Nginx listener, and the Nginx Prometheus exporter.
-- Inbound access is limited to Proxmox bridge SSH and the k8mgd metrics scrape.
-- Outbound policy is `DROP`: only `172.16.0.105:8443`, public HTTP/HTTPS, Cloudflare Tunnel `7844/tcp+udp`, DNS, and NTP are allowed. RFC1918, link-local, and CGNAT/Tailscale destinations are explicitly dropped.
+- Inbound: allow TCP `22,53,80,443`, UDP `53`, and TCP `9113` only from k8mgd; ICMP follows those same permitted sources.
+- Outbound policy is `DROP`: only `172.16.0.105:8443`, public TCP `53,80,443`, DNS, and Cloudflare Tunnel `7844/tcp+udp` are allowed. `8.8.8.8`, RFC1918, link-local, and CGNAT/Tailscale destinations are explicitly dropped.
 
 ### `sg-dev`
 - Inbound: allow SSH on `22/tcp`.
@@ -77,19 +82,19 @@ flowchart LR
 ### `lxc-openclaw`
 - Inbound: allow SSH on `22/tcp`.
 - Inbound: allow `tcp/18789` from `172.16.0.101`.
+- Inbound: allow UDP from any source on every port, ICMP from the same sources as permitted TCP ingress, and TCP `9100` from k8mgd for Prometheus.
 - OpenClaw network device has `firewall = true` so its guest firewall rules are enforced.
 - Outbound policy is `DROP`.
 - Outbound: allow SSH reply traffic with `tcp/sport 22` so inbound SSH can complete the banner and session after the initial connection.
-- Outbound: allow `172.16.0.105:6443`, drop RFC1918 and CGNAT/Tailscale ranges with `info` logging, then allow public `80/tcp`, `443/tcp`, UDP high ports for Discord voice RTP media, alternate HTTPS `2083/tcp` and `8443/tcp`, DNS, and NTP.
+- Outbound: allow `172.16.0.105:6443` and ICMP to the same destination, drop `8.8.8.8` including ICMP, drop RFC1918 and CGNAT/Tailscale ranges with `info` logging, then allow public `53/tcp`, `80/tcp`, `443/tcp`, UDP `53`, and UDP `1024:65535` for Discord voice RTP media.
 
 ### Guest Attachments
-- Most guest network devices have `firewall = false`; NIC-level firewalling remains disabled where enabling it previously blocked LXC outbound traffic.
-- OpenClaw and Nginx are exceptions: their network devices have `firewall = true` with explicit guest firewall rules.
+- All managed guest network devices have `firewall = true`.
 - Managed guest firewall option resources have `enabled = true`, input policy set to `DROP`, and drop logging set to `info`.
 - Managed inbound access is explicit: SSH through `sg-managed`, Nginx `80/tcp`, `443/tcp`, `6901/tcp`, `3306/tcp`, `5432/tcp`, `27017/tcp`, k8mgd `6443/tcp`, Nginx to k8mgd `443/tcp`, and mgdnfs `2049/tcp`, `111/tcp`, `111/udp`, plus ICMP from `172.16.0.105` for reachability checks. The NFS rules are now scoped to `172.16.0.105`.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.
 - `vm-mgddocker.tf` allows `3306/tcp`, `5432/tcp`, and `27017/tcp` from `172.16.0.101` (nginx stream proxy) and `172.16.0.105` (in-cluster apps) only.
-- Most managed guest firewall options resources explicitly set outbound policy to `ACCEPT`; OpenClaw uses `DROP` with explicit outbound allows.
+- All managed guest firewall options resources use `output_policy = "DROP"` with explicit outbound allows.
 
 ## Notes
 

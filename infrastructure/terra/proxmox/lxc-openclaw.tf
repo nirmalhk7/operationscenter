@@ -77,9 +77,28 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
   rule {
     action  = "ACCEPT"
     type    = "in"
+    proto   = "udp"
+    comment = "Allow inbound UDP from any source"
+    iface   = "net0"
+    enabled = true
+  }
+
+  # ALLOWED FROM ANY TO OpenClaw
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
     proto   = "tcp"
     dport   = "22"
     comment = "Allow SSH to OpenClaw"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    comment = "Allow ICMP from any source wherever SSH TCP ingress is allowed"
     iface   = "net0"
     enabled = true
   }
@@ -96,6 +115,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow ICMP wherever OpenClaw metrics TCP ingress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
+
   # ALLOWED FROM private Nginx TO OpenClaw
   rule {
     action  = "ACCEPT"
@@ -104,6 +133,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     dport   = "18789"
     source  = local.proxmoxMachines.nginx.ip
     comment = "Allow Nginx to reach OpenClaw robot service"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow ICMP wherever Nginx TCP ingress is allowed"
     iface   = "net0"
     enabled = true
   }
@@ -120,14 +159,12 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
-  # ALLOWED FROM OpenClaw TO k8mgd
   rule {
     action  = "ACCEPT"
-    type    = "out"
-    proto   = "tcp"
-    dest    = local.proxmoxMachines.k8mgd.ip
-    dport   = "6443"
-    comment = "Allow outbound to k8mgd Kubernetes API"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow ICMP wherever k8mgd gateway TCP ingress is allowed"
     iface   = "net0"
     enabled = true
   }
@@ -140,6 +177,28 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     sport   = "22"
     comment = "Allow SSH reply traffic from OpenClaw"
     iface   = "net0"
+    enabled = true
+  }
+
+  # BLOCKED FROM OpenClaw TO RFC1918 10/8
+  rule {
+    action  = "DROP"
+    type    = "out"
+    dest    = "8.8.8.8"
+    comment = "Block all outbound traffic, including ICMP, to 8.8.8.8"
+    iface   = "net0"
+    log     = "info"
+    enabled = true
+  }
+
+  rule {
+    action  = "DROP"
+    type    = "out"
+    proto   = "icmp"
+    dest    = "8.8.8.8"
+    comment = "Explicitly block outbound ICMP to 8.8.8.8"
+    iface   = "net0"
+    log     = "info"
     enabled = true
   }
 
@@ -225,28 +284,6 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     action  = "ACCEPT"
     type    = "out"
     proto   = "tcp"
-    dport   = "2083"
-    comment = "Allow outbound alternate HTTPS for Discord media latency checks"
-    iface   = "net0"
-    enabled = true
-  }
-
-  # ALLOWED FROM OpenClaw TO public internet
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    proto   = "tcp"
-    dport   = "8443"
-    comment = "Allow outbound alternate HTTPS for Discord media latency checks"
-    iface   = "net0"
-    enabled = true
-  }
-
-  # ALLOWED FROM OpenClaw TO public internet
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    proto   = "tcp"
     dport   = "53"
     comment = "Allow outbound TCP DNS to public internet"
     iface   = "net0"
@@ -264,28 +301,6 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-openclaw-sg" {
     enabled = true
   }
 
-  # ALLOWED FROM OpenClaw TO public internet
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    proto   = "udp"
-    dport   = "123"
-    comment = "Allow outbound NTP to public internet"
-    iface   = "net0"
-    enabled = true
-  }
-
-  # ALLOWED FROM k8mgd TO OpenClaw
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    source  = local.proxmoxMachines.k8mgd.ip
-    sport   = "6443"
-    comment = "Allow k8mgd Kubernetes API replies to OpenClaw"
-    iface   = "net0"
-    enabled = true
-  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-openclaw-config" {

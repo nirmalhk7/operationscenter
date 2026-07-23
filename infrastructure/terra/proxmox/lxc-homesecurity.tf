@@ -66,11 +66,20 @@ resource "proxmox_virtual_environment_container" "lxc-homesecurity" {
 resource "proxmox_virtual_environment_firewall_rules" "lxc-homesecurity-sg" {
   depends_on = [
     proxmox_virtual_environment_container.lxc-homesecurity,
-    proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
+    proxmox_virtual_environment_cluster_firewall_security_group.sg-managed,
+    proxmox_virtual_environment_cluster_firewall_security_group.sg-homesecurity-lan
   ]
 
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-homesecurity.vm_id
+
+  # LAN exception must precede the managed group's private-network egress deny.
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-homesecurity-lan.name
+    comment        = "Home LAN access"
+    iface          = "net0"
+    enabled        = true
+  }
 
   # ALLOWED FROM managed security group TO homesecurity
   rule {
@@ -92,6 +101,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-homesecurity-sg" {
     enabled = true
   }
 
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow ICMP wherever Prometheus TCP ingress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
+
   # ALLOWED FROM private Nginx TO homesecurity
   rule {
     action  = "ACCEPT"
@@ -100,6 +119,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-homesecurity-sg" {
     dport   = "20211"
     source  = local.proxmoxMachines.nginx.ip
     comment = "Allow Nginx to reach NetAlertX UI"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow ICMP wherever Nginx TCP ingress is allowed"
     iface   = "net0"
     enabled = true
   }
@@ -115,6 +144,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-homesecurity-sg" {
     iface   = "net0"
     enabled = true
   }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow ICMP wherever Docker discovery TCP ingress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-homesecurity-config" {
@@ -124,7 +163,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-homesecurity-config
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = "ACCEPT"
+  output_policy = "DROP"
   ipfilter      = false
   macfilter     = true
   ndp           = false

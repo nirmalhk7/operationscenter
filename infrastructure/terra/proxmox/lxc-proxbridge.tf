@@ -26,7 +26,7 @@ resource "proxmox_virtual_environment_container" "lxc-proxbridge" {
     bridge   = "wmnet"
     name     = "net0"
     enabled  = true
-    firewall = false
+    firewall = true
 
   }
 
@@ -83,7 +83,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-proxbridge-config" 
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = "ACCEPT"
+  output_policy = "DROP"
   ipfilter      = false
   macfilter     = true
   ndp           = false

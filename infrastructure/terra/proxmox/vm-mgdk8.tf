@@ -113,6 +113,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     enabled = true
   }
 
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.nginx.ip
+    comment = "Allow ICMP from private Nginx wherever TCP ingress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
+
   # ALLOWED FROM live Nginx TO k8mgd
   rule {
     action  = "ACCEPT"
@@ -121,6 +131,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     dport   = "8443"
     source  = local.proxmoxMachines.live_nginx.ip
     comment = "Allow dedicated live Nginx to reach Traefik livepublic on k8mgd"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.live_nginx.ip
+    comment = "Allow ICMP from live Nginx wherever TCP ingress is allowed"
     iface   = "net0"
     enabled = true
   }
@@ -145,7 +165,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-k8mgd-config" {
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = "ACCEPT"
+  output_policy = "DROP"
   ipfilter      = false
   macfilter     = true
   ndp           = false

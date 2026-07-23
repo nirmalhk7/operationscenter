@@ -56,7 +56,7 @@ resource "proxmox_virtual_environment_vm" "vm-k8docker" {
 
   network_device {
     bridge   = "wmnet"
-    firewall = false
+    firewall = true
   }
 
   operating_system {
@@ -103,6 +103,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
     enabled = true
   }
 
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = "${local.proxmoxMachines.nginx.ip},${local.proxmoxMachines.k8mgd.ip}"
+    comment = "Allow ICMP wherever database TCP ingress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
+
   # ALLOWED FROM k8mgd TO k8docker
   rule {
     action  = "ACCEPT"
@@ -111,6 +121,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgddocker-sg" {
     dport   = "2375,8080"
     source  = local.proxmoxMachines.k8mgd.ip
     comment = "Allow Homepage Docker discovery and Prometheus cAdvisor scrape"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow ICMP wherever Docker metrics TCP ingress is allowed"
     iface   = "net0"
     enabled = true
   }
@@ -123,7 +143,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-k8docker-config" {
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = "ACCEPT"
+  output_policy = "DROP"
   ipfilter      = false
   macfilter     = true
   ndp           = false

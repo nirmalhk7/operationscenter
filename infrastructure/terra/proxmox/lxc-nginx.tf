@@ -85,6 +85,15 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-nginx-sg" {
     enabled = true
   }
 
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    comment = "Allow ICMP from any source wherever TCP proxy ingress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
+
   # ALLOWED FROM ANY TO private Nginx
   rule {
     action  = "ACCEPT"
@@ -104,7 +113,7 @@ resource "proxmox_virtual_environment_firewall_options" "lxc-nginx-config" {
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = "ACCEPT"
+  output_policy = "DROP"
   ipfilter      = false
   macfilter     = true
   ndp           = false

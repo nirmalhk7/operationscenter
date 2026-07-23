@@ -152,7 +152,7 @@ resource "proxmox_virtual_environment_firewall_options" "vm-mgdnfs1-config" {
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = "ACCEPT"
+  output_policy = "DROP"
   ipfilter      = false
   macfilter     = true
   ndp           = false

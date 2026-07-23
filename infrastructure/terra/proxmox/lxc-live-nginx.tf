@@ -66,15 +66,52 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-live-nginx-sg" {
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_container.lxc-live-nginx.vm_id
 
-  # Management access is only through the Proxmox bridge.
-  # ALLOWED FROM Proxmox bridge TO live Nginx
+  # ALLOWED FROM ANY TO live Nginx
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
     dport   = "22"
-    source  = local.proxmoxBridgeIp
-    comment = "Allow Proxmox bridge SSH management"
+    comment = "Allow SSH management"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    comment = "Allow ICMP from any source wherever TCP management ingress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "tcp"
+    dport   = "53,80,443"
+    comment = "Allow inbound DNS, HTTP, and HTTPS"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow ICMP from k8mgd wherever Prometheus TCP ingress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "udp"
+    dport   = "53"
+    comment = "Allow inbound UDP DNS"
     iface   = "net0"
     enabled = true
   }
@@ -105,6 +142,16 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-live-nginx-sg" {
     enabled = true
   }
 
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "icmp"
+    dest    = local.proxmoxMachines.k8mgd.ip
+    comment = "Allow ICMP wherever livepublic TCP egress is allowed"
+    iface   = "net0"
+    enabled = true
+  }
+
   # Permit replies from the exporter to Prometheus scrape connections before
   # the broad RFC1918 egress deny rules below.
   # ALLOWED FROM live Nginx TO k8mgd
@@ -121,6 +168,28 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-live-nginx-sg" {
 
   # Deny private, link-local, and Tailscale destinations before broad Internet
   # port allows below. The k8mgd exception above remains permitted.
+  # BLOCKED FROM live Nginx TO RFC1918 10/8
+  rule {
+    action  = "DROP"
+    type    = "out"
+    dest    = "8.8.8.8"
+    comment = "Block all outbound traffic, including ICMP, to 8.8.8.8"
+    iface   = "net0"
+    log     = "info"
+    enabled = true
+  }
+
+  rule {
+    action  = "DROP"
+    type    = "out"
+    proto   = "icmp"
+    dest    = "8.8.8.8"
+    comment = "Explicitly block outbound ICMP to 8.8.8.8"
+    iface   = "net0"
+    log     = "info"
+    enabled = true
+  }
+
   # BLOCKED FROM live Nginx TO RFC1918 10/8
   rule {
     action  = "DROP"
@@ -242,16 +311,6 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-live-nginx-sg" {
     enabled = true
   }
 
-  # ALLOWED FROM live Nginx TO public Internet
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    proto   = "udp"
-    dport   = "123"
-    comment = "Allow outbound NTP to public Internet"
-    iface   = "net0"
-    enabled = true
-  }
 }
 
 resource "proxmox_virtual_environment_firewall_options" "lxc-live-nginx-config" {
