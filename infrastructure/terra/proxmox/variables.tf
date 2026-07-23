@@ -75,6 +75,11 @@ locals {
       ip    = "${local.machineSubnet}104"
       cidr  = "${local.machineSubnet}104/${local.machinePrefix}"
     }
+    rahul = {
+      vm_id = 109
+      ip    = "${local.machineSubnet}109"
+      cidr  = "${local.machineSubnet}109/${local.machinePrefix}"
+    }
     k8mgd = {
       vm_id = 105
       ip    = "${local.machineSubnet}105"

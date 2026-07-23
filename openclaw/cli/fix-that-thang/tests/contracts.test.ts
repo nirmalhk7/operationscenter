@@ -55,6 +55,16 @@ test("escalate wins before fix-now", () => {
   assert.equal(result.decision, "escalate");
 });
 
+test("live mutation and protected paths always escalate", () => {
+  for (const input of [{ live_mutation: true }, { protected_path: true }, { secret_change: true }, { flux_generated: true }]) {
+    const result = analyze(
+      { signals: ["protected change"], fix_now: true, ...input },
+      { env: { OPENCLAW_AGENT_ID: "rahul" } },
+    );
+    assert.equal(result.decision, "escalate");
+  }
+});
+
 test("draftPullRequest produces a stable handoff", () => {
   const draft = draftPullRequest(
     {
@@ -69,6 +79,7 @@ test("draftPullRequest produces a stable handoff", () => {
   assert.equal(draft.decision, "fix-now");
   assert.equal(draft.branch, "rahul/fix-now-crash-loop");
   assert.match(draft.body_markdown, /## Signals/u);
+  assert.match(draft.body_markdown, /## Flux Verification/u);
   assert.deepEqual(draft.labels, ["rahul", "maintenance"]);
 });
 

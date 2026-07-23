@@ -12,13 +12,14 @@
   worth validating.
 
 ## 3. Validate
-- Make bounded live edits only when needed to prove the fix.
-- Confirm the change with the cheapest authoritative validation available.
+- Render affected GitOps resources before opening the PR.
+- After human merge, confirm Flux observes the merged revision, affected Flux
+  resources are Ready, and workloads recover. Do not mutate live state.
 
 ## 4. Publish
-- Turn the validated fix into a GitHub PR.
-- Summarize the outcome in the originating thread and call out anything still
-  blocked by human action.
+- Open one GitHub PR, then wait for human merge.
+- Summarize the Flux verification in forum `1504282228207784018` and call out
+  anything still blocked by human action.
 
 ## Output Rules
 - One issue, one proposed change set, one validation path.

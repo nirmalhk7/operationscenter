@@ -79,6 +79,38 @@ test("OpenClaw runtime config parses and points at the MountainValue operator wo
   const allowedOrigins = (gateway.controlUi as Record<string, unknown>).allowedOrigins as string[];
   assert.ok(allowedOrigins.includes("http://localhost:5173"));
   assert.ok(allowedOrigins.every((origin) => /^https?:\/\//u.test(origin)));
+
+  const rahulChannels = rahulConfig.channels as Record<string, unknown>;
+  const rahulDiscord = rahulChannels.discord as Record<string, unknown>;
+  const rahulAccounts = rahulDiscord.accounts as Record<string, Record<string, unknown>>;
+  const rahulHeartbeat = rahul?.heartbeat as Record<string, unknown>;
+  const rahulTools = rahulConfig.tools as Record<string, unknown>;
+  assert.equal((rahulConfig.gateway as Record<string, unknown>).bind, "loopback");
+  assert.deepEqual(Object.keys(rahulAccounts), ["rahul"]);
+  assert.equal(((rahulAccounts.rahul.token as Record<string, unknown>) ?? {}).id, "OPENCLAW_DISCORD_BOT_TOKEN_RAHUL");
+  assert.equal(rahulHeartbeat.every, "0m");
+  assert.equal(((rahulTools.exec as Record<string, unknown>) ?? {}).mode, "allowlist");
+  assert.equal(((rahulTools.exec as Record<string, unknown>) ?? {}).host, "gateway");
+  assert.equal(((rahulTools.exec as Record<string, unknown>) ?? {}).askFallback, "deny");
+  assert.equal(((rahulTools.exec as Record<string, unknown>) ?? {}).strictInlineEval, true);
+
+  const primaryEnvTemplate = repoText(join("infrastructure", "ansible", "templates", "openclaw.env.j2"));
+  const rahulEnvTemplate = repoText(join("infrastructure", "ansible", "templates", "rahul-openclaw.env.j2"));
+  const rahulApprovals = repoText(join("infrastructure", "ansible", "templates", "rahul-exec-approvals.json.j2"));
+  const bootstrapRole = repoText(join("infrastructure", "ansible", "roles", "flux_bootstrap", "tasks", "main.yaml"));
+  assert.doesNotMatch(primaryEnvTemplate, /^KUBECONFIG=/mu);
+  assert.doesNotMatch(primaryEnvTemplate, /^OPENCLAW_CLUSTER_TOKEN=/mu);
+  assert.doesNotMatch(primaryEnvTemplate, /^GH_TOKEN=/mu);
+  assert.match(rahulEnvTemplate, /^KUBECONFIG=/mu);
+  assert.match(rahulEnvTemplate, /^GH_TOKEN=/mu);
+  assert.match(rahulApprovals, /rahul/u);
+  assert.match(rahulApprovals, /\/usr\/bin\/kubectl/u);
+  assert.match(bootstrapRole, /rahul-cluster-observer-token/u);
+  assert.doesNotMatch(bootstrapRole, /openclaw-bot-token/u);
+  const openclawDeployment = repoText(join("infrastructure", "ansible", "lxc-openclaw.ansible.yaml"));
+  assert.match(openclawDeployment, /Remove primary Kubernetes credential directory/u);
+  assert.match(openclawDeployment, /Remove primary Kubernetes MCP runtime/u);
+  assert.match(openclawDeployment, /Remove primary GitHub CLI credential store/u);
 });
 
 test("MountainValue workflow is deterministic and trader-facing docs mention paper mode", () => {

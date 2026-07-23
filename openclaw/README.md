@@ -2,24 +2,20 @@
 
 ## Agent Inventory
 
-This inventory reflects the deployed OpenClaw runtime configuration in
-`openclaw/openclaw.json` plus the workspace docs copied by
-`infrastructure/ansible/lxc-openclaw.ansible.yaml`.
+This inventory reflects primary configuration in `openclaw/openclaw.json`,
+Rahul's isolated configuration in `openclaw/rahul-openclaw.json`, and their
+Ansible deployment playbooks.
 
 ### Configured agents
 
 - `main`: default Operations Center coordinator. Runtime workspace:
   `/root/.openclaw/workspace`. External access: Discord `main`.
-- `rahul`: Proxmox, Kubernetes monitoring, Flux repo troubleshooting, YAML
-  fixes, and PR-oriented ops work. His 5-minute heartbeat checks the managed
-  cluster through the Kubernetes MCP server, then opens a PR for repo-local
-  fixes or escalates to the forum channel when human action is needed. When
-  the cluster is quiet, he still looks for one bounded improvement worth
-  proposing. His outcome type is one of `fix-now`, `propose-improvement`,
-  `escalate`, or `all-clear`.
-  He also has the Rahul-only `fix-that-thang` package for repeatable
-  maintenance analysis and PR drafting.
-  Runtime workspace: `/root/.openclaw/workspace-rahul`. External access:
+- `rahul`: isolated Flux-only cluster manager in LXC `rahul`
+  (`172.16.0.109`). He has read-only Kubernetes access, may create bounded
+  `clusters/**` PRs, and verifies Flux after human merge. He cannot live-patch
+  Kubernetes, alter his own RBAC, or access secrets. An announced cron runs
+  every five minutes and posts every result to forum `1504282228207784018`.
+  Runtime workspace: `/root/.openclaw/workspace-rahul`; external access:
   Discord `rahul`.
 - `victor`: MountainValue operator interface. Owns the Lobster paper-trading
   workflow, reports status and audit history, and handles explicit pause /
@@ -38,7 +34,8 @@ This inventory reflects the deployed OpenClaw runtime configuration in
 ## Discord Operating Guide
 
 - Use `main` for general Operations Center coordination and cross-agent routing.
-- Use `rahul` for Proxmox, Kubernetes, Flux, YAML, and PR-oriented ops work.
+- Use `rahul` for Kubernetes, Flux, `clusters/**` GitOps, and PR-oriented ops
+  work. Human merge is required before Flux applies a Rahul change.
 - Use `victor` for MountainValue status, workflow runs, reports, and explicit
   pause / resume control.
 - Use `alexa` for postmortem-style engineering blogs about Rahul's solved
@@ -58,8 +55,9 @@ This inventory reflects the deployed OpenClaw runtime configuration in
   `channels.discord.streaming.mode: partial` in `openclaw/openclaw.json`.
   This makes the same model response visible as it is generated, rather than
   waiting for the completed reply.
-- Discord is configured as three account-scoped bots: `main`, `rahul`, and
-  `victor`. Each account must be invited to the OperationCenter Discord server,
+- Discord is configured as two account-scoped bots on the primary LXC: `main`
+  and `victor`. Rahul is a third, isolated account on CT 109. Each account must
+  be invited to the OperationCenter Discord server,
   have Message Content intent enabled in the Discord developer portal, and have
   visibility plus send/reply/thread permissions in any channel where it should
   respond. Enable Presence intent when online status matters.
@@ -68,6 +66,15 @@ This inventory reflects the deployed OpenClaw runtime configuration in
   state instead of relying only on Discord scrollback. Rahul has explicit
   Workboard tool access; main gets Workboard through the full tool profile.
 
+## Rahul Cutover Order
+
+Provision CT 109 first; its OpenClaw service is absent until Ansible installs
+it. Run `playbooks/openclaw.ansible.yaml` for the cutover: it deploys primary
+OpenClaw first, removing Rahul's account, credentials, workspace, and Kubernetes
+runtime; only then does it deploy and enable Rahul. Do not run the standalone
+Rahul playbook until the primary removal has completed, or two gateways could
+briefly connect with the same Discord bot token.
+
 Common prompts:
 
 ```text
@@ -75,7 +82,7 @@ Rahul, check the Flux health for the managed cluster and summarize blockers.
 ```
 
 ```text
-Rahul, inspect managed-cluster errors, make bounded live edits to validate the fix, open a PR if the fix is repo-local, and escalate to Discord forum channel 1504282224789295134 only if I need to intervene.
+Rahul, inspect managed-cluster errors, prepare a bounded GitOps PR when needed, and verify Flux after I merge it.
 ```
 
 ```text
@@ -158,10 +165,9 @@ default OAuth 1.0a flow. Populate these environment variables before using it:
 
 ### Kubernetes MCP
 
-OpenClaw registers `kubectl-mcp-tool` as `kubernetes` through a dedicated
-Python virtualenv at `/root/.local/share/kubectl-mcp-server-venv`. It uses the
-service `KUBECONFIG` and is the path Rahul's heartbeat uses to inspect the
-managed cluster for fresh errors.
+Only Rahul LXC installs `kubectl-mcp-tool` as `kubernetes`, with a dedicated
+read-only observer kubeconfig. Primary OpenClaw has neither the kubeconfig,
+credential, Kubernetes MCP runtime, nor Kubernetes API firewall egress.
 
 ### Workspace docs present but not configured
 

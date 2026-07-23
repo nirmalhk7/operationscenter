@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "defaults": {
+    "security": "deny",
+    "ask": "on-miss",
+    "askFallback": "deny",
+    "autoAllowSkills": false
+  },
+  "agents": {
+    "rahul": {
+      "security": "allowlist",
+      "ask": "on-miss",
+      "askFallback": "deny",
+      "autoAllowSkills": false,
+      "allowlist": [
+        {
+          "pattern": "/usr/bin/git",
+          "argPattern": "^(clone|status|diff|switch|checkout|branch|add|commit|push|fetch|pull|rev-parse|log|show|restore|remote)(\\s|$)"
+        },
+        {
+          "pattern": "/usr/bin/kubectl",
+          "argPattern": "^(get|describe|logs|auth can-i|kustomize|wait|version|api-resources)(\\s|$)"
+        },
+        {
+          "pattern": "/usr/bin/gh",
+          "argPattern": "^(pr (create|view|list|status)|repo view|api repos/nirmalhk7/operationscenter/pulls)(\\s|$)"
+        }
+      ]
+    }
+  }
+}

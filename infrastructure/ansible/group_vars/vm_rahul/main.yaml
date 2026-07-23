@@ -1,0 +1,10 @@
+---
+openclaw_user: root
+openclaw_home: /root
+openclaw_support_home: /root/rahul_support
+openclaw_validate_home: /root/rahul_validate_home
+openclaw_runtime_variant: rahul
+openclaw_config_file: rahul-openclaw.json
+openclaw_env_template: rahul-openclaw.env.j2
+openclaw_enable_kubernetes: true
+openclaw_gateway_bind: loopback

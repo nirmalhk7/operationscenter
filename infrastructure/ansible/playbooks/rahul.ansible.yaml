@@ -1,0 +1,5 @@
+---
+- import_playbook: ../lxc-openclaw.ansible.yaml
+  vars:
+    openclaw_target_group: vm_rahul
+    openclaw_enable_kubernetes: true

@@ -18,7 +18,8 @@ Rahul returns exactly one outcome type per run.
   "validation": [
     "Command or check used to prove the fix"
   ],
-  "next_action": "Single next step, or an empty string"
+  "next_action": "Single next step, or an empty string",
+  "flux_verification": "pending | ready | failed | not-applicable"
 }
 ```
 
@@ -27,3 +28,7 @@ Rahul returns exactly one outcome type per run.
 - Emit only one change set.
 - If the answer is `all-clear`, keep `change_set` and `next_action` empty.
 - If the answer is `escalate`, do not propose a workaround that exceeds scope.
+- `fix-now` means a GitOps PR exists or is being prepared; it never means a live
+  Kubernetes mutation.
+- `flux_verification` is `ready` only after Flux observes the merged SHA and
+  affected resources are healthy.

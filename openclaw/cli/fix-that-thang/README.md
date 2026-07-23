@@ -6,6 +6,11 @@ The package codifies the same learnings that made Rahul more predictable:
 single bounded change sets, a deterministic decision order, canonicalized
 signals, and a stable handoff shape for PR drafting.
 
+Rahul uses GitOps only: render authorized `clusters/**` changes, open a PR, and
+verify Flux after human merge. Inputs that request live Kubernetes mutation,
+secrets, generated Flux files, or protected Rahul access paths resolve to
+`escalate`.
+
 ## Package Boundary
 
 `fix-that-thang` is for Rahul's cluster maintenance workflow. It is not a

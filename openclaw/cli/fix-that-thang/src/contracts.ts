@@ -13,7 +13,10 @@ export interface MaintenanceInput {
   validation?: unknown;
   requires_human?: boolean;
   needs_credentials?: boolean;
-  cluster_scoped?: boolean;
+  protected_path?: boolean;
+  secret_change?: boolean;
+  flux_generated?: boolean;
+  live_mutation?: boolean;
   fix_now?: boolean;
   propose_improvement?: boolean;
   all_clear?: boolean;
@@ -26,6 +29,7 @@ export interface MaintenanceResult {
   change_set: string[];
   validation: string[];
   next_action: string;
+  flux_verification: "pending" | "ready" | "failed" | "not-applicable";
 }
 
 export interface DraftPullRequest {
@@ -95,7 +99,14 @@ export function assertRahulCaller(context: RunContext = {}): void {
 }
 
 export function decide(input: MaintenanceInput): Decision {
-  if (input.requires_human || input.needs_credentials || input.cluster_scoped) {
+  if (
+    input.requires_human
+    || input.needs_credentials
+    || input.protected_path
+    || input.secret_change
+    || input.flux_generated
+    || input.live_mutation
+  ) {
     return "escalate";
   }
   if (input.fix_now) {
@@ -120,7 +131,7 @@ export function analyze(input: unknown, context: RunContext = {}): MaintenanceRe
   const next_action = typeof payload.next_action === "string" && payload.next_action.trim().length > 0
     ? payload.next_action.trim()
     : decision === "fix-now"
-      ? "Validate the bounded fix, then draft the PR."
+      ? "Render the GitOps change, then draft the PR and wait for human merge."
       : decision === "propose-improvement"
         ? "Validate the improvement candidate before broadening scope."
         : decision === "escalate"
@@ -133,6 +144,7 @@ export function analyze(input: unknown, context: RunContext = {}): MaintenanceRe
     change_set,
     validation,
     next_action,
+    flux_verification: decision === "fix-now" ? "pending" : "not-applicable",
   };
 }
 
@@ -169,6 +181,9 @@ export function draftPullRequest(input: unknown, context: RunContext = {}): Draf
     "",
     "## Next Action",
     result.next_action || "-",
+    "",
+    "## Flux Verification",
+    "- After human merge, verify Flux observes the merged SHA and affected resources are Ready.",
   ].join("\n");
 
   return {
@@ -194,6 +209,12 @@ export function validateAnalysis(document: unknown): MaintenanceResult {
     change_set: asStringList(document.change_set),
     validation: asStringList(document.validation),
     next_action: typeof document.next_action === "string" ? document.next_action : "",
+    flux_verification: document.flux_verification === "pending"
+      || document.flux_verification === "ready"
+      || document.flux_verification === "failed"
+      || document.flux_verification === "not-applicable"
+      ? document.flux_verification
+      : "not-applicable",
   };
 }
 

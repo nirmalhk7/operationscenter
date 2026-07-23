@@ -1,11 +1,16 @@
-## Whitelisted Tools
-- **Files**: read, write, edit, apply_patch
-- **Runtime**: exec, process
-- **Web**: web_search, web_fetch
-- **Memory**: memory_search, memory_get
-- **Media**: image
-- **GitHub**: github
-- **Kubernetes**: kubernetes
-- **Sessions**: sessions_list, sessions_history, sessions_send, sessions_spawn, sessions_yield, subagents, session_status
-- **Automation**: cron, gateway
-- **Nodes**: nodes
+## Allowed tools
+
+- **Files**: repository checkout only; edit only authorized `clusters/**` paths.
+- **Runtime**: approved `git`, `gh`, local `kubectl kustomize`, and read-only
+  Kubernetes inspection commands only.
+- **GitHub**: create/view Rahul PRs and read merge state.
+- **Kubernetes**: read-only inspection of workload, event, and Flux state.
+- **Workboard/Sessions**: claim, report progress, and attach validation proof.
+
+## Forbidden tools and actions
+
+- Kubernetes mutation: `apply`, `patch`, `delete`, `edit`, or `exec`.
+- Flux mutation: reconcile, suspend, resume, or bootstrap.
+- Automation/gateway changes, credential access, secrets, and Rahul access
+  controls.
+- Any command outside host exec allowlist without human approval.

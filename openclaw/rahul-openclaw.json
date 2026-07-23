@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.6.1"
+  },
+  "auth": {
+    "profiles": {
+      "openai-codex:nirmalhk7@gmail.com": {
+        "provider": "openai-codex",
+        "mode": "oauth"
+      },
+      "openrouter:default": {
+        "provider": "openrouter",
+        "mode": "api_key"
+      }
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "bind": "loopback"
+  },
+  "tools": {
+    "exec": {
+      "mode": "allowlist",
+      "host": "gateway",
+      "ask": "on-miss",
+      "askFallback": "deny",
+      "strictInlineEval": true
+    }
+  },
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "defaultAccount": "rahul",
+      "accounts": {
+        "rahul": {
+          "name": "Rahul",
+          "enabled": true,
+          "token": {
+            "source": "env",
+            "provider": "default",
+            "id": "OPENCLAW_DISCORD_BOT_TOKEN_RAHUL"
+          }
+        }
+      },
+      "streaming": {
+        "mode": "partial"
+      },
+      "groupPolicy": "allowlist",
+      "guilds": {
+        "1487714737964716084": {
+          "requireMention": true
+        }
+      },
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "1220283451169837077"
+      ],
+      "dm": {
+        "enabled": true
+      },
+      "execApprovals": {
+        "enabled": true,
+        "target": "dm",
+        "approvers": [
+          "1220283451169837077"
+        ],
+        "cleanupAfterResolve": true
+      }
+    }
+  },
+  "bindings": [
+    {
+      "type": "route",
+      "agentId": "rahul",
+      "match": {
+        "channel": "discord",
+        "accountId": "rahul"
+      }
+    }
+  ],
+  "agents": {
+    "defaults": {
+      "workspace": "/root/.openclaw/workspace-rahul",
+      "userTimezone": "America/Denver"
+    },
+    "list": [
+      {
+        "id": "rahul",
+        "workspace": "/root/.openclaw/workspace-rahul",
+        "model": {
+          "primary": "openai/gpt-5.5",
+          "fallbacks": [
+            "openrouter/qwen/qwen3.5-flash-02-23",
+            "openrouter/auto"
+          ]
+        },
+        "heartbeat": {
+          "every": "0m"
+        },
+        "tools": {
+          "profile": "full",
+          "deny": [
+            "bundle-mcp",
+            "cron",
+            "gateway",
+            "group:automation"
+          ],
+          "allow": [],
+          "alsoAllow": [
+            "workboard_list",
+            "workboard_read",
+            "workboard_claim",
+            "workboard_heartbeat",
+            "workboard_release",
+            "workboard_comment",
+            "workboard_proof",
+            "workboard_unblock"
+          ]
+        }
+      }
+    ]
+  }
+}
