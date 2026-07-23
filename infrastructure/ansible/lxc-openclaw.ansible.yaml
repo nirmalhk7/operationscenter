@@ -659,7 +659,7 @@
 
         - name: Stage candidate OpenClaw configuration file
           ansible.builtin.copy:
-            src: "{{ playbook_dir }}/../../openclaw/openclaw.json"
+            src: "{{ playbook_dir }}/../../openclaw/{{ openclaw_config_file }}"
             dest: "{{ openclaw_validate_home }}/.openclaw/openclaw.json"
             owner: "{{ openclaw_user }}"
             group: "{{ openclaw_user }}"
@@ -668,7 +668,7 @@
 
         - name: Stage candidate OpenClaw environment file
           ansible.builtin.template:
-            src: openclaw.env.j2
+            src: "{{ openclaw_env_template }}"
             dest: "{{ openclaw_validate_home }}/.openclaw/.env"
             owner: "{{ openclaw_user }}"
             group: "{{ openclaw_user }}"
@@ -721,7 +721,7 @@
       block:
         - name: Deploy main OpenClaw configuration file
           ansible.builtin.copy:
-            src: "{{ playbook_dir }}/../../openclaw/openclaw.json"
+            src: "{{ playbook_dir }}/../../openclaw/{{ openclaw_config_file }}"
             dest: "{{ openclaw_home }}/.openclaw/openclaw.json"
             owner: "{{ openclaw_user }}"
             group: "{{ openclaw_user }}"
@@ -848,7 +848,7 @@
           ansible.builtin.set_fact:
             openclaw_active_agent_ids: >-
               {{
-                (lookup('file', playbook_dir ~ '/../../openclaw/openclaw.json') | from_json).agents.list
+                (lookup('file', playbook_dir ~ '/../../openclaw/' ~ openclaw_config_file) | from_json).agents.list
                 | map(attribute='id')
                 | list
               }}
@@ -980,7 +980,7 @@
           Environment="PATH={{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
           Environment="PNPM_HOME={{ openclaw_home }}/.local/share/pnpm"
           Environment="HOME={{ openclaw_home }}"
-          ExecStart={{ openclaw_home }}/.local/share/pnpm/openclaw gateway run --bind lan
+          ExecStart={{ openclaw_home }}/.local/share/pnpm/openclaw gateway run --bind {{ openclaw_gateway_bind }}
           Restart=always
           RestartSec=10
 

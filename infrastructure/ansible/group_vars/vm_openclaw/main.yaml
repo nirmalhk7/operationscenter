@@ -3,3 +3,8 @@ openclaw_user: root
 openclaw_home: /root
 openclaw_support_home: /root/openclaw_support
 openclaw_validate_home: /root/openclaw_validate_home
+openclaw_runtime_variant: primary
+openclaw_config_file: openclaw.json
+openclaw_env_template: openclaw.env.j2
+openclaw_enable_kubernetes: false
+openclaw_gateway_bind: lan

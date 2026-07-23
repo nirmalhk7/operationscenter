@@ -11,14 +11,16 @@ function repoJson(path: string): Record<string, unknown> {
   return JSON.parse(repoText(path)) as Record<string, unknown>;
 }
 
-test("OpenClaw runtime config parses and points at the MountainValue operator workspace", () => {
+test("OpenClaw separates Rahul from the primary runtime", () => {
   const config = repoJson(join("openclaw", "openclaw.json"));
+  const rahulConfig = repoJson(join("openclaw", "rahul-openclaw.json"));
   const agentsConfig = config.agents as Record<string, unknown>;
+  const rahulAgentsConfig = rahulConfig.agents as Record<string, unknown>;
   const channelsConfig = config.channels as Record<string, unknown>;
   const agentList = agentsConfig.list as Array<Record<string, unknown>>;
   const defaults = agentsConfig.defaults as Record<string, unknown>;
   const main = agentList.find((agent) => agent.id === "main");
-  const rahul = agentList.find((agent) => agent.id === "rahul");
+  const rahul = (rahulAgentsConfig.list as Array<Record<string, unknown>>).find((agent) => agent.id === "rahul");
   const victor = (agentsConfig.list as Array<Record<string, unknown>>).find((agent) => agent.id === "victor");
   const gateway = config.gateway as Record<string, unknown>;
   const plugins = config.plugins as Record<string, unknown>;
@@ -29,12 +31,12 @@ test("OpenClaw runtime config parses and points at the MountainValue operator wo
   assert.ok(main);
   assert.ok(rahul);
   assert.ok(victor);
+  assert.equal(agentList.some((agent) => agent.id === "rahul"), false);
   assert.equal(discord.enabled, true);
   assert.equal((((plugins.entries as Record<string, Record<string, unknown>>) ?? {}).discord ?? {}).enabled, true);
   assert.equal(discord.defaultAccount, "main");
-  assert.deepEqual(Object.keys(discordAccounts).sort(), ["main", "rahul", "victor"]);
+  assert.deepEqual(Object.keys(discordAccounts).sort(), ["main", "victor"]);
   assert.equal(((discordAccounts.main.token as Record<string, unknown>) ?? {}).id, "OPENCLAW_DISCORD_BOT_TOKEN_MAIN");
-  assert.equal(((discordAccounts.rahul.token as Record<string, unknown>) ?? {}).id, "OPENCLAW_DISCORD_BOT_TOKEN_RAHUL");
   assert.equal(((discordAccounts.victor.token as Record<string, unknown>) ?? {}).id, "OPENCLAW_DISCORD_BOT_TOKEN_VICTOR");
   assert.equal(discord.groupPolicy, "allowlist");
   assert.equal(((discord.guilds as Record<string, Record<string, unknown>>)["1487714737964716084"] ?? {}).requireMention, true);
@@ -54,15 +56,13 @@ test("OpenClaw runtime config parses and points at the MountainValue operator wo
       .sort((a, b) => String(a.accountId).localeCompare(String(b.accountId))),
     [
       { accountId: "main", agentId: "main" },
-      { accountId: "rahul", agentId: "rahul" },
       { accountId: "victor", agentId: "victor" },
     ],
   );
-  for (const agent of [main, rahul, victor]) {
+  for (const agent of [main, victor]) {
     assert.equal(((agent.heartbeat as Record<string, unknown>) ?? {}).model, "openrouter/free");
   }
   assert.equal(((main.heartbeat as Record<string, unknown>) ?? {}).accountId, "main");
-  assert.equal(((rahul.heartbeat as Record<string, unknown>) ?? {}).accountId, "rahul");
   assert.equal(((victor.heartbeat as Record<string, unknown>) ?? {}).accountId, "victor");
   assert.ok(Array.isArray(defaults.skills));
   assert.ok("openrouter/free" in (defaults.models as Record<string, unknown>));

@@ -1,2 +1,5 @@
 ---
 - import_playbook: ../lxc-openclaw.ansible.yaml
+
+# The primary must remove Rahul before Rahul's Discord gateway is enabled.
+- import_playbook: rahul.ansible.yaml
