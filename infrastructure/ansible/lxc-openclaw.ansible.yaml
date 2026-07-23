@@ -7,18 +7,20 @@
     - openclaw-kube
     - openclaw-env
   tasks:
-    - name: Get openclaw-bot token
+    - name: Get Rahul observer token
       ansible.builtin.shell:
-        cmd: "kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get secret openclaw-bot-token -n kube-system -o jsonpath='{.data.token}' | base64 --decode"
+        cmd: "kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get secret rahul-cluster-observer-token -n kube-system -o jsonpath='{.data.token}' | base64 --decode"
       register: openclaw_k8s_token_result
       changed_when: false
       failed_when: openclaw_k8s_token_result.rc != 0 or openclaw_k8s_token_result.stdout == ''
       no_log: true
+      when: openclaw_enable_kubernetes | default(false) | bool
 
     - name: Set dynamic token fact
       ansible.builtin.set_fact:
-        openclaw_dynamic_token: "{{ openclaw_k8s_token_result.stdout }}"
+        rahul_dynamic_token: "{{ openclaw_k8s_token_result.stdout }}"
       no_log: true
+      when: openclaw_enable_kubernetes | default(false) | bool
 
     - name: Get cluster CA bundle
       ansible.builtin.shell:
@@ -27,22 +29,24 @@
       changed_when: false
       failed_when: openclaw_k8s_ca_result.rc != 0 or openclaw_k8s_ca_result.stdout == ''
       no_log: true
+      when: openclaw_enable_kubernetes | default(false) | bool
 
     - name: Set dynamic CA fact
       ansible.builtin.set_fact:
         openclaw_dynamic_ca: "{{ openclaw_k8s_ca_result.stdout }}"
       no_log: true
+      when: openclaw_enable_kubernetes | default(false) | bool
 
 - name: Deploy OpenClaw
-  hosts: vm_openclaw
+  hosts: "{{ openclaw_target_group | default('vm_openclaw') }}"
   become: yes
   vars_files:
     - vars/versions.yaml
     - vars/network.yaml
 
   vars:
-    openclaw_cluster_token: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_token'] | default(lookup('env', 'OPENCLAW_CLUSTER_TOKEN'), true) }}"
-    openclaw_cluster_ca: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_ca'] | default(lookup('env', 'OPENCLAW_CLUSTER_CA'), true) }}"
+    rahul_cluster_token: "{{ hostvars['vm-k8mgd']['rahul_dynamic_token'] | default(lookup('env', 'RAHUL_CLUSTER_TOKEN'), true) }}"
+    rahul_cluster_ca: "{{ hostvars['vm-k8mgd']['openclaw_dynamic_ca'] | default(lookup('env', 'RAHUL_CLUSTER_CA'), true) }}"
   handlers:
     - name: Restart OpenClaw service
       tags:
@@ -318,6 +322,7 @@
           ansible.builtin.command:
             cmd: python3 -m venv {{ openclaw_home }}/.local/share/kubectl-mcp-server-venv
             creates: "{{ openclaw_home }}/.local/share/kubectl-mcp-server-venv/bin/python"
+          when: openclaw_enable_kubernetes | bool
 
         - name: Install kubectl MCP server into its virtualenv
           ansible.builtin.pip:
@@ -327,6 +332,7 @@
           environment:
             HOME: "{{ openclaw_home }}"
           notify: Restart OpenClaw service
+          when: openclaw_enable_kubernetes | bool
 
         - name: Confirm Lobster CLI is available on PATH
           ansible.builtin.command: lobster --help
@@ -509,14 +515,14 @@
         - name: Require Kubernetes token for OpenClaw kubeconfig
           ansible.builtin.assert:
             that:
-              - openclaw_cluster_token | length > 0
-            fail_msg: "vm-k8mgd did not provide openclaw_dynamic_token. Fix SSH access to vm-k8mgd or set OPENCLAW_CLUSTER_TOKEN before deploying OpenClaw Kubernetes access."
+              - rahul_cluster_token | length > 0
+            fail_msg: "vm-k8mgd did not provide rahul_dynamic_token. Fix SSH access to vm-k8mgd or set RAHUL_CLUSTER_TOKEN before deploying Rahul Kubernetes access."
 
         - name: Require Kubernetes CA for OpenClaw kubeconfig
           ansible.builtin.assert:
             that:
-              - openclaw_cluster_ca | length > 0
-            fail_msg: "vm-k8mgd did not provide openclaw_dynamic_ca. Fix SSH access to vm-k8mgd or set OPENCLAW_CLUSTER_CA before deploying OpenClaw Kubernetes access."
+              - rahul_cluster_ca | length > 0
+            fail_msg: "vm-k8mgd did not provide openclaw_dynamic_ca. Fix SSH access to vm-k8mgd or set RAHUL_CLUSTER_CA before deploying Rahul Kubernetes access."
 
         - name: Create kubeconfig for OpenClaw
           ansible.builtin.copy:
@@ -526,57 +532,92 @@
               kind: Config
               clusters:
               - cluster:
-                  certificate-authority-data: {{ openclaw_cluster_ca }}
+                  certificate-authority-data: {{ rahul_cluster_ca }}
                   server: "{{ k8s_api_endpoint }}"
                 name: homelab
               contexts:
               - context:
                   cluster: homelab
-                  user: openclaw-bot
-                name: openclaw-bot@homelab
-              current-context: openclaw-bot@homelab
+                  user: rahul-cluster-observer
+                name: rahul-cluster-observer@homelab
+              current-context: rahul-cluster-observer@homelab
               users:
-              - name: openclaw-bot
+              - name: rahul-cluster-observer
                 user:
-                  token: {{ openclaw_k8s_token }}
+                  token: {{ rahul_k8s_token }}
             owner: "{{ openclaw_user }}"
             group: "{{ openclaw_user }}"
             mode: '0600'
           vars:
-            openclaw_k8s_ca: "{{ lookup('env', 'OPENCLAW_CLUSTER_CA') }}"
-            openclaw_k8s_token: "{{ openclaw_cluster_token }}"
-            openclaw_client_cert: "{{ lookup('env', 'OPENCLAW_CLIENT_CERT') }}"
-            openclaw_client_key: "{{ lookup('env', 'OPENCLAW_CLIENT_KEY') }}"
+            rahul_k8s_token: "{{ rahul_cluster_token }}"
           no_log: true
+      when: openclaw_enable_kubernetes | bool
+
+    - name: Remove Kubernetes access from primary OpenClaw
+      tags:
+        - openclaw-kube
+        - openclaw-migrations
+      when: openclaw_runtime_variant == 'primary'
+      block:
+        - name: Remove primary KUBECONFIG environment entry
+          ansible.builtin.lineinfile:
+            path: /etc/environment
+            regexp: "^KUBECONFIG="
+            state: absent
+
+        - name: Remove primary cluster and GitHub credential environment entries
+          ansible.builtin.lineinfile:
+            path: /etc/environment
+            regexp: "^(OPENCLAW_CLUSTER_TOKEN|OPENCLAW_GITHUB_TOKEN|GH_TOKEN|GITHUB_TOKEN)="
+            state: absent
+
+        - name: Remove primary Kubernetes credential directory
+          ansible.builtin.file:
+            path: "{{ openclaw_support_home }}"
+            state: absent
+
+        - name: Remove primary Kubernetes MCP runtime
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.local/share/kubectl-mcp-server-venv"
+            state: absent
+
+        - name: Remove primary GitHub CLI credential store
+          ansible.builtin.file:
+            path: "{{ openclaw_home }}/.config/gh"
+            state: absent
 
     - name: Validate required OpenClaw integration secrets
       tags:
         - openclaw-env
         - openclaw-validate
       block:
-        - name: Require Kubernetes token for OpenClaw environment
+        - name: Require Rahul Kubernetes token
           ansible.builtin.assert:
             that:
-              - openclaw_cluster_token | length > 0
-            fail_msg: "vm-k8mgd did not provide openclaw_dynamic_token. Fix SSH access to vm-k8mgd or set OPENCLAW_CLUSTER_TOKEN before deploying the OpenClaw environment."
+              - rahul_cluster_token | length > 0
+            fail_msg: "vm-k8mgd did not provide rahul_dynamic_token. Fix SSH access to vm-k8mgd or set RAHUL_CLUSTER_TOKEN before deploying Rahul."
+          when: openclaw_enable_kubernetes | bool
 
-        - name: Require GitHub MCP PAT
+        - name: Require Rahul GitHub App token
           ansible.builtin.assert:
             that:
-              - lookup('env', 'OPENCLAW_GITHUB_TOKEN') | length > 0
-            fail_msg: "Set OPENCLAW_GITHUB_TOKEN before deploying OpenClaw with the GitHub MCP server enabled."
+              - lookup('env', 'RAHUL_GITHUB_APP_TOKEN') | length > 0
+            fail_msg: "Set RAHUL_GITHUB_APP_TOKEN before deploying Rahul."
+          when: openclaw_runtime_variant == 'rahul'
 
         - name: Require Todoist MCP API key
           ansible.builtin.assert:
             that:
               - lookup('env', 'OPENCLAW_TODOIST_API_KEY') | length > 0
             fail_msg: "Set OPENCLAW_TODOIST_API_KEY before deploying OpenClaw with the Todoist MCP server enabled."
+          when: openclaw_runtime_variant == 'primary'
 
         - name: Require Alpha Vantage MCP API key
           ansible.builtin.assert:
             that:
               - lookup('env', 'OPENCLAW_ALPHAVANTAGE_API_KEY') | length > 0
             fail_msg: "Set OPENCLAW_ALPHAVANTAGE_API_KEY before deploying OpenClaw with the Alpha Vantage MCP server enabled."
+          when: openclaw_runtime_variant == 'primary'
 
         - name: Require Discord bot tokens
           ansible.builtin.assert:
@@ -835,7 +876,6 @@
             HOME: "{{ openclaw_home }}"
             PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
             PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
-            KUBECONFIG: "{{ openclaw_support_home }}/.kube/config"
           register: openclaw_doctor_fix
           changed_when: >-
             ('Archived' in openclaw_doctor_fix.stdout)
@@ -986,11 +1026,11 @@
       tags:
         - openclaw-cron
         - openclaw-pipelines
+      when: openclaw_runtime_variant == 'primary'
       environment:
         HOME: "{{ openclaw_home }}"
         PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
         PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
-        KUBECONFIG: "{{ openclaw_support_home }}/.kube/config"
       block:
         - name: Remove legacy MountainValue root crontab timezone
           ansible.builtin.cron:

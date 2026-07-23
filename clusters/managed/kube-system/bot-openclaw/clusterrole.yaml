@@ -1,9 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: openclaw-bot-role
+  name: rahul-cluster-observer-role
 rules:
-  # Managed workload remediation - bounded write access, no secrets or cluster-scoped mutation.
+  # Read-only operational evidence. Secrets are intentionally absent.
   - apiGroups: [""]
     resources:
       - pods
@@ -13,28 +13,24 @@ rules:
       - endpoints
       - replicationcontrollers
       - persistentvolumeclaims
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
+      - persistentvolumes
+      - nodes
+      - namespaces
+      - events
+      - serviceaccounts
+      - resourcequotas
+    verbs: ["get", "list", "watch"]
 
   - apiGroups:
       - apps
       - networking.k8s.io
       - batch
       - autoscaling
-    resources: ["*"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
-
-  # Cluster Management - Read Only
-  - apiGroups: [""]
-    resources:
-      - nodes
-      - namespaces
-      - events
-      - serviceaccounts
-      - resourcequotas
-      - persistentvolumes
-    verbs: ["get", "list", "watch"]
-
-  - apiGroups:
+      - policy
+      - discovery.k8s.io
+      - metrics.k8s.io
+      - traefik.io
+      - monitoring.coreos.com
       - rbac.authorization.k8s.io
       - storage.k8s.io
       - apiextensions.k8s.io

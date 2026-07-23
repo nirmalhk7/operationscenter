@@ -59,7 +59,7 @@
       - --timeout=600s
   changed_when: false
 
-- name: Wait for OpenClaw Kubernetes token created by GitOps
+- name: Wait for Rahul observer Kubernetes token created by GitOps
   ansible.builtin.command:
     argv:
       - kubectl
@@ -69,11 +69,11 @@
       - kube-system
       - get
       - secret
-      - openclaw-bot-token
+      - rahul-cluster-observer-token
       - -o
       - jsonpath={.data.token}
-  register: flux_bootstrap_openclaw_token
-  until: flux_bootstrap_openclaw_token.stdout | length > 0
+  register: flux_bootstrap_rahul_observer_token
+  until: flux_bootstrap_rahul_observer_token.stdout | length > 0
   retries: 60
   delay: 10
   changed_when: false

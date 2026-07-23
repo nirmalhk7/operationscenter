@@ -74,29 +74,29 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
-  depends_on = [
-    proxmox_virtual_environment_vm.vm-k8mgd,
-    proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
-  ]
+  depends_on = [proxmox_virtual_environment_vm.vm-k8mgd]
 
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
 
-  # ALLOWED FROM managed security group TO k8mgd
-  rule {
-    security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
-    comment        = "Managed Group Rules"
-    iface          = "net0"
-    enabled        = true
-  }
-
-  # ALLOWED FROM ANY TO k8mgd
+  # ALLOWED FROM Rahul cluster manager TO k8mgd
   rule {
     action  = "ACCEPT"
     type    = "in"
     proto   = "tcp"
     dport   = "6443"
-    comment = "Allow Kubernetes API ingress"
+    source  = local.proxmoxMachines.rahul.ip
+    comment = "Allow Rahul Kubernetes API ingress"
+    iface   = "net0"
+    enabled = true
+  }
+
+  rule {
+    action  = "ACCEPT"
+    type    = "in"
+    proto   = "icmp"
+    source  = local.proxmoxMachines.rahul.ip
+    comment = "Allow ICMP from Rahul wherever Kubernetes API TCP ingress is allowed"
     iface   = "net0"
     enabled = true
   }
