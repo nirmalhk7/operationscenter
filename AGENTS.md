@@ -4,6 +4,8 @@ Instructions for AI agents editing this repository. This file does **not** defin
 
 ---
 
+---
+
 ## Agent orientation
 
 ### Read this first
