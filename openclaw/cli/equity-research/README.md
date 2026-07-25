@@ -103,7 +103,8 @@ strategies, each using no more than 20 sessions of signal history. It uses a
 63-session rolling out-of-sample folds. Returns begin at the next session's
 open, not the signal close; each candidate is scored against fixed 90/10
 SPY/BIL and exposure-matched SPY/BIL benchmarks at 20- and 40-bps one-way
-costs. A candidate must pass at least eight folds, win six against its matched
+costs. The validator also applies Victor's existing 8/12/15% drawdown risk
+throttle before each next-open execution. A candidate must pass at least eight folds, win six against its matched
 benchmark, have positive aggregate stressed excess return, and respect the
 drawdown limits before it may be considered for a future promotion. Paper
 fills record midpoint-to-fill shortfall and `daily-report` exposes its average

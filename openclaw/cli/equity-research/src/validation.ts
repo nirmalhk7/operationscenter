@@ -123,10 +123,12 @@ function simulate(candidate: Candidate, bars: Record<string, Bar[]>, dates: stri
   const returns: number[] = [], primary: number[] = [], matched: number[] = [], exposures: number[] = [];
   let previous: Weights = new Map();
   let turnover = 0;
+  let equity = 1;
+  let highWater = 1;
   for (let index = start; index < end; index += 1) {
     const signalBars = Object.fromEntries(Object.entries(bars).map(([symbol, rows]) => [symbol, rows.filter((bar) => day(bar.t) <= dates[index])]));
     const targets = candidateTargets(candidate, dates[index], signalBars);
-    const weights = new Map(targets.map((target) => [target.symbol, target.target_weight]));
+    const weights = applyDrawdownThrottle(new Map(targets.map((target) => [target.symbol, target.target_weight])), equity / highWater - 1);
     const traded = totalTurnover(previous, weights);
     const executionDate = dates[index + 1];
     const exitDate = dates[index + 2];
@@ -135,14 +137,32 @@ function simulate(candidate: Candidate, bars: Record<string, Bar[]>, dates: stri
     for (const [symbol, weight] of weights) gross += weight * openToOpen(bySymbol[symbol], executionDate, exitDate);
     const spyReturn = openToOpen(bySymbol.SPY, executionDate, exitDate);
     const billReturn = openToOpen(bySymbol.BIL, executionDate, exitDate);
-    returns.push(gross - traded * oneWayCostBps / 10_000);
+    const netReturn = gross - traded * oneWayCostBps / 10_000;
+    returns.push(netReturn);
     primary.push(0.9 * spyReturn + 0.1 * billReturn);
     matched.push(riskExposure * spyReturn + (1 - riskExposure) * billReturn);
     exposures.push(riskExposure);
     turnover += traded;
     previous = weights;
+    equity *= 1 + netReturn;
+    highWater = Math.max(highWater, equity);
   }
   return { returns, primary, matched, exposures, turnover };
+}
+
+function applyDrawdownThrottle(weights: Weights, drawdown: number): Weights {
+  const multiplier = drawdown <= -0.15 ? 0 : drawdown <= -0.12 ? 0.50 : drawdown <= -0.08 ? 0.75 : 1;
+  if (multiplier === 1) return weights;
+  const throttled = new Map<string, number>();
+  let riskWeight = 0;
+  for (const [symbol, weight] of weights) {
+    if (symbol === "BIL") continue;
+    const adjusted = weight * multiplier;
+    throttled.set(symbol, adjusted);
+    riskWeight += adjusted;
+  }
+  throttled.set("BIL", 1 - riskWeight);
+  return throttled;
 }
 
 function normalizeBars(input: Record<string, Bar[]>): Record<string, Bar[]> {
