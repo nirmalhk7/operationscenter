@@ -278,6 +278,15 @@
           failed_when: false
           changed_when: false
 
+        - name: Remove deprecated registry equity-research package
+          ansible.builtin.command: pnpm remove -g @nirmalhk7/equity-research
+          environment:
+            PNPM_HOME: "{{ openclaw_home }}/.local/share/pnpm"
+            PATH: "{{ openclaw_home }}/.local/bin:{{ openclaw_home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin"
+            HOME: "{{ openclaw_home }}"
+          failed_when: false
+          changed_when: false
+
         - name: Install OpenClaw companion packages globally using pnpm
           ansible.builtin.shell:
             cmd: |
