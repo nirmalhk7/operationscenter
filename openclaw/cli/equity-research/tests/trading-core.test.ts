@@ -887,6 +887,23 @@ test("candidate targets are deterministic and preserve the BIL reserve", () => {
   assert.ok(first.find((target) => target.symbol === "BIL")!.target_weight >= 0.1);
 });
 
+test("unvalidated short-horizon targets fail closed into shadow mode", async () => {
+  const nowIso = "2026-07-06T21:00:00.000Z";
+  const config = makeConfig();
+  const { ledger, cleanup } = tempLedger();
+  try {
+    ledger.writeState(createDefaultState("paper"));
+    ledger.saveSnapshot("etf-research:2026-07-06", { strategy_version: "mountainvalue-v3.0.0-20d-rotation" }, nowIso);
+    ledger.saveTargets([{ strategy_version: "mountainvalue-v3.0.0-20d-rotation", as_of: "2026-07-06", symbol: "BIL", sleeve: "cash", target_weight: 1, reason: "test" }]);
+    const service = createTradingCoreService({ config, ledger, broker: makeBrokerMock({ nowIso, dailyBars: universe() }), now: () => new Date(nowIso) });
+    const result = await service.buildTargets("2026-07-06");
+    assert.equal(result.operating_mode, "shadow");
+    assert.equal(ledger.latestStrategyManifest()?.approval_status, "shadow");
+  } finally {
+    cleanup();
+  }
+});
+
 test("quote-guard skips schedule a bounded retry and Discord summary leads with no order", async () => {
   const nowIso = "2026-07-06T14:10:00.000Z";
   const config = makeConfig();

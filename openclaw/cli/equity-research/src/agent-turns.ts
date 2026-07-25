@@ -22,7 +22,7 @@ import { buildExecutionPlan, computeSignalPlan, computeTargetSignalPlan, Executi
 import type { SignalPlan } from "./value-engine.js";
 import { runDualMomentumBacktest } from "./backtest.js";
 import { ETF_UNIVERSE, STRATEGY_VERSION, buildEtfResearch, currentDrawdownTier, lossBudgetQuantity, stopDistance } from "./research.js";
-import { runShortHorizonValidation } from "./validation.js";
+import { candidateTargets, runShortHorizonValidation, SHORT_HORIZON_CANDIDATES } from "./validation.js";
 
 export interface ReconciliationResult {
   status: WorkflowStatus;
@@ -583,10 +583,19 @@ export class TradingCoreService {
     }
     const existing = this.deps.ledger.readSnapshot<Record<string, unknown>>(`etf-research:${effectiveAsOf}`);
     const research = existing ?? await this.researchEtfs(effectiveAsOf);
-    const targets = this.deps.ledger.listTargets(STRATEGY_VERSION, effectiveAsOf);
-    const paperEnabled = this.deps.config.operating_mode === "paper" && this.deps.config.autonomous_execution_enabled;
-    this.deps.ledger.saveStrategyManifest({ strategy_version: STRATEGY_VERSION, created_at: this.now().toISOString(), sleeve: "portfolio", approval_status: paperEnabled ? "approved" : "shadow", expires_at: paperEnabled ? new Date(this.now().getTime() + 8 * 86_400_000).toISOString() : null, parameters: { rebalance: "daily_after_close", holding_horizon: "1_to_20_sessions", max_holding_sessions: 20, max_risk_assets: 0.90, min_bil: 0.10, max_etf_weight: 0.30, max_new_entries_per_day: 4, target_volatility: 0.25 }, data_as_of: effectiveAsOf, approval_reason: paperEnabled ? "User-authorized aggressive paper-only 20-session ETF rotation; deterministic daily research and risk guards active." : "Shadow deployment: targets observable only until paper mode is explicitly enabled.", survivorship_limited: true });
-    return { status: "NO_TRADE", as_of: effectiveAsOf, targets, research_available: Boolean(research), operating_mode: this.deps.config.operating_mode };
+    const validation = this.deps.ledger.latestValidationRun();
+    const approvedCandidateId = validation?.candidates.find((candidate) => candidate.approval.status === "approved")?.candidate_id;
+    const approvedCandidate = SHORT_HORIZON_CANDIDATES.find((candidate) => candidate.id === approvedCandidateId);
+    let targets = this.deps.ledger.listTargets(STRATEGY_VERSION, effectiveAsOf);
+    if (approvedCandidate) {
+      const raw = this.deps.ledger.readSnapshot<{ bars: Record<string, import("./contracts.js").Bar[]> }>(`raw-bars:${effectiveAsOf}`);
+      if (!raw?.bars) throw new ContractError("Approved candidate requires the immutable raw-bar snapshot for target construction");
+      targets = candidateTargets(approvedCandidate, effectiveAsOf, raw.bars);
+      this.deps.ledger.saveTargets(targets);
+    }
+    const paperEnabled = this.deps.config.operating_mode === "paper" && this.deps.config.autonomous_execution_enabled && Boolean(approvedCandidate);
+    this.deps.ledger.saveStrategyManifest({ strategy_version: STRATEGY_VERSION, created_at: this.now().toISOString(), sleeve: "portfolio", approval_status: paperEnabled ? "approved" : "shadow", expires_at: paperEnabled ? new Date(this.now().getTime() + 8 * 86_400_000).toISOString() : null, parameters: { rebalance: "daily_after_close", holding_horizon: "1_to_20_sessions", max_holding_sessions: 20, max_risk_assets: 0.90, min_bil: 0.10, max_etf_weight: 0.30, max_new_entries_per_day: 4, target_volatility: 0.25, validation_run_id: validation?.id ?? null, approved_candidate_id: approvedCandidate?.id ?? null }, data_as_of: effectiveAsOf, approval_reason: paperEnabled ? `Validated candidate ${approvedCandidate!.id} passed historical promotion gates; deterministic paper-only execution is active.` : "No short-horizon candidate passed promotion gates; targets are recorded in shadow mode and broker mutation is blocked.", survivorship_limited: true });
+    return { status: "NO_TRADE", as_of: effectiveAsOf, targets, research_available: Boolean(research), operating_mode: paperEnabled ? "paper" : "shadow", validation_run_id: validation?.id ?? null, approved_candidate_id: approvedCandidate?.id ?? null };
   }
 
   async strategyStatus(): Promise<Record<string, unknown>> {

@@ -81,7 +81,10 @@ and must be posted verbatim by Victor.
 
 MountainValue remains paper-endpoint-only. `MOUNTAINVALUE_OPERATING_MODE=paper`
 plus `AUTONOMOUS_EXECUTION_ENABLED=true` permits only an approved, expiring
-strategy manifest to submit Alpaca paper orders. There is no live endpoint path.
+strategy manifest to submit Alpaca paper orders. `build-targets` grants that
+approval only when an immutable short-horizon validation run has an approved
+candidate; otherwise it records targets in shadow mode and broker mutation is
+blocked. There is no live endpoint path.
 
 ETF sleeve: up to 90% risk assets plus a 10% BIL reserve. Universe is
 VTI/QQQ/IWM/VEA/VWO/VNQ/GLD/DBC/IEF/TLT/XLK/XLF/XLV/XLE/XLI/BIL. The aggressive
