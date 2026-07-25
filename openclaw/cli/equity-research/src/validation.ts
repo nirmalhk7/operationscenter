@@ -7,6 +7,7 @@ const EMBARGO_SESSIONS = 5;
 const OOS_SESSIONS = 63;
 const BASE_ONE_WAY_COST_BPS = 20;
 const STRESS_ONE_WAY_COST_BPS = 40;
+export const SHORT_HORIZON_VALIDATION_VERSION = "v1.1-drawdown-throttle";
 
 export const SHORT_HORIZON_CANDIDATES = [
   { id: "rotation-momentum-5-10-20", kind: "rotation-momentum" as const, description: "Top three liquid ETFs with positive 5/10/20-session momentum and a 10-session trend." },
@@ -33,7 +34,7 @@ export function runShortHorizonValidation(input: { bars_by_symbol: Record<string
   }
   const candidates = SHORT_HORIZON_CANDIDATES.map((candidate) => validateCandidate(candidate, bars, dates));
   return {
-    id: `validation:${STRATEGY_VERSION}:${input.as_of}:${input.data_checksum.slice(0, 12)}`,
+    id: `validation:${SHORT_HORIZON_VALIDATION_VERSION}:${STRATEGY_VERSION}:${input.as_of}:${input.data_checksum.slice(0, 12)}`,
     created_at: new Date().toISOString(),
     as_of: input.as_of,
     data_checksum: input.data_checksum,
@@ -81,7 +82,7 @@ function validateCandidate(candidate: Candidate, bars: Record<string, Bar[]>, da
     candidate_id: candidate.id,
     strategy_version: STRATEGY_VERSION,
     max_holding_sessions: MAX_HOLDING_SESSIONS,
-    configuration: { ...candidate, max_signal_lookback_sessions: 20, train_sessions: TRAINING_SESSIONS, purge_sessions: PURGE_SESSIONS, embargo_sessions: EMBARGO_SESSIONS, oos_sessions: OOS_SESSIONS, base_one_way_cost_bps: BASE_ONE_WAY_COST_BPS, stress_one_way_cost_bps: STRESS_ONE_WAY_COST_BPS },
+    configuration: { ...candidate, validation_version: SHORT_HORIZON_VALIDATION_VERSION, max_signal_lookback_sessions: 20, train_sessions: TRAINING_SESSIONS, purge_sessions: PURGE_SESSIONS, embargo_sessions: EMBARGO_SESSIONS, oos_sessions: OOS_SESSIONS, base_one_way_cost_bps: BASE_ONE_WAY_COST_BPS, stress_one_way_cost_bps: STRESS_ONE_WAY_COST_BPS },
     folds,
     metrics,
     primary_benchmark: primary,
