@@ -199,9 +199,10 @@ Other runtime controls:
 
 ## Schedule
 
-The LXC playbook deploys the workflow and defaults the Victor forum target to
-`1504282224789295134`. The playbook does not create the cron entry; add or remove
-cron jobs manually from the OpenClaw host.
+The LXC playbook deploys three GitOps-managed Victor jobs to
+`1504897560261689544`: intraday paper execution, post-close next-day signal
+locking, and a post-close short-horizon validation run. The validator is
+read-only and reports only candidate gates; it cannot submit orders.
 
 ## Polymarket
 

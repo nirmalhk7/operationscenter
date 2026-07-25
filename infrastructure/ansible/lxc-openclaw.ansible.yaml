@@ -1117,7 +1117,8 @@
                 'MountainValue Paper Trading',
                 'MountainValue evaluate buy sell',
                 'MountainValue execute locked signal',
-                'MountainValue lock next-day signal'
+                'MountainValue lock next-day signal',
+                'MountainValue validate short horizon'
               ])
               | map(attribute='id')
               | list
@@ -1148,7 +1149,7 @@
               - --account
               - victor
               - --to
-              - "channel:{{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504282224789295134', true) }}"
+              - "channel:{{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504897560261689544', true) }}"
               - --timeout
               - "1800000"
               - --message
@@ -1183,7 +1184,7 @@
               - --account
               - victor
               - --to
-              - "channel:{{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504282224789295134', true) }}"
+              - "channel:{{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504897560261689544', true) }}"
               - --timeout
               - "1800000"
               - --message
@@ -1193,6 +1194,39 @@
                 Set cwd to "..", timeoutMs to 1800000, and maxStdoutBytes to 1048576.
                 Return the daily_report.discord_summary verbatim; do not describe a
                 saved intent as an order unless execution confirms submission.
+
+        - name: Create MountainValue short-horizon validation OpenClaw cron
+          ansible.builtin.command:
+            argv:
+              - openclaw
+              - cron
+              - add
+              - --name
+              - MountainValue validate short horizon
+              - --cron
+              - "35 14 * * 1-5"
+              - --tz
+              - America/Denver
+              - --agent
+              - victor
+              - --session
+              - isolated
+              - --announce
+              - --channel
+              - discord
+              - --account
+              - victor
+              - --to
+              - "channel:{{ lookup('env', 'OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID') | default('1504897560261689544', true) }}"
+              - --timeout
+              - "1800000"
+              - --message
+              - >-
+                Run the short-horizon validation now. Use the Lobster tool with action
+                "run" and pipeline "/root/.openclaw/mountainvalue-validation.lobster".
+                Set cwd to "..", timeoutMs to 1800000, and maxStdoutBytes to 1048576.
+                Report only each candidate ID, approval status, OOS fold count, and gate
+                reasons. Do not choose assets or place orders; validation is read-only.
 
     - name: Schedule Rahul cluster heartbeat
       tags:
