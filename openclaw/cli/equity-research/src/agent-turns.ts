@@ -534,11 +534,12 @@ export class TradingCoreService {
     if (!isAfterNewYorkTime(this.now(), 16, 20)) {
       return { status: "NO_TRADE", as_of: effectiveAsOf, reason: "Daily-bar research waits for the regular-market close." };
     }
-    const cached = this.deps.ledger.readSnapshot<{ bars: Record<string, import("./contracts.js").Bar[]>; run: Record<string, unknown> }>(`raw-bars:${effectiveAsOf}`);
-    if (cached) {
+    const cached = this.deps.ledger.readSnapshot<{ bars: Record<string, import("./contracts.js").Bar[]>; run: { strategy_version?: string } }>(`raw-bars:${effectiveAsOf}`);
+    const expectedSymbols = ["SPY", ...ETF_UNIVERSE];
+    if (cached && cached.run.strategy_version === STRATEGY_VERSION && expectedSymbols.every((symbol) => Array.isArray(cached.bars[symbol]) && cached.bars[symbol].length >= 21)) {
       return { status: "NO_TRADE", run: cached.run, symbols: Object.keys(cached.bars), bars_received: Object.fromEntries(Object.entries(cached.bars).map(([symbol, rows]) => [symbol, rows.length])), cached: true };
     }
-    const symbols = ["SPY", ...ETF_UNIVERSE];
+    const symbols = expectedSymbols;
     const bars = await this.deps.broker.getDailyBars(symbols, 45, { adjustment: "all", end: `${effectiveAsOf}T23:59:59Z` });
     const requestedAt = this.now().toISOString();
     const checksum = checksumOf(bars);
@@ -554,8 +555,8 @@ export class TradingCoreService {
     if (!isAfterNewYorkTime(this.now(), 16, 20)) {
       return { status: "NO_TRADE", as_of: effectiveAsOf, reason: "ETF research waits for the regular-market close." };
     }
-    const cached = this.deps.ledger.readSnapshot<Record<string, unknown>>(`etf-research:${effectiveAsOf}`);
-    if (cached) return { status: "NO_TRADE", ...cached, cached: true };
+    const cached = this.deps.ledger.readSnapshot<{ strategy_version?: string } & Record<string, unknown>>(`etf-research:${effectiveAsOf}`);
+    if (cached?.strategy_version === STRATEGY_VERSION) return { status: "NO_TRADE", ...cached, cached: true };
     const raw = this.deps.ledger.readSnapshot<{ bars: Record<string, import("./contracts.js").Bar[]> }>(`raw-bars:${effectiveAsOf}`);
     const bars = raw?.bars ?? await this.deps.broker.getDailyBars(["SPY", ...ETF_UNIVERSE], 45, { adjustment: "all", end: `${effectiveAsOf}T23:59:59Z` });
     const research = buildEtfResearch({ as_of: effectiveAsOf, bars_by_symbol: bars });
