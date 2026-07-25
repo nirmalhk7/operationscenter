@@ -1,6 +1,7 @@
 import { AlpacaClient } from "./adapters.js";
 import {
   AccountSnapshot,
+  ApprovalStatus,
   AuditRecord,
   BacktestResult,
   ContractError,
@@ -9,6 +10,7 @@ import {
   OrderSnapshot,
   PositionSnapshot,
   ReportSummary,
+  StrategyManifest,
   TradeIntent,
   TradingConfig,
   TradingState,
@@ -17,9 +19,10 @@ import {
   isTradableSymbol,
 } from "./contracts.js";
 import { TradingLedger } from "./ledger.js";
-import { buildExecutionPlan, computeSignalPlan, ExecutionPlan } from "./value-engine.js";
+import { buildExecutionPlan, computeSignalPlan, computeTargetSignalPlan, ExecutionPlan } from "./value-engine.js";
 import type { SignalPlan } from "./value-engine.js";
 import { runDualMomentumBacktest } from "./backtest.js";
+import { ETF_UNIVERSE, STRATEGY_VERSION, buildEtfResearch, currentDrawdownTier, lossBudgetQuantity, stopDistance } from "./research.js";
 
 export interface ReconciliationResult {
   status: WorkflowStatus;
@@ -79,15 +82,31 @@ export class TradingCoreService {
     return tradeDateInNewYork(this.now());
   }
 
+  private async calendarAround(now: Date): Promise<string[]> {
+    const start = new Date(now.getTime() - 3 * 86_400_000).toISOString().slice(0, 10);
+    const end = new Date(now.getTime() + 10 * 86_400_000).toISOString().slice(0, 10);
+    try {
+      return (await this.deps.broker.getCalendar(start, end)).map((entry) => entry.date);
+    } catch (error) {
+      this.pause(`Unable to read Alpaca calendar: ${error instanceof Error ? error.message : String(error)}`);
+      return [];
+    }
+  }
+
+  private manifestCanCreateEntries(manifest: StrategyManifest | null, now: Date): boolean {
+    return Boolean(manifest && manifest.approval_status === "approved" && (!manifest.expires_at || new Date(manifest.expires_at).getTime() > now.getTime()));
+  }
+
   async preflight(): Promise<Record<string, unknown>> {
     const checks: Record<string, boolean | string | number> = {
       execution_mode_paper: this.deps.config.execution_mode === "paper",
+      operating_mode_valid: ["shadow", "paper"].includes(this.deps.config.operating_mode),
       autonomous_execution_enabled: this.deps.config.autonomous_execution_enabled,
       alpaca_paper_endpoint: /paper-api\.alpaca\.markets/u.test(this.deps.config.alpaca_trading_base_url),
       alpaca_feed_iex: this.deps.config.alpaca_data_feed === "iex",
       alpaca_credentials_present: Boolean(this.deps.config.alpaca_api_key && this.deps.config.alpaca_secret_key),
     };
-    const failed = Object.entries(checks).filter(([, value]) => value !== true).map(([key]) => key);
+    const failed = Object.entries(checks).filter(([key, value]) => key !== "autonomous_execution_enabled" && value !== true).map(([key]) => key);
     const state = this.state();
     const account = await this.safeGetAccount();
     const clock = await this.safeGetClock();
@@ -96,7 +115,7 @@ export class TradingCoreService {
     } else {
       this.writeState({
         execution_mode: "paper",
-        trading_enabled: state.trading_enabled && true,
+        trading_enabled: state.trading_enabled,
         starting_capital_usd: this.deps.config.paper_strategy_capital_usd,
         virtual_cash_usd: state.virtual_cash_usd || this.deps.config.paper_strategy_capital_usd,
         last_strategy_equity_usd: state.last_strategy_equity_usd || this.deps.config.paper_strategy_capital_usd,
@@ -131,6 +150,7 @@ export class TradingCoreService {
     const unknownSymbols = positions.filter((position) => !this.deps.config.tradable_symbols.includes(position.symbol));
     const checks: Record<string, boolean | string | number | null> = {
       account_present: Boolean(account),
+      clock_present: Boolean(clock),
       positions_present: positions.length,
       open_orders_present: openOrders.length,
       no_manual_positions: manualPositions.length === 0,
@@ -140,6 +160,8 @@ export class TradingCoreService {
       broker_symbols: [...brokerSymbols].join(","),
     };
     const failed = [
+      ...(!account ? ["broker account unavailable"] : []),
+      ...(!clock ? ["broker clock unavailable"] : []),
       ...(manualPositions.length > 0 ? [`manual positions: ${manualPositions.map((position) => position.symbol).join(", ")}`] : []),
       ...(unknownOrders.length > 0 ? [`unknown orders: ${unknownOrders.map((order) => order.id).join(", ")}`] : []),
       ...(mismatchedPositions.length > 0 ? [`position mismatches: ${mismatchedPositions.map((position) => position.symbol).join(", ")}`] : []),
@@ -151,7 +173,8 @@ export class TradingCoreService {
       : state.strategy_high_water_mark_usd;
     const highWaterMark = Math.max(storedHighWaterMark || strategyEquity, strategyEquity);
     const drawdown = highWaterMark > 0 ? (strategyEquity - highWaterMark) / highWaterMark : 0;
-    if (drawdown <= -this.deps.config.max_strategy_drawdown_pct) {
+    const drawdownTier = currentDrawdownTier(drawdown);
+    if (drawdownTier === "halt" || drawdown <= -this.deps.config.max_strategy_drawdown_pct) {
       failed.push(`strategy drawdown ${round(Math.abs(drawdown) * 100)}% exceeded ${round(this.deps.config.max_strategy_drawdown_pct * 100)}% limit`);
     }
     const paused = failed.length > 0;
@@ -167,10 +190,16 @@ export class TradingCoreService {
         last_strategy_equity_usd: strategyEquity,
         strategy_high_water_mark_usd: highWaterMark,
       });
-      this.deps.ledger.replacePositions(positions.map(normalizeBrokerPosition), this.now().toISOString());
+      const mergedPositions = positions.map((position) => {
+        const prior = this.deps.ledger.getPosition(position.symbol);
+        const childStop = openOrders.find((order) => order.symbol === position.symbol && order.side === "sell" && order.type === "stop" && order.status !== "filled");
+        return { ...normalizeBrokerPosition(position), entry_date: prior?.entry_date ?? position.entry_date, entry_order_id: prior?.entry_order_id ?? position.entry_order_id, protective_stop_price: childStop?.stop_price ?? prior?.protective_stop_price ?? null, protective_stop_order_id: childStop?.id ?? prior?.protective_stop_order_id ?? null };
+      });
+      this.deps.ledger.replacePositions(mergedPositions, this.now().toISOString());
       this.deps.ledger.saveSnapshot("account", account, this.now().toISOString());
       this.deps.ledger.saveSnapshot("positions", positions, this.now().toISOString());
       this.deps.ledger.saveSnapshot("orders", openOrders, this.now().toISOString());
+      this.deps.ledger.savePerformance({ as_of: this.now().toISOString(), strategy_version: this.deps.ledger.latestStrategyManifest()?.strategy_version ?? "unversioned", nav: strategyEquity, high_water_mark: highWaterMark, drawdown_pct: drawdown, drawdown_tier: drawdownTier, benchmark_spy: null, benchmark_60_40: null });
     }
     this.audit("reconcile", paused ? "warn" : "info", paused ? "Reconciliation paused trading." : "Reconciliation passed.", { checks, failed, account, clock, position_count: positions.length, order_count: openOrders.length });
     return {
@@ -182,7 +211,7 @@ export class TradingCoreService {
       positions,
       open_orders: openOrders,
       strategy_equity: strategyEquity,
-      checks: { ...checks, strategy_drawdown_pct: round(drawdown) },
+      checks: { ...checks, strategy_drawdown_pct: round(drawdown), drawdown_tier: drawdownTier },
     };
   }
 
@@ -190,7 +219,7 @@ export class TradingCoreService {
     const reconcile = await this.reconcile();
     const positions = reconcile.positions;
     const openOrders = reconcile.open_orders;
-    const missingStops = positions.filter((position) => position.qty > 0 && !position.protective_stop_price);
+    const missingStops = positions.filter((position) => position.qty > 0 && position.symbol !== this.deps.config.defensive_symbol && !position.protective_stop_price);
     const clock = await this.safeGetClock();
     const staleData = isStaleClock(clock, this.now(), this.deps.config.max_quote_age_seconds);
     const checks = {
@@ -217,32 +246,39 @@ export class TradingCoreService {
 
   async signalsIfDue(): Promise<Record<string, unknown>> {
     const now = this.now();
-    if (!isWeekday(now)) {
+    const leaseHolder = `signals-${process.pid}-${now.getTime()}`;
+    if (!this.deps.ledger.acquireLease("mountainvalue-signals", leaseHolder, now.toISOString())) return this.skip("signals-if-due", "Another signal run holds the lease.");
+    const calendar = await this.calendarAround(now);
+    if (!calendar.includes(tradeDateInNewYork(now))) {
       return this.skip("signals-if-due", "Not a trading day.");
     }
     if (!isAfterNewYorkTime(now, 16, 20)) {
       return this.skip("signals-if-due", "Signals are locked after 16:20 ET for the next trading day.");
     }
     const currentTradeDate = await this.currentTradeDate();
-    const executionDate = nextBusinessDay(currentTradeDate, now);
+    const executionDate = nextCalendarDate(calendar, currentTradeDate);
+    if (!executionDate) return this.skip("signals-if-due", "Unable to resolve next Alpaca calendar session.");
     if (this.deps.ledger.hasDailyIntent(executionDate)) {
       return this.skip("signals-if-due", `Signal already locked for ${executionDate}.`);
     }
-    const validation = this.deps.ledger.readSnapshot<BacktestResult>("backtest");
-    if (!validation) {
-      return this.skip("signals-if-due", "No validated backtest is recorded; run equity-research backtest before locking signals.");
+    const manifest = this.deps.ledger.latestStrategyManifest();
+    if (!this.manifestCanCreateEntries(manifest, now)) {
+      return this.skip("signals-if-due", `No current approved strategy manifest${manifest ? ` (${manifest.approval_status})` : ""}.`);
     }
-    const watchlist = this.deps.config.watchlist_symbols;
-    const bars = await this.deps.broker.getDailyBars(watchlist, 260);
+    const approvedManifest = manifest as StrategyManifest;
+    if (businessDaysBetween(approvedManifest.data_as_of, currentTradeDate) > 5) {
+      return this.skip("signals-if-due", `Research data is stale: ${approvedManifest.data_as_of}.`);
+    }
+    const targets = this.deps.ledger.latestTargets(approvedManifest.strategy_version);
+    if (targets.length === 0) return this.skip("signals-if-due", "No current research targets are recorded.");
+    const bars = await this.deps.broker.getDailyBars(["SPY", ...this.deps.config.watchlist_symbols], 260);
     const positions = safePositions(this.deps.ledger.listOpenPositions());
-    const signalPlan = computeSignalPlan({
+    const signalPlan = computeTargetSignalPlan({
       trade_date: executionDate,
       generated_at: now.toISOString(),
       bars_by_symbol: bars,
       holdings: positions,
-      watchlist_symbols: watchlist,
-      tradable_symbols: this.deps.config.tradable_symbols,
-      strategy: validation.selected_strategy,
+      targets,
     });
     this.deps.ledger.saveSnapshot("signal_plan", signalPlan, now.toISOString());
     this.deps.ledger.saveDailyIntent(executionDate, now.toISOString(), signalPlan);
@@ -258,18 +294,21 @@ export class TradingCoreService {
 
   async cycleIfDue(): Promise<CycleResult> {
     const now = this.now();
+    const leaseHolder = `cycle-${process.pid}-${now.getTime()}`;
+    if (!this.deps.ledger.acquireLease("mountainvalue-cycle", leaseHolder, now.toISOString())) return this.recordCycleResult(this.cycleSkip(await this.currentTradeDate(), "Another execution run holds the lease."));
     const tradeDate = await this.currentTradeDate();
-    if (!isWeekday(now)) {
+    const calendar = await this.calendarAround(now);
+    if (!calendar.includes(tradeDate)) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "Not a trading day."));
     }
     if (!isAfterNewYorkTime(now, 10, 5)) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "Execution cycle starts after the open."));
     }
-    if (isAfterNewYorkTime(now, 15, 30)) {
-      return this.recordCycleResult(this.cycleSkip(tradeDate, "Entry retry cutoff reached at 15:30 ET."));
+    if (isAfterNewYorkTime(now, Math.floor(this.deps.config.execution_retry_cutoff_hour_et), Math.round((this.deps.config.execution_retry_cutoff_hour_et % 1) * 60))) {
+      return this.recordCycleResult(this.cycleSkip(tradeDate, `Entry retry cutoff reached at ${this.deps.config.execution_retry_cutoff_hour_et} ET.`));
     }
     if (!this.state().trading_enabled) {
-      return this.recordCycleResult(this.cycleBlock(tradeDate, `Paused: ${this.state().pause_reason ?? "unknown reason"}`));
+      return this.recordCycleResult(this.cycleAlreadyPaused(tradeDate));
     }
     if (this.state().last_entry_date === tradeDate) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "Daily entry cap already used."));
@@ -291,7 +330,18 @@ export class TradingCoreService {
     if (!signalPlan || signalPlan.trade_date !== tradeDate) {
       return this.recordCycleResult(this.cycleSkip(tradeDate, "No saved trade intent for today."));
     }
+    const signalGeneratedAt = this.deps.ledger.dailyIntentGeneratedAt(tradeDate);
+    const manifest = this.deps.ledger.latestStrategyManifest();
+    if (!this.manifestCanCreateEntries(manifest, now)) {
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "Strategy manifest is not approved/current; entries fail closed."));
+    }
+    const approvedManifest = manifest as StrategyManifest;
+    if (!signalGeneratedAt || new Date(signalGeneratedAt).getTime() < new Date(approvedManifest.created_at).getTime()) {
+      return this.recordCycleResult(this.cycleSkip(tradeDate, "Saved intent predates current strategy manifest; wait for a newly locked signal."));
+    }
     const positions = safePositions(this.deps.ledger.listOpenPositions());
+    const drawdownTier = this.deps.ledger.latestPerformance()?.drawdown_tier ?? "normal";
+    const riskMultiplier = drawdownTier === "reduce_25" ? 0.75 : drawdownTier === "reduce_50" ? 0.50 : drawdownTier === "halt" ? 0 : 1;
     const executionPlan = buildExecutionPlan({
       signal_plan: signalPlan,
       holdings: positions,
@@ -299,8 +349,8 @@ export class TradingCoreService {
       cash_available: this.state().virtual_cash_usd,
       max_open_positions: this.deps.config.max_open_positions,
       max_new_entries_per_day: this.deps.config.max_new_entries_per_day,
-      max_position_notional_pct: this.deps.config.max_position_notional_pct,
-      max_total_invested_pct: this.deps.config.max_total_invested_pct,
+      max_position_notional_pct: this.deps.config.max_position_notional_pct * riskMultiplier,
+      max_total_invested_pct: this.deps.config.max_total_invested_pct * riskMultiplier,
       minimum_order_notional_usd: this.deps.config.minimum_order_notional_usd,
       target_portfolio_volatility_pct: this.deps.config.target_portfolio_volatility_pct,
     });
@@ -309,19 +359,24 @@ export class TradingCoreService {
     }
     const actions: Array<Record<string, unknown>> = [];
     const skipped: Array<Record<string, unknown>> = [...executionPlan.skipped];
+    if (this.deps.config.operating_mode === "shadow" || !this.deps.config.autonomous_execution_enabled) {
+      actions.push(...executionPlan.sell_intents.map((intent) => ({ status: "SHADOW", intent, reason: this.deps.config.operating_mode === "shadow" ? "Shadow mode: broker mutation prohibited." : "Autonomous execution disabled." })));
+      actions.push(...executionPlan.buy_intents.map((intent) => ({ status: "SHADOW", intent, reason: this.deps.config.operating_mode === "shadow" ? "Shadow mode: broker mutation prohibited." : "Autonomous execution disabled." })));
+      return this.recordCycleResult({ status: "NO_TRADE", trade_date: tradeDate, actions, skipped, paused: false, reason: "Proposed targets recorded without broker mutation." });
+    }
     for (const intent of executionPlan.sell_intents) {
       const result = await this.executeSellIntent(intent);
       actions.push(result);
     }
-    if (executionPlan.buy_intent) {
-      const buyResult = await this.executeBuyIntent(executionPlan.buy_intent);
+    for (const intent of executionPlan.buy_intents) {
+      const buyResult = await this.executeBuyIntent(intent);
       actions.push(buyResult);
       if (buyResult.status === "ORDER_SUBMITTED") {
         this.writeState({ last_entry_date: tradeDate, entry_retry_for: null, entry_retry_after: null, entry_retry_attempts: 0 });
       } else if (buyResult.status === "SKIPPED" && this.isRetriableEntrySkip(String(buyResult.reason ?? ""))) {
         const retryAfter = new Date(now.getTime() + this.deps.config.execution_retry_interval_minutes * 60_000).toISOString();
         const attempts = (this.state().entry_retry_attempts ?? 0) + 1;
-        this.writeState({ entry_retry_for: `${tradeDate}:${executionPlan.buy_intent.symbol}`, entry_retry_after: retryAfter, entry_retry_attempts: attempts });
+        this.writeState({ entry_retry_for: `${tradeDate}:${intent.symbol}`, entry_retry_after: retryAfter, entry_retry_attempts: attempts });
         buyResult.retry_after = retryAfter;
         buyResult.retry_scheduled = true;
       }
@@ -352,6 +407,9 @@ export class TradingCoreService {
       return this.skip("cancel-stale-entries-if-due", "Stale-entry cancellation starts at 15:45 ET.");
     }
     const openOrders = await this.safeGetOpenOrders();
+    if (this.deps.config.operating_mode === "shadow" || !this.deps.config.autonomous_execution_enabled) {
+      return this.skip("cancel-stale-entries-if-due", "Shadow/disabled mode: broker cancellation prohibited.");
+    }
     const staleOrders = openOrders.filter((order) => order.client_order_id?.startsWith(this.deps.config.order_client_prefix) && order.side === "buy" && order.status !== "filled");
     const canceled: Array<Record<string, unknown>> = [];
     for (const order of staleOrders) {
@@ -375,7 +433,10 @@ export class TradingCoreService {
     const positions = safePositions(this.deps.ledger.listOpenPositions());
     const openOrders = this.deps.ledger.listOpenOrders();
     const signalPlan = this.deps.ledger.readSnapshot<SignalPlan>("signal_plan");
-    const todaySignalPlan = signalPlan?.trade_date === tradeDate ? signalPlan : null;
+    const intentUniverseCurrent = !signalPlan?.buy_candidate || this.deps.config.tradable_symbols.includes(signalPlan.buy_candidate.symbol);
+    const currentSignalPlan = intentUniverseCurrent ? signalPlan : null;
+    const todaySignalPlan = currentSignalPlan?.trade_date === tradeDate ? currentSignalPlan : null;
+    const nextSignalPlan = currentSignalPlan && currentSignalPlan.trade_date > tradeDate ? currentSignalPlan : null;
     const cycle = this.deps.ledger.readSnapshot<CycleResult>("cycle");
     const execution = cycle?.trade_date === tradeDate ? cycle : null;
     const signalDecisions = Array.isArray(todaySignalPlan?.decisions) ? todaySignalPlan.decisions : [];
@@ -396,6 +457,7 @@ export class TradingCoreService {
     } : null;
     const summary: ReportSummary = {
       mode: state.execution_mode,
+      operating_mode: this.deps.config.operating_mode,
       trading_enabled: state.trading_enabled,
       trade_date: tradeDate,
       strategy_equity: strategyEquity,
@@ -412,6 +474,7 @@ export class TradingCoreService {
         reason: todaySignalPlan.no_trade_reason ?? (todaySignalPlan.buy_candidate ? todaySignalPlan.buy_candidate.reason : "no trade"),
         signal: todaySignalPlan.buy_candidate ?? undefined,
       } : null,
+      next_intent: nextSignalPlan ? { trade_date: nextSignalPlan.trade_date, created_at: nextSignalPlan.generated_at, symbol: nextSignalPlan.buy_candidate?.symbol ?? "BIL", action: nextSignalPlan.buy_candidate ? "buy" : "none", reason: nextSignalPlan.no_trade_reason ?? nextSignalPlan.buy_candidate?.reason ?? "no trade", signal: nextSignalPlan.buy_candidate ?? undefined } : null,
       execution,
       execution_retry: retry,
       discord_summary: "",
@@ -422,6 +485,9 @@ export class TradingCoreService {
       audit_count: audits,
       pause_reason: state.pause_reason,
       watchdog: this.deps.ledger.readSnapshot("watchdog") ?? {},
+      strategy: this.deps.ledger.latestStrategyManifest(),
+      drawdown: this.deps.ledger.latestPerformance(),
+      stop_coverage: positions.map((position) => ({ symbol: position.symbol, sleeve: ETF_UNIVERSE.includes(position.symbol as typeof ETF_UNIVERSE[number]) ? "etf" : "stock", stop_price: position.protective_stop_price ?? null, stop_order_id: position.protective_stop_order_id ?? null, stop_distance_pct: position.avg_entry_price && position.protective_stop_price ? 1 - position.protective_stop_price / position.avg_entry_price : null, loss_budget_pct: ETF_UNIVERSE.includes(position.symbol as typeof ETF_UNIVERSE[number]) ? 0.01 : 0.0075, covered: position.symbol === this.deps.config.defensive_symbol || Boolean(position.protective_stop_price) })),
     };
     summary.discord_summary = formatDiscordSummary(summary);
     this.deps.ledger.saveSnapshot("report", summary, this.now().toISOString());
@@ -448,8 +514,92 @@ export class TradingCoreService {
       slippage_bps: 10,
     });
     this.deps.ledger.saveSnapshot("backtest", result, this.now().toISOString());
+    const approvalStatus: ApprovalStatus = result.approval?.status ?? "rejected";
+    this.deps.ledger.saveStrategyManifest({
+      strategy_version: STRATEGY_VERSION,
+      created_at: this.now().toISOString(),
+      sleeve: "etf",
+      approval_status: approvalStatus,
+      expires_at: approvalStatus === "approved" ? new Date(this.now().getTime() + 35 * 86_400_000).toISOString() : null,
+      parameters: { universe: ETF_UNIVERSE, execution: "next-session 10:05 IEX proxy", costs_bps: 20, trial_count: 1 },
+      data_as_of: result.end_date,
+      approval_reason: result.approval?.reasons.join("; ") || "Legacy validation did not produce approval evidence.",
+    });
     this.audit("backtest", "info", "Dual-momentum ETF backtest completed.", { result });
     return { ...result };
+  }
+
+  async dataSync(asOf?: string): Promise<Record<string, unknown>> {
+    const effectiveAsOf = asOf ?? tradeDateInNewYork(this.now());
+    if (!isAfterNewYorkTime(this.now(), 16, 20)) {
+      return { status: "NO_TRADE", as_of: effectiveAsOf, reason: "Daily-bar research waits for the regular-market close." };
+    }
+    const cached = this.deps.ledger.readSnapshot<{ bars: Record<string, import("./contracts.js").Bar[]>; run: Record<string, unknown> }>(`raw-bars:${effectiveAsOf}`);
+    if (cached) {
+      return { status: "NO_TRADE", run: cached.run, symbols: Object.keys(cached.bars), bars_received: Object.fromEntries(Object.entries(cached.bars).map(([symbol, rows]) => [symbol, rows.length])), cached: true };
+    }
+    const symbols = ["SPY", ...ETF_UNIVERSE];
+    const bars = await this.deps.broker.getDailyBars(symbols, 45, { adjustment: "all", end: `${effectiveAsOf}T23:59:59Z` });
+    const requestedAt = this.now().toISOString();
+    const checksum = checksumOf(bars);
+    const run = { id: `${STRATEGY_VERSION}:data:${effectiveAsOf}:${checksum.slice(0, 12)}`, strategy_version: STRATEGY_VERSION, sleeve: "portfolio" as const, as_of: effectiveAsOf, created_at: requestedAt, immutable: true as const, data_provenance: [{ provider: "alpaca", source_url: this.deps.config.alpaca_data_base_url, requested_at: requestedAt, effective_as_of: effectiveAsOf, checksum }] };
+    this.deps.ledger.saveResearchRun(run);
+    this.deps.ledger.saveSnapshot(`raw-bars:${effectiveAsOf}`, { bars, run }, requestedAt);
+    this.audit("data-sync", "info", "Cached adjusted Alpaca bars with provenance.", { run_id: run.id, symbols });
+    return { status: "NO_TRADE", run, symbols, bars_received: Object.fromEntries(Object.entries(bars).map(([symbol, rows]) => [symbol, rows.length])) };
+  }
+
+  async researchEtfs(asOf?: string): Promise<Record<string, unknown>> {
+    const effectiveAsOf = asOf ?? tradeDateInNewYork(this.now());
+    if (!isAfterNewYorkTime(this.now(), 16, 20)) {
+      return { status: "NO_TRADE", as_of: effectiveAsOf, reason: "ETF research waits for the regular-market close." };
+    }
+    const cached = this.deps.ledger.readSnapshot<Record<string, unknown>>(`etf-research:${effectiveAsOf}`);
+    if (cached) return { status: "NO_TRADE", ...cached, cached: true };
+    const raw = this.deps.ledger.readSnapshot<{ bars: Record<string, import("./contracts.js").Bar[]> }>(`raw-bars:${effectiveAsOf}`);
+    const bars = raw?.bars ?? await this.deps.broker.getDailyBars(["SPY", ...ETF_UNIVERSE], 45, { adjustment: "all", end: `${effectiveAsOf}T23:59:59Z` });
+    const research = buildEtfResearch({ as_of: effectiveAsOf, bars_by_symbol: bars });
+    this.deps.ledger.saveCandidateScores(research.scores);
+    this.deps.ledger.saveTargets(research.targets);
+    this.deps.ledger.saveSnapshot(`etf-research:${effectiveAsOf}`, research, this.now().toISOString());
+    this.audit("research-etfs", "info", "Deterministic ETF scores and constrained targets generated.", { as_of: effectiveAsOf, selected: research.targets });
+    return { status: "NO_TRADE", ...research };
+  }
+
+  async researchStocks(asOf?: string): Promise<Record<string, unknown>> {
+    const effectiveAsOf = asOf ?? tradeDateInNewYork(this.now());
+    const result = { status: "NO_TRADE", as_of: effectiveAsOf, sleeve: "stock", survivorship_limited: true, candidates: [], reason: "No point-in-time SEC fundamentals universe is cached. Stock sleeve remains research-only and cannot create targets." };
+    this.deps.ledger.saveSnapshot(`stock-research:${effectiveAsOf}`, result, this.now().toISOString());
+    this.audit("research-stocks", "warn", result.reason, result);
+    return result;
+  }
+
+  async reviewStocks(asOf?: string): Promise<Record<string, unknown>> {
+    const effectiveAsOf = asOf ?? tradeDateInNewYork(this.now());
+    return { status: "NO_TRADE", as_of: effectiveAsOf, required_reviewers: ["eq_quantsieve", "eq_thesis_depth_reviewer", "eq_riskskeptic"], approved: [], vetoed: [], reason: "No stock candidates may pass without all three structured source-backed reviews; this command reports only." };
+  }
+
+  async buildTargets(asOf?: string): Promise<Record<string, unknown>> {
+    const effectiveAsOf = asOf ?? tradeDateInNewYork(this.now());
+    const existingTargets = this.deps.ledger.latestTargets(STRATEGY_VERSION);
+    if (!isAfterNewYorkTime(this.now(), 16, 20)) {
+      return { status: "NO_TRADE", as_of: effectiveAsOf, targets: existingTargets, operating_mode: this.deps.config.operating_mode, reason: "20-session rotation targets refresh once after each market close." };
+    }
+    const existing = this.deps.ledger.readSnapshot<Record<string, unknown>>(`etf-research:${effectiveAsOf}`);
+    const research = existing ?? await this.researchEtfs(effectiveAsOf);
+    const targets = this.deps.ledger.listTargets(STRATEGY_VERSION, effectiveAsOf);
+    const paperEnabled = this.deps.config.operating_mode === "paper" && this.deps.config.autonomous_execution_enabled;
+    this.deps.ledger.saveStrategyManifest({ strategy_version: STRATEGY_VERSION, created_at: this.now().toISOString(), sleeve: "portfolio", approval_status: paperEnabled ? "approved" : "shadow", expires_at: paperEnabled ? new Date(this.now().getTime() + 8 * 86_400_000).toISOString() : null, parameters: { rebalance: "daily_after_close", holding_horizon: "1_to_20_sessions", max_holding_sessions: 20, max_risk_assets: 0.90, min_bil: 0.10, max_etf_weight: 0.30, max_new_entries_per_day: 4, target_volatility: 0.25 }, data_as_of: effectiveAsOf, approval_reason: paperEnabled ? "User-authorized aggressive paper-only 20-session ETF rotation; deterministic daily research and risk guards active." : "Shadow deployment: targets observable only until paper mode is explicitly enabled.", survivorship_limited: true });
+    return { status: "NO_TRADE", as_of: effectiveAsOf, targets, research_available: Boolean(research), operating_mode: this.deps.config.operating_mode };
+  }
+
+  async strategyStatus(): Promise<Record<string, unknown>> {
+    return { status: "NO_TRADE", operating_mode: this.deps.config.operating_mode, manifest: this.deps.ledger.latestStrategyManifest(), backtest: this.deps.ledger.readSnapshot("backtest"), performance: this.deps.ledger.latestPerformance(), latest_targets: this.deps.ledger.latestDailyIntent() };
+  }
+
+  async weeklyReport(): Promise<Record<string, unknown>> {
+    const report = await this.dailyReport();
+    return { status: "NO_TRADE", generated_at: this.now().toISOString(), report, strategy: this.deps.ledger.latestStrategyManifest(), performance: this.deps.ledger.latestPerformance(), attribution: { etf: "pending normalized NAV history", stock: "research-only / no forward evidence" } };
   }
 
   pause(reason: string): TradingState {
@@ -503,30 +653,41 @@ export class TradingCoreService {
 
   private async executeBuyIntent(intent: TradeIntent): Promise<Record<string, unknown>> {
     try {
+      const strategyVersion = this.deps.ledger.latestStrategyManifest()?.strategy_version;
+      if (!strategyVersion) throw new ContractError("No strategy version linked to entry");
+      const idempotencyKey = `${strategyVersion}:${intent.trade_date}:${intent.symbol}:buy`;
+      const priorAttempt = this.deps.ledger.getOrderAttempt(idempotencyKey);
+      if (priorAttempt?.broker_order_id) return { status: "SKIPPED", intent, reason: "Idempotent order attempt already exists.", attempt: priorAttempt };
       const quote = await this.deps.broker.getLatestQuote(intent.symbol);
-      this.validateEntryQuote(quote.timestamp, quote.bid, quote.ask, intent.signal?.indicators.previous_close ?? quote.ask);
+      const sleeve = ETF_UNIVERSE.includes(intent.symbol as typeof ETF_UNIVERSE[number]) ? "etf" : "stock";
+      this.validateEntryQuote(quote.timestamp, quote.bid, quote.ask, intent.signal?.indicators.previous_close ?? quote.ask, sleeve);
       const limitPrice = roundPrice(quote.ask * 1.001);
       const clientOrderId = `${this.deps.config.order_client_prefix}${intent.trade_date}-${intent.symbol}-buy`;
+      const distance = stopDistance(intent.signal?.indicators.atr_percent ?? 0.03, sleeve, intent.symbol);
+      const targetWeight = Number(intent.signal?.checks.target_weight ?? this.deps.config.max_position_notional_pct);
+      const quantity = distance === null ? intent.quantity : lossBudgetQuantity({ nav: this.state().last_strategy_equity_usd, targetWeight, cash: this.state().virtual_cash_usd, price: limitPrice, stopDistance: distance, sleeve, riskBudgetPct: sleeve === "etf" ? this.deps.config.etf_position_risk_pct : undefined });
+      if (!quantity || quantity <= 0) throw new ContractError("Risk-budgeted quantity is zero");
+      const stopPrice = distance === null ? null : roundPrice(limitPrice * (1 - distance));
+      this.deps.ledger.saveOrderAttempt({ idempotency_key: idempotencyKey, strategy_version: strategyVersion, trade_date: intent.trade_date, symbol: intent.symbol, side: "buy", status: "submitting", broker_order_id: null, created_at: this.now().toISOString(), payload: { intent, limit_price: limitPrice, stop_price: stopPrice } });
       const order = await this.deps.broker.submitOrder({
         symbol: intent.symbol,
         side: "buy",
         type: "limit",
         time_in_force: "day",
-        qty: intent.quantity,
+        qty: quantity,
         limit_price: limitPrice,
         client_order_id: clientOrderId,
         extended_hours: false,
+        ...(stopPrice === null ? {} : { order_class: "oto", stop_loss: { stop_price: stopPrice } }),
       });
+      this.deps.ledger.saveOrderAttempt({ idempotency_key: idempotencyKey, strategy_version: strategyVersion, trade_date: intent.trade_date, symbol: intent.symbol, side: "buy", status: order.status, broker_order_id: order.id, created_at: this.now().toISOString(), payload: { intent, order, stop_price: stopPrice } });
       this.deps.ledger.upsertOrder(order, this.now().toISOString());
       const filled = await this.tryFill(order.id);
       if (filled && filled.status === "filled") {
-        const atrPercent = intent.signal?.indicators.atr_percent ?? 0.03;
-        const stopPercent = clamp(atrPercent * 2, 0.03, 0.06);
-        const stopPrice = roundPrice((filled.filled_avg_price ?? limitPrice) * (1 - stopPercent));
         const position: PositionSnapshot = {
           symbol: intent.symbol,
-          qty: filled.filled_qty ?? intent.quantity ?? 0,
-          market_value: (filled.filled_qty ?? intent.quantity ?? 0) * (filled.filled_avg_price ?? limitPrice),
+          qty: filled.filled_qty ?? quantity,
+          market_value: (filled.filled_qty ?? quantity) * (filled.filled_avg_price ?? limitPrice),
           avg_entry_price: filled.filled_avg_price ?? limitPrice,
           current_price: filled.filled_avg_price ?? limitPrice,
           unrealized_pl: 0,
@@ -540,7 +701,8 @@ export class TradingCoreService {
         };
         this.deps.ledger.upsertPosition(position, this.now().toISOString());
         this.deps.ledger.saveSnapshot("position_stop_pending", position, this.now().toISOString());
-        this.writeState({ virtual_cash_usd: Math.max(0, this.state().virtual_cash_usd - ((filled.filled_qty ?? intent.quantity ?? 0) * (filled.filled_avg_price ?? limitPrice))) });
+        this.deps.ledger.saveFill({ broker_order_id: filled.id, symbol: filled.symbol, side: "buy", quantity: filled.filled_qty ?? quantity, price: filled.filled_avg_price ?? limitPrice, filled_at: filled.filled_at ?? this.now().toISOString(), strategy_version: strategyVersion });
+        this.writeState({ virtual_cash_usd: Math.max(0, this.state().virtual_cash_usd - ((filled.filled_qty ?? quantity) * (filled.filled_avg_price ?? limitPrice))) });
       }
       this.audit("buy", "info", `Submitted buy order for ${intent.symbol}.`, { order, filled: filled.status, quote, intent });
       return { status: "ORDER_SUBMITTED", intent, order, filled: filled.status };
@@ -615,8 +777,16 @@ export class TradingCoreService {
     return { status: "SKIPPED", trade_date: tradeDate, actions: [], skipped: [{ reason }], paused: false, reason };
   }
 
+  private cycleAlreadyPaused(tradeDate: string): CycleResult {
+    const reason = this.state().pause_reason ?? "unknown reason";
+    this.audit("cycle-if-due", "warn", reason, { reason });
+    return { status: "BLOCKED", trade_date: tradeDate, actions: [], skipped: [], paused: true, reason };
+  }
+
   private cycleBlock(tradeDate: string, reason: string): CycleResult {
-    this.pause(reason);
+    if (this.state().trading_enabled) {
+      this.pause(reason);
+    }
     this.audit("cycle-if-due", "warn", reason, { reason });
     return { status: "BLOCKED", trade_date: tradeDate, actions: [], skipped: [], paused: true, reason };
   }
@@ -679,7 +849,7 @@ export class TradingCoreService {
     }
   }
 
-  private validateEntryQuote(timestamp: string, bid: number, ask: number, priorClose: number): void {
+  private validateEntryQuote(timestamp: string, bid: number, ask: number, priorClose: number, sleeve: "etf" | "stock"): void {
     const ageSeconds = Math.abs((this.now().getTime() - new Date(timestamp).getTime()) / 1000);
     if (!Number.isFinite(ageSeconds) || ageSeconds > this.deps.config.max_quote_age_seconds) {
       throw new ContractError(`Entry quote is stale (${Math.round(ageSeconds)}s old)`);
@@ -689,7 +859,8 @@ export class TradingCoreService {
     }
     const midpoint = (bid + ask) / 2;
     const spreadBps = ((ask - bid) / midpoint) * 10_000;
-    if (spreadBps > this.deps.config.max_spread_bps) {
+    const cap = sleeve === "etf" ? this.deps.config.max_spread_bps : this.deps.config.max_stock_spread_bps;
+    if (spreadBps > cap) {
       throw new ContractError(`Entry quote spread too wide (${round(spreadBps)} bps)`);
     }
     const deviation = Math.abs(midpoint - priorClose) / priorClose;
@@ -740,11 +911,11 @@ export function formatDiscordSummary(report: ReportSummary): string {
     ? `Next: retry ${report.execution_retry.symbol} after ${report.execution_retry.retry_after} if quote guards pass.`
     : "Next: wait for the next scheduled strategy step.";
   return [
-    `[PAPER] ${outcome}`,
+    `[PAPER/${report.operating_mode ?? "paper"}] ${outcome}`,
     `Execution: ${actionStatus ?? report.execution?.status ?? "NO_TRADE"} — ${reason}`,
     intentLine,
     `Account: cash $${round(report.cash).toFixed(2)} | invested $${round(report.invested).toFixed(2)} | positions ${report.open_positions.length} | orders ${report.open_orders.length}.`,
-    `Risk: ${report.pause_reason ? `paused (${report.pause_reason})` : "active"}.`,
+    `Risk: ${report.pause_reason ? `paused (${report.pause_reason})` : `${report.drawdown?.drawdown_tier ?? "normal"}; stop coverage ${report.stop_coverage?.filter((risk) => risk.covered).length ?? 0}/${report.stop_coverage?.length ?? 0}`}.`,
     retryLine,
   ].join("\n");
 }
@@ -753,14 +924,16 @@ export function loadTradingConfig(env = process.env): TradingConfig {
   const baseUrl = env.ALPACA_TRADING_BASE_URL?.trim() || "https://paper-api.alpaca.markets";
   const dataBaseUrl = env.ALPACA_DATA_BASE_URL?.trim() || "https://data.alpaca.markets";
   const executionMode = (env.EXECUTION_MODE?.trim() as ExecutionMode | undefined) || "paper";
+  const operatingMode = (env.MOUNTAINVALUE_OPERATING_MODE?.trim() as TradingConfig["operating_mode"] | undefined) || "shadow";
   const watchlist = env.MOUNTAINVALUE_WATCHLIST?.trim()
     ? env.MOUNTAINVALUE_WATCHLIST.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean)
-    : ["SPY", "QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"];
+    : ["VTI", "QQQ", "IWM", "VEA", "VWO", "VNQ", "GLD", "DBC", "IEF", "TLT", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"];
   const tradable = env.MOUNTAINVALUE_TRADABLE_SYMBOLS?.trim()
     ? env.MOUNTAINVALUE_TRADABLE_SYMBOLS.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean)
-    : ["QQQ", "IWM", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"];
+    : ["VTI", "QQQ", "IWM", "VEA", "VWO", "VNQ", "GLD", "DBC", "IEF", "TLT", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"];
   const config: TradingConfig = {
     execution_mode: executionMode,
+    operating_mode: operatingMode,
     autonomous_execution_enabled: env.AUTONOMOUS_EXECUTION_ENABLED?.trim() !== "false",
     alpaca_trading_base_url: baseUrl,
     alpaca_data_base_url: dataBaseUrl,
@@ -768,16 +941,18 @@ export function loadTradingConfig(env = process.env): TradingConfig {
     alpaca_api_key: env.ALPACA_API_KEY?.trim() || "",
     alpaca_secret_key: env.ALPACA_SECRET_KEY?.trim() || "",
     paper_strategy_capital_usd: parseNumber(env.PAPER_STRATEGY_CAPITAL_USD, 100000),
-    max_open_positions: parseNumber(env.MOUNTAINVALUE_MAX_OPEN_POSITIONS, 2),
+    max_open_positions: parseNumber(env.MOUNTAINVALUE_MAX_OPEN_POSITIONS, 8),
     max_new_entries_per_day: parseNumber(env.MOUNTAINVALUE_MAX_NEW_ENTRIES_PER_DAY, 1),
-    max_position_notional_pct: parseNumber(env.MOUNTAINVALUE_MAX_POSITION_NOTIONAL_PCT, 0.3),
-    max_total_invested_pct: parseNumber(env.MOUNTAINVALUE_MAX_TOTAL_INVESTED_PCT, 0.6),
+    max_position_notional_pct: parseNumber(env.MOUNTAINVALUE_MAX_POSITION_NOTIONAL_PCT, 0.30),
+    etf_position_risk_pct: parseNumber(env.MOUNTAINVALUE_ETF_POSITION_RISK_PCT, 0.018),
+    max_total_invested_pct: parseNumber(env.MOUNTAINVALUE_MAX_TOTAL_INVESTED_PCT, 1.00),
     minimum_order_notional_usd: parseNumber(env.MOUNTAINVALUE_MINIMUM_ORDER_NOTIONAL_USD, 15),
-    max_quote_age_seconds: parseNumber(env.MOUNTAINVALUE_MAX_QUOTE_AGE_SECONDS, 60),
-    max_spread_bps: parseNumber(env.MOUNTAINVALUE_MAX_SPREAD_BPS, 25),
+    max_quote_age_seconds: parseNumber(env.MOUNTAINVALUE_MAX_QUOTE_AGE_SECONDS, 15),
+    max_spread_bps: parseNumber(env.MOUNTAINVALUE_MAX_SPREAD_BPS, 15),
+    max_stock_spread_bps: parseNumber(env.MOUNTAINVALUE_MAX_STOCK_SPREAD_BPS, 30),
     max_midpoint_deviation_pct: parseNumber(env.MOUNTAINVALUE_MAX_MIDPOINT_DEVIATION_PCT, 0.015),
-    max_strategy_drawdown_pct: parseNumber(env.MOUNTAINVALUE_MAX_STRATEGY_DRAWDOWN_PCT, 0.10),
-    target_portfolio_volatility_pct: parseNumber(env.MOUNTAINVALUE_TARGET_PORTFOLIO_VOLATILITY_PCT, 0.10),
+    max_strategy_drawdown_pct: parseNumber(env.MOUNTAINVALUE_MAX_STRATEGY_DRAWDOWN_PCT, 0.15),
+    target_portfolio_volatility_pct: parseNumber(env.MOUNTAINVALUE_TARGET_PORTFOLIO_VOLATILITY_PCT, 0.25),
     execution_retry_interval_minutes: parseNumber(env.MOUNTAINVALUE_EXECUTION_RETRY_INTERVAL_MINUTES, 15),
     execution_retry_cutoff_hour_et: parseNumber(env.MOUNTAINVALUE_EXECUTION_RETRY_CUTOFF_HOUR_ET, 15.5),
     defensive_symbol: env.MOUNTAINVALUE_DEFENSIVE_SYMBOL?.trim().toUpperCase() || "BIL",
@@ -795,8 +970,8 @@ export function validateConfig(config: TradingConfig): void {
   if (config.execution_mode !== "paper") {
     throw new ContractError("MountainValue v1 only supports EXECUTION_MODE=paper");
   }
-  if (!config.autonomous_execution_enabled) {
-    throw new ContractError("AUTONOMOUS_EXECUTION_ENABLED must be true");
+  if (config.operating_mode !== "shadow" && config.operating_mode !== "paper") {
+    throw new ContractError("MOUNTAINVALUE_OPERATING_MODE must be shadow or paper");
   }
   if (!/paper-api\.alpaca\.markets/u.test(config.alpaca_trading_base_url)) {
     throw new ContractError("Alpaca trading base URL must be the paper endpoint");
@@ -807,6 +982,15 @@ export function validateConfig(config: TradingConfig): void {
   if (!config.alpaca_api_key || !config.alpaca_secret_key) {
     throw new ContractError("Alpaca credentials are required");
   }
+  const bounded = [
+    ["MOUNTAINVALUE_MAX_TOTAL_INVESTED_PCT", config.max_total_invested_pct, 0, 1],
+    ["MOUNTAINVALUE_MAX_POSITION_NOTIONAL_PCT", config.max_position_notional_pct, 0, 0.3],
+    ["MOUNTAINVALUE_ETF_POSITION_RISK_PCT", config.etf_position_risk_pct, 0.005, 0.02],
+    ["MOUNTAINVALUE_MAX_STRATEGY_DRAWDOWN_PCT", config.max_strategy_drawdown_pct, 0.01, 0.15],
+    ["MOUNTAINVALUE_MAX_QUOTE_AGE_SECONDS", config.max_quote_age_seconds, 1, 60],
+  ] as const;
+  for (const [name, value, minimum, maximum] of bounded) if (value < minimum || value > maximum) throw new ContractError(`${name} must be between ${minimum} and ${maximum}`);
+  if (config.execution_retry_cutoff_hour_et < 10.083 || config.execution_retry_cutoff_hour_et > 16) throw new ContractError("MOUNTAINVALUE_EXECUTION_RETRY_CUTOFF_HOUR_ET must be during regular US market hours");
 }
 
 function normalizeBrokerPosition(position: PositionSnapshot): PositionSnapshot {
@@ -887,6 +1071,31 @@ function nextBusinessDay(tradeDate: string, now: Date): string {
     }
     current.setUTCDate(current.getUTCDate() + 1);
   }
+}
+
+function nextCalendarDate(calendar: string[], after: string): string | null {
+  return [...calendar].sort().find((date) => date > after) ?? null;
+}
+
+function businessDaysBetween(start: string, end: string): number {
+  let days = 0;
+  const current = new Date(`${start}T00:00:00Z`);
+  const limit = new Date(`${end}T00:00:00Z`);
+  while (current < limit) {
+    current.setUTCDate(current.getUTCDate() + 1);
+    if (current.getUTCDay() > 0 && current.getUTCDay() < 6) days += 1;
+  }
+  return days;
+}
+
+function checksumOf(value: unknown): string {
+  const text = JSON.stringify(value);
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function getNewYorkParts(date: Date): { year: number; month: number; day: number; hour: number; minute: number; weekday: number } {

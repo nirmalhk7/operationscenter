@@ -4,9 +4,16 @@ import { DatabaseSync } from "node:sqlite";
 
 import {
   AuditRecord,
+  AgentReview,
+  CandidateScore,
   ContractError,
+  Fill,
   OrderSnapshot,
+  OrderAttempt,
+  PerformanceSnapshot,
   PositionSnapshot,
+  StrategyManifest,
+  TargetAllocation,
   TradeIntent,
   TradingState,
   createDefaultState,
@@ -72,8 +79,19 @@ export class TradingLedger {
           message TEXT NOT NULL,
           payload TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS schema_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS strategy_manifests (strategy_version TEXT PRIMARY KEY, created_at TEXT NOT NULL, payload TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS research_runs (id TEXT PRIMARY KEY, created_at TEXT NOT NULL, payload TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS candidate_scores (strategy_version TEXT NOT NULL, as_of TEXT NOT NULL, symbol TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(strategy_version, as_of, symbol));
+        CREATE TABLE IF NOT EXISTS agent_reviews (strategy_version TEXT NOT NULL, as_of TEXT NOT NULL, symbol TEXT NOT NULL, reviewer TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(strategy_version, as_of, symbol, reviewer));
+        CREATE TABLE IF NOT EXISTS target_allocations (strategy_version TEXT NOT NULL, as_of TEXT NOT NULL, symbol TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(strategy_version, as_of, symbol));
+        CREATE TABLE IF NOT EXISTS order_attempts (idempotency_key TEXT PRIMARY KEY, created_at TEXT NOT NULL, payload TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS fills (broker_order_id TEXT PRIMARY KEY, filled_at TEXT NOT NULL, payload TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS performance_snapshots (as_of TEXT PRIMARY KEY, payload TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS run_leases (name TEXT PRIMARY KEY, holder TEXT NOT NULL, expires_at TEXT NOT NULL, acquired_at TEXT NOT NULL);
       `);
       const ledger = new TradingLedger(db);
+      ledger.db.prepare("INSERT INTO schema_meta (key, value) VALUES ('schema_version', '2') ON CONFLICT(key) DO UPDATE SET value = excluded.value").run();
       if (!ledger.readState()) {
         ledger.writeState(createDefaultState(mode));
       }
@@ -168,6 +186,110 @@ export class TradingLedger {
       return null;
     }
     return parse<T>(row.payload, null as T | null);
+  }
+
+  dailyIntentGeneratedAt(tradeDate: string): string | null {
+    const row = this.db.prepare("SELECT generated_at FROM daily_intents WHERE trade_date = ?").get(tradeDate) as { generated_at?: string } | undefined;
+    return row?.generated_at ?? null;
+  }
+
+  latestDailyIntent<T>(): T | null {
+    const row = this.db.prepare("SELECT payload FROM daily_intents ORDER BY trade_date DESC LIMIT 1").get() as { payload?: string } | undefined;
+    return row?.payload ? parse<T>(row.payload, null as T | null) : null;
+  }
+
+  saveStrategyManifest(manifest: StrategyManifest): void {
+    this.db.prepare("INSERT INTO strategy_manifests (strategy_version, created_at, payload) VALUES (?, ?, ?) ON CONFLICT(strategy_version) DO UPDATE SET payload = excluded.payload").run(manifest.strategy_version, manifest.created_at, stringify(manifest));
+  }
+
+  getStrategyManifest(strategyVersion: string): StrategyManifest | null {
+    const row = this.db.prepare("SELECT payload FROM strategy_manifests WHERE strategy_version = ?").get(strategyVersion) as { payload?: string } | undefined;
+    return row?.payload ? parse<StrategyManifest>(row.payload, null) : null;
+  }
+
+  latestStrategyManifest(): StrategyManifest | null {
+    const row = this.db.prepare("SELECT payload FROM strategy_manifests ORDER BY created_at DESC LIMIT 1").get() as { payload?: string } | undefined;
+    return row?.payload ? parse<StrategyManifest>(row.payload, null) : null;
+  }
+
+  saveResearchRun(run: { id: string; created_at: string }): void {
+    this.db.prepare("INSERT INTO research_runs (id, created_at, payload) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET payload = excluded.payload").run(run.id, run.created_at, stringify(run));
+  }
+
+  saveCandidateScores(scores: CandidateScore[]): void {
+    const statement = this.db.prepare("INSERT INTO candidate_scores (strategy_version, as_of, symbol, payload) VALUES (?, ?, ?, ?) ON CONFLICT(strategy_version, as_of, symbol) DO UPDATE SET payload = excluded.payload");
+    this.db.exec("BEGIN IMMEDIATE");
+    try { for (const score of scores) statement.run(score.strategy_version, score.as_of, score.symbol, stringify(score)); this.db.exec("COMMIT"); } catch (error) { this.db.exec("ROLLBACK"); throw error; }
+  }
+
+  listCandidateScores(strategyVersion: string, asOf: string): CandidateScore[] {
+    return (this.db.prepare("SELECT payload FROM candidate_scores WHERE strategy_version = ? AND as_of = ? ORDER BY symbol").all(strategyVersion, asOf) as Array<{ payload: string }>)
+      .map((row) => parse<CandidateScore>(row.payload, null)).filter((value): value is CandidateScore => value !== null);
+  }
+
+  saveAgentReview(review: AgentReview): void {
+    this.db.prepare("INSERT INTO agent_reviews (strategy_version, as_of, symbol, reviewer, payload) VALUES (?, ?, ?, ?, ?) ON CONFLICT(strategy_version, as_of, symbol, reviewer) DO UPDATE SET payload = excluded.payload").run(review.strategy_version, review.as_of, review.symbol, review.reviewer, stringify(review));
+  }
+
+  listAgentReviews(strategyVersion: string, asOf: string, symbol?: string): AgentReview[] {
+    const rows = symbol
+      ? this.db.prepare("SELECT payload FROM agent_reviews WHERE strategy_version = ? AND as_of = ? AND symbol = ?").all(strategyVersion, asOf, symbol)
+      : this.db.prepare("SELECT payload FROM agent_reviews WHERE strategy_version = ? AND as_of = ?").all(strategyVersion, asOf);
+    return (rows as Array<{ payload: string }>).map((row) => parse<AgentReview>(row.payload, null)).filter((value): value is AgentReview => value !== null);
+  }
+
+  saveTargets(targets: TargetAllocation[]): void {
+    const statement = this.db.prepare("INSERT INTO target_allocations (strategy_version, as_of, symbol, payload) VALUES (?, ?, ?, ?) ON CONFLICT(strategy_version, as_of, symbol) DO UPDATE SET payload = excluded.payload");
+    this.db.exec("BEGIN IMMEDIATE");
+    try { for (const target of targets) statement.run(target.strategy_version, target.as_of, target.symbol, stringify(target)); this.db.exec("COMMIT"); } catch (error) { this.db.exec("ROLLBACK"); throw error; }
+  }
+
+  listTargets(strategyVersion: string, asOf: string): TargetAllocation[] {
+    return (this.db.prepare("SELECT payload FROM target_allocations WHERE strategy_version = ? AND as_of = ? ORDER BY symbol").all(strategyVersion, asOf) as Array<{ payload: string }>)
+      .map((row) => parse<TargetAllocation>(row.payload, null)).filter((value): value is TargetAllocation => value !== null);
+  }
+
+  latestTargets(strategyVersion: string): TargetAllocation[] {
+    const row = this.db.prepare("SELECT as_of FROM target_allocations WHERE strategy_version = ? ORDER BY as_of DESC LIMIT 1").get(strategyVersion) as { as_of?: string } | undefined;
+    return row?.as_of ? this.listTargets(strategyVersion, row.as_of) : [];
+  }
+
+  saveOrderAttempt(attempt: OrderAttempt): void {
+    this.db.prepare("INSERT INTO order_attempts (idempotency_key, created_at, payload) VALUES (?, ?, ?) ON CONFLICT(idempotency_key) DO UPDATE SET payload = excluded.payload").run(attempt.idempotency_key, attempt.created_at, stringify(attempt));
+  }
+
+  getOrderAttempt(key: string): OrderAttempt | null {
+    const row = this.db.prepare("SELECT payload FROM order_attempts WHERE idempotency_key = ?").get(key) as { payload?: string } | undefined;
+    return row?.payload ? parse<OrderAttempt>(row.payload, null) : null;
+  }
+
+  saveFill(fill: Fill): void {
+    this.db.prepare("INSERT INTO fills (broker_order_id, filled_at, payload) VALUES (?, ?, ?) ON CONFLICT(broker_order_id) DO UPDATE SET payload = excluded.payload").run(fill.broker_order_id, fill.filled_at, stringify(fill));
+  }
+
+  savePerformance(snapshot: PerformanceSnapshot): void {
+    this.db.prepare("INSERT INTO performance_snapshots (as_of, payload) VALUES (?, ?) ON CONFLICT(as_of) DO UPDATE SET payload = excluded.payload").run(snapshot.as_of, stringify(snapshot));
+  }
+
+  latestPerformance(): PerformanceSnapshot | null {
+    const row = this.db.prepare("SELECT payload FROM performance_snapshots ORDER BY as_of DESC LIMIT 1").get() as { payload?: string } | undefined;
+    return row?.payload ? parse<PerformanceSnapshot>(row.payload, null) : null;
+  }
+
+  acquireLease(name: string, holder: string, now: string, ttlMs = 14 * 60_000): boolean {
+    const expiresAt = new Date(new Date(now).getTime() + ttlMs).toISOString();
+    this.db.exec("BEGIN IMMEDIATE");
+    try {
+      this.db.prepare("DELETE FROM run_leases WHERE expires_at <= ?").run(now);
+      const existing = this.db.prepare("SELECT holder FROM run_leases WHERE name = ?").get(name) as { holder?: string } | undefined;
+      if (existing && existing.holder !== holder) { this.db.exec("COMMIT"); return false; }
+      this.db.prepare("INSERT INTO run_leases (name, holder, expires_at, acquired_at) VALUES (?, ?, ?, ?) ON CONFLICT(name) DO UPDATE SET holder = excluded.holder, expires_at = excluded.expires_at, acquired_at = excluded.acquired_at").run(name, holder, expiresAt, now);
+      this.db.exec("COMMIT"); return true;
+    } catch (error) { this.db.exec("ROLLBACK"); throw error; }
+  }
+
+  releaseLease(name: string, holder: string): void {
+    this.db.prepare("DELETE FROM run_leases WHERE name = ? AND holder = ?").run(name, holder);
   }
 
   replacePositions(positions: PositionSnapshot[], updatedAt: string): void {

@@ -345,6 +345,7 @@
     - name: Install MountainValue equity research CLI
       tags:
         - openclaw-equity-cli
+      when: openclaw_runtime_variant == 'primary'
       block:
         - name: Install local equity-research build dependencies
           ansible.builtin.command: npm ci --ignore-scripts
@@ -626,14 +627,22 @@
             fail_msg: "Set {{ item }} before deploying OpenClaw with Discord account {{ item | regex_replace('^OPENCLAW_DISCORD_BOT_TOKEN_', '') | lower }} enabled."
           loop:
             - OPENCLAW_DISCORD_BOT_TOKEN_MAIN
-            - OPENCLAW_DISCORD_BOT_TOKEN_RAHUL
             - OPENCLAW_DISCORD_BOT_TOKEN_VICTOR
+          when: openclaw_runtime_variant == 'primary'
+
+        - name: Require Rahul Discord bot token
+          ansible.builtin.assert:
+            that:
+              - lookup('env', 'OPENCLAW_DISCORD_BOT_TOKEN_RAHUL') | length > 0
+            fail_msg: "Set OPENCLAW_DISCORD_BOT_TOKEN_RAHUL before deploying Rahul."
+          when: openclaw_runtime_variant == 'rahul'
 
         - name: Require SEC EDGAR user agent
           ansible.builtin.assert:
             that:
               - lookup('env', 'OPENCLAW_EDGAR_USER_AGENT') | length > 0
             fail_msg: "Set OPENCLAW_EDGAR_USER_AGENT before deploying OpenClaw with the SEC EDGAR MCP server enabled."
+          when: openclaw_runtime_variant == 'primary'
 
     - name: Validate candidate OpenClaw configuration before live deployment
       tags:
@@ -772,6 +781,7 @@
             mode: '0755'
             force: yes
           notify: Restart OpenClaw service
+          when: openclaw_runtime_variant == 'primary'
 
         - name: Remove stale MountainValue subagent bootstrap files
           ansible.builtin.file:
@@ -826,6 +836,7 @@
             mode: '0755'
             force: yes
           notify: Restart OpenClaw service
+          when: openclaw_runtime_variant == 'primary'
 
         - name: Remove stale generated files from mainAgent workspace
           ansible.builtin.file:
@@ -887,6 +898,7 @@
       tags:
         - openclaw-assets
         - openclaw-pipelines
+      when: openclaw_runtime_variant == 'primary'
       block:
         - name: Deploy MountainValue Lobster pipeline files
           ansible.builtin.copy:
@@ -905,6 +917,7 @@
       tags:
         - openclaw-assets
         - openclaw-plugins
+      when: openclaw_runtime_variant == 'primary'
       block:
         - name: Ensure Lobster plugin directory exists
           ansible.builtin.file:

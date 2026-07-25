@@ -202,6 +202,15 @@ export class AlpacaClient {
     return parseClock(await response.json());
   }
 
+  async getCalendar(start: string, end: string): Promise<Array<{ date: string; open: string; close: string }>> {
+    const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/calendar", { start, end });
+    const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
+    return asArray(await response.json()).map((value) => {
+      const record = asRecord(value);
+      return { date: String(record.date ?? ""), open: String(record.open ?? ""), close: String(record.close ?? "") };
+    }).filter((entry) => /^\d{4}-\d{2}-\d{2}$/u.test(entry.date));
+  }
+
   async getAccount(): Promise<AccountSnapshot> {
     const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/account");
     const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
@@ -218,13 +227,13 @@ export class AlpacaClient {
   async getOpenOrders(): Promise<OrderSnapshot[]> {
     const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/orders", { status: "open", nested: true, limit: 500 });
     const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
-    return asArray(await response.json()).map(parseOrder);
+    return flattenOrders(asArray(await response.json()));
   }
 
   async getOrders(status = "open"): Promise<OrderSnapshot[]> {
     const url = buildUrl(this.config.alpaca_trading_base_url, "/v2/orders", { status, nested: true, limit: 500 });
     const response = await assertOk(await this.fetchImpl(url, { headers: authHeaders(this.config) }), url);
-    return asArray(await response.json()).map(parseOrder);
+    return flattenOrders(asArray(await response.json()));
   }
 
   async getAsset(symbol: string): Promise<Record<string, unknown>> {
@@ -316,4 +325,14 @@ export class AlpacaClient {
 
 export function createAlpacaClient(config: TradingConfig, fetchImpl: FetchLike = fetch): AlpacaClient {
   return new AlpacaClient(config, fetchImpl);
+}
+
+function flattenOrders(records: unknown[]): OrderSnapshot[] {
+  const flattened: OrderSnapshot[] = [];
+  for (const record of records) {
+    flattened.push(parseOrder(record));
+    const raw = asRecord(record);
+    for (const leg of asArray(raw.legs)) flattened.push(parseOrder(leg));
+  }
+  return flattened;
 }

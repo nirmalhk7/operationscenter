@@ -1,16 +1,16 @@
 # `@nirmalhk7/equity-research`
 
-TypeScript CLI package for the OpenClaw weekday US equity research workflow.
-The package owns deterministic SEC seed and filing search steps, Finviz
-fundamental and technical discovery screens, earnings-yield/balance-sheet-safety/owner-earnings-quality
-scorecard stages, JSON contract validation, value ranking, and configured OpenClaw agent turns used by
-`/root/.openclaw/mountainvalue.lobster`.
+TypeScript CLI package for MountainValue: reproducible research, validated
+strategies, deterministic portfolio/risk management, and Alpaca paper-broker
+execution. It is paper-endpoint-only; deployed mode is `[PAPER]`, with
+deterministic, bounded Alpaca paper-order execution.
 
 ## Package Boundary
 
-`equity-research` produces deterministic research handoffs and executes the
-configured MountainValue paper orders against Alpaca's paper endpoint. It
-rejects non-paper execution modes at configuration load time.
+`equity-research` keeps research, approval, targets, and execution separate.
+Only deterministic code ranks, sizes, and can submit a paper order. Victor and
+review agents report source-backed findings or veto a stock thesis; they cannot
+promote candidates, alter weights, or submit orders.
 Victor is the only Discord-facing MountainValue configured agent.
 `eq_quantsieve`, `eq_eventhound`, `eq_riskskeptic`, and
 `eq_thesis_depth_reviewer` are MountainValue OpenClaw profiles with no Discord
@@ -74,32 +74,42 @@ status and action reasons must be used when reporting whether a trade happened.
 `daily-report.discord_summary` is the deterministic Discord-ready outcome card
 and must be posted verbatim by Victor.
 
-MountainValue remains paper-only. It locks a dual-momentum ETF signal after
-16:20 ET for the next trading day, executes only the locked intent after 10:05
-ET, uses BIL as the defensive allocation in risk-off markets, and pauses new
-entries after a 10% peak-to-trough strategy drawdown. Quote guard failures can
-retry every 15 minutes through 15:30 ET without changing the locked signal.
+MountainValue remains paper-endpoint-only. `MOUNTAINVALUE_OPERATING_MODE=paper`
+plus `AUTONOMOUS_EXECUTION_ENABLED=true` permits only an approved, expiring
+strategy manifest to submit Alpaca paper orders. There is no live endpoint path.
+
+ETF sleeve: up to 90% risk assets plus a 10% BIL reserve. Universe is
+VTI/QQQ/IWM/VEA/VWO/VNQ/GLD/DBC/IEF/TLT/XLK/XLF/XLV/XLE/XLI/BIL. The aggressive
+paper mandate ranks the top three ETFs after each close using only 5/10/20-day
+momentum, a 10-day trend gate, and 20-day realized volatility. Each ETF is
+capped at 30%; no leverage, shorting, options, or extended-hours orders are
+allowed. Positions exit on a 10-day trend break, target removal, or after 20
+trading sessions. The next regular session may submit all required rotation
+orders, subject to deterministic quote, spread, drawdown, idempotency, and
+position-risk gates. The stock sleeve is research-only until point-in-time SEC
+data plus all three veto-stage reviews are available. Drawdown tiers are 8%
+(25% risk reduction), 12% (50%), and 15% (halt/explicit reviewed resume).
+Quotes must be <=15 seconds old; ETF and stock spread caps are 15 and 30 bps.
+ETF/stock stops use 3x ATR14 clamped to 6–10% and 8–15%; BIL has no stop.
 
 ```text
-equity-research seed-configured-universe [--limit N] [--tickers ABC,XYZ]
-equity-research discover-value-candidates [--limit N] [--disabled]
-equity-research discover-technical-candidates [--limit N] [--disabled]
-equity-research merge-candidates
-equity-research enrich-primary-filings [--limit N]
-equity-research score-earnings-yield
-equity-research score-balance-sheet-safety
-equity-research score-owner-earnings-quality
-equity-research first-pass-review
-equity-research scan-news
-equity-research scan-catalysts
-equity-research rank-opportunities [--limit N]
-equity-research narrow-review-pool [--limit N]
-equity-research review-thesis-depth
-equity-research review-risks
-equity-research publish-final-report
-equity-research backtest
-equity-research validate-contract reviews|event|final
+equity-research data-sync [--as-of YYYY-MM-DD]
+equity-research research-etfs [--as-of YYYY-MM-DD]
+equity-research research-stocks [--as-of YYYY-MM-DD]
+equity-research review-stocks [--as-of YYYY-MM-DD]
+equity-research build-targets [--as-of YYYY-MM-DD]
+equity-research backtest [--sleeve etf|stock|portfolio]
+equity-research strategy-status
+equity-research weekly-report
+equity-research preflight|reconcile|watchdog|signals-if-due|cycle-if-due
+equity-research cancel-stale-entries-if-due|daily-report|status|pause|request-resume|audit-log
 ```
+
+Persisted contracts are schema-migrated in SQLite: `StrategyManifest`,
+`ResearchRun`, `CandidateScore`, `AgentReview`, `TargetAllocation`,
+`TradeIntent`, `OrderAttempt`, `Fill`, `PositionRisk`, and
+`PerformanceSnapshot`. Raw provider snapshots retain provider, requested time,
+effective-as-of, source URL, checksum, and strategy-run linkage.
 
 Candidate handoffs use `ticker`, `company`, `sources`, `screen_reasons`,
 `metrics`, `filing_refs`, `news_refs`, `polymarket_context`, and

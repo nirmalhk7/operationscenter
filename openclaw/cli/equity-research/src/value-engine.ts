@@ -6,6 +6,7 @@ import {
   StrategySignal,
   TradableSymbol,
   TradeIntent,
+  TargetAllocation,
   TradingConfig,
   WatchlistSymbol,
   isTradableSymbol,
@@ -28,6 +29,7 @@ export interface SignalPlan {
 
 export interface ExecutionPlan {
   buy_intent: TradeIntent | null;
+  buy_intents: TradeIntent[];
   sell_intents: TradeIntent[];
   skipped: Array<Record<string, unknown>>;
 }
@@ -156,6 +158,61 @@ export function computeSignalPlan(input: {
   };
 }
 
+// Daily close research targets drive next-session entries. This deliberately
+// works from 20 sessions or less, never intraday price discrepancies.
+export function computeTargetSignalPlan(input: {
+  trade_date: string;
+  generated_at: string;
+  bars_by_symbol: Record<string, Bar[]>;
+  holdings: PositionSnapshot[];
+  targets: TargetAllocation[];
+}): SignalPlan {
+  const bars = normalizeBars(input.bars_by_symbol);
+  const holdings = safeArray(input.holdings);
+  const held = new Set(holdings.map((holding) => holding.symbol.toUpperCase()));
+  const spy = bars.SPY ?? bars.VTI ?? [];
+  const spyIndicators = spy.length >= 20 ? computeIndicators("SPY", spy, null) : null;
+  const targetAssets = input.targets.filter((target) => target.target_weight > 0 && (target.sleeve === "etf" || target.symbol === "BIL"));
+  const decisions: SignalDecision[] = targetAssets.map((target, index) => {
+    const symbolBars = bars[target.symbol] ?? [];
+    if (symbolBars.length < 20) return blankDecision(target.symbol, "insufficient current bars for research target");
+    const indicators = computeIndicators(target.symbol, symbolBars, spyIndicators?.return_20d ?? null, null);
+    const heldAlready = held.has(target.symbol);
+    return {
+      symbol: target.symbol,
+      action: heldAlready ? "NO_EXIT" : "BUY_CANDIDATE",
+      eligible: !heldAlready,
+      score: round(target.target_weight * 100),
+      rank: index + 1,
+      reason: target.reason,
+      checks: { research_target: true, target_weight: target.target_weight, already_held: !heldAlready, current_price_positive: indicators.previous_close > 0 },
+      indicators,
+    };
+  });
+  const targetSymbols = new Set(targetAssets.map((target) => target.symbol.toUpperCase()));
+  const exits = holdings.filter((holding) => {
+    const symbol = holding.symbol.toUpperCase();
+    if (!targetSymbols.has(symbol)) return true;
+    if (symbol === "BIL") return false;
+    const symbolBars = bars[symbol] ?? [];
+    const sma10 = symbolBars.length >= 10 ? symbolBars.slice(-10).reduce((sum, bar) => sum + bar.c, 0) / 10 : null;
+    const trendBroken = sma10 !== null && (symbolBars.at(-1)?.c ?? 0) < sma10;
+    const sessionsHeld = holding.entry_date ? symbolBars.filter((bar) => bar.t.slice(0, 10) > holding.entry_date!).length : 0;
+    return trendBroken || sessionsHeld >= 20;
+  }).map((holding) => holding.symbol.toUpperCase());
+  const candidate = decisions.filter((decision) => decision.eligible).sort((left, right) => (right.score - left.score) || left.symbol.localeCompare(right.symbol))[0] ?? null;
+  return {
+    trade_date: input.trade_date,
+    generated_at: input.generated_at,
+    market_regime: targetAssets.length > 0 ? "RISK_ON" : "RISK_OFF",
+    spy: spyIndicators,
+    decisions,
+    buy_candidate: candidate,
+    exit_symbols: exits,
+    no_trade_reason: candidate ? null : targetAssets.length === 0 ? "No current research target passed the 20-session rotation filter." : "Current targets are already held.",
+  };
+}
+
 export function buildExecutionPlan(input: {
   signal_plan: SignalPlan;
   holdings: PositionSnapshot[];
@@ -170,7 +227,6 @@ export function buildExecutionPlan(input: {
 }): ExecutionPlan {
   const skipped: Array<Record<string, unknown>> = [];
   const sell_intents: TradeIntent[] = [];
-  const buyCandidate = input.signal_plan.buy_candidate;
   const holdings = safeArray(input.holdings);
   const holdingsCount = holdings.length;
   let invested = 0;
@@ -195,64 +251,63 @@ export function buildExecutionPlan(input: {
     });
   }
 
-  if (!buyCandidate) {
+  const buyCandidates = input.signal_plan.decisions
+    .filter((decision) => decision.eligible && decision.action === "BUY_CANDIDATE")
+    .sort((left, right) => right.score - left.score || left.symbol.localeCompare(right.symbol));
+  if (buyCandidates.length === 0) {
     if (input.signal_plan.no_trade_reason) {
       skipped.push({ symbol: null, reason: input.signal_plan.no_trade_reason });
     }
-    return { buy_intent: null, sell_intents, skipped };
+    return { buy_intent: null, buy_intents: [], sell_intents, skipped };
   }
 
   if (input.max_new_entries_per_day < 1) {
-    skipped.push({ symbol: buyCandidate.symbol, reason: "Daily entry limit is zero." });
-    return { buy_intent: null, sell_intents, skipped };
+    skipped.push({ symbol: null, reason: "Daily entry limit is zero." });
+    return { buy_intent: null, buy_intents: [], sell_intents, skipped };
   }
 
-  if (holdingsCount >= input.max_open_positions) {
-    skipped.push({ symbol: buyCandidate.symbol, reason: "Maximum open positions reached." });
-    return { buy_intent: null, sell_intents, skipped };
+  const availableSlots = Math.max(0, input.max_open_positions - Math.max(0, holdingsCount - sell_intents.length));
+  if (availableSlots === 0) {
+    skipped.push({ symbol: null, reason: "Maximum open positions reached." });
+    return { buy_intent: null, buy_intents: [], sell_intents, skipped };
   }
 
-  if (sell_intents.length > 0 && holdingsCount === 0) {
-    skipped.push({ symbol: buyCandidate.symbol, reason: "Exit-only day." });
-    return { buy_intent: null, sell_intents, skipped };
-  }
-
-  const quotePrice = buyCandidate.indicators.previous_close;
-  const targetVolatility = input.target_portfolio_volatility_pct ?? 0.10;
-  const annualizedVolatility = (buyCandidate.indicators.atr_percent ?? 0.03) * Math.sqrt(252);
-  const volatilityScaledNotional = annualizedVolatility > 0
-    ? input.strategy_equity * Math.min(input.max_position_notional_pct, targetVolatility / annualizedVolatility)
-    : input.strategy_equity * input.max_position_notional_pct;
-  const maxNotional = Math.min(
-    volatilityScaledNotional,
-    remainingTotal,
-    input.cash_available,
-  );
-  if (maxNotional < input.minimum_order_notional_usd) {
-    skipped.push({ symbol: buyCandidate.symbol, reason: "Notional below minimum order size." });
-    return { buy_intent: null, sell_intents, skipped };
-  }
-
-  const quantity = floorToDecimals(maxNotional / quotePrice, 3);
-  if (quantity <= 0) {
-    skipped.push({ symbol: buyCandidate.symbol, reason: "Calculated quantity is zero." });
-    return { buy_intent: null, sell_intents, skipped };
-  }
-
-  return {
-    buy_intent: {
+  const buy_intents: TradeIntent[] = [];
+  let capacity = remainingTotal;
+  let cash = input.cash_available;
+  const targetVolatility = input.target_portfolio_volatility_pct ?? 0.25;
+  for (const candidate of buyCandidates.slice(0, Math.min(input.max_new_entries_per_day, availableSlots))) {
+    const quotePrice = candidate.indicators.previous_close;
+    const targetWeight = Math.min(input.max_position_notional_pct, Number(candidate.checks.target_weight ?? input.max_position_notional_pct));
+    const annualizedVolatility = (candidate.indicators.atr_percent ?? 0.03) * Math.sqrt(252);
+    const volatilityScaledNotional = annualizedVolatility > 0
+      ? input.strategy_equity * Math.min(targetWeight, targetVolatility / annualizedVolatility)
+      : input.strategy_equity * targetWeight;
+    const maxNotional = Math.min(input.strategy_equity * targetWeight, volatilityScaledNotional, capacity, cash);
+    if (maxNotional < input.minimum_order_notional_usd) {
+      skipped.push({ symbol: candidate.symbol, reason: "Notional below minimum order size." });
+      continue;
+    }
+    const quantity = floorToDecimals(maxNotional / quotePrice, 3);
+    if (quantity <= 0) {
+      skipped.push({ symbol: candidate.symbol, reason: "Calculated quantity is zero." });
+      continue;
+    }
+    buy_intents.push({
       trade_date: input.signal_plan.trade_date,
       created_at: input.signal_plan.generated_at,
-      symbol: buyCandidate.symbol,
+      symbol: candidate.symbol,
       action: "buy",
-      reason: buyCandidate.reason,
+      reason: candidate.reason,
       quantity,
       limit_price: null,
-      signal: buyCandidate,
-    },
-    sell_intents,
-    skipped,
-  };
+      signal: candidate,
+    });
+    const reserved = quantity * quotePrice;
+    capacity = Math.max(0, capacity - reserved);
+    cash = Math.max(0, cash - reserved);
+  }
+  return { buy_intent: buy_intents[0] ?? null, buy_intents, sell_intents, skipped };
 }
 
 export function computeIndicators(symbol: string, bars: Bar[], spyReturn20: number | null, spyReturn126: number | null = null): IndicatorSet {

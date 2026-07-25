@@ -126,6 +126,9 @@ test("MountainValue workflow is deterministic and trader-facing docs mention pap
     "preflight",
     "reconcile",
     "watchdog",
+    "data_sync",
+    "research_etfs",
+    "build_targets",
     "signals_if_due",
     "cycle_if_due",
     "cancel_stale_entries_if_due",
@@ -163,6 +166,8 @@ test("MountainValue workflow is deterministic and trader-facing docs mention pap
   assert.match(ansible, /- --to[\s\S]*OPENCLAW_EQUITY_DISCORD_FORUM_CHANNEL_ID/u);
   const envTemplate = repoText(join("infrastructure", "ansible", "templates", "openclaw.env.j2"));
   assert.match(envTemplate, /EXECUTION_MODE=paper/u);
+  assert.match(envTemplate, /MOUNTAINVALUE_OPERATING_MODE=paper/u);
+  assert.match(envTemplate, /AUTONOMOUS_EXECUTION_ENABLED=true/u);
   assert.match(envTemplate, /MOUNTAINVALUE_DEFENSIVE_SYMBOL=BIL/u);
   assert.doesNotMatch(envTemplate, /^DISCORD_BOT_TOKEN=/mu);
   assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "TOOLS.md")), /daily_report\.execution/u);

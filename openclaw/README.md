@@ -212,15 +212,18 @@ Victor's Lobster tool call should be:
 }
 ```
 
-The workflow is deterministic:
+The workflow is deterministic and default `[PAPER/shadow]`:
 
-`preflight` → `reconcile` → `watchdog` → `signals-if-due` → `cycle-if-due` →
+`preflight` → `reconcile` → `watchdog` → `data-sync` → `research-etfs` →
+`build-targets` → `signals-if-due` → `cycle-if-due` →
 `cancel-stale-entries-if-due` → `daily-report`
 
 Signals are generated after the close, execution happens the next morning, and
-watchdog checks are supervision only. The deterministic equity-research CLI
-submits paper orders; Victor should report its `daily_report.execution` result,
-not invent trades or treat a saved intent as an accepted order. The deployed default forum target remains
+watchdog checks are supervision only. Shadow mode blocks every broker mutation;
+the deterministic CLI records targets and intents only. A future paper-mode
+proposal requires a current approved immutable strategy version. Victor should
+report its `daily_report.execution` result, not invent trades or treat a saved
+intent as an accepted order. The deployed default forum target remains
 `1504282224789295134` for ordinary OpenClaw posting when explicitly requested.
 
 MountainValue worker roles are configured OpenClaw profiles with no Discord

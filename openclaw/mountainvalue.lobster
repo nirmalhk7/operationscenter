@@ -16,9 +16,24 @@
       "stdin": "$reconcile.stdout"
     },
     {
+      "id": "data_sync",
+      "command": "equity-research data-sync",
+      "stdin": "$watchdog.stdout"
+    },
+    {
+      "id": "research_etfs",
+      "command": "equity-research research-etfs",
+      "stdin": "$data_sync.stdout"
+    },
+    {
+      "id": "build_targets",
+      "command": "equity-research build-targets",
+      "stdin": "$research_etfs.stdout"
+    },
+    {
       "id": "signals_if_due",
       "command": "equity-research signals-if-due",
-      "stdin": "$watchdog.stdout"
+      "stdin": "$build_targets.stdout"
     },
     {
       "id": "cycle_if_due",

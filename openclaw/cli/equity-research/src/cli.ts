@@ -58,6 +58,20 @@ async function commandOutput(service: ReturnType<typeof createTradingCoreService
       return await service.status();
     case "backtest":
       return await service.backtest();
+    case "data-sync":
+      return await service.dataSync(option(args, "as-of"));
+    case "research-etfs":
+      return await service.researchEtfs(option(args, "as-of"));
+    case "research-stocks":
+      return await service.researchStocks(option(args, "as-of"));
+    case "review-stocks":
+      return await service.reviewStocks(option(args, "as-of"));
+    case "build-targets":
+      return await service.buildTargets(option(args, "as-of"));
+    case "strategy-status":
+      return await service.strategyStatus();
+    case "weekly-report":
+      return await service.weeklyReport();
     case "pause":
       return service.pause(option(args, "reason") ?? args.positionals.join(" ") ?? "manual pause");
     case "request-resume":
@@ -154,7 +168,7 @@ function validateContract(contract: string | undefined, document: unknown): unkn
 
 function usage(command: string): string {
   const suffix = command ? `unknown command ${command}` : "command required";
-  return `${suffix}; use preflight, reconcile, watchdog, signals-if-due, cycle-if-due, cancel-stale-entries-if-due, daily-report, status, backtest, pause, request-resume, audit-log, or validate-contract`;
+  return `${suffix}; use preflight, reconcile, watchdog, signals-if-due, cycle-if-due, cancel-stale-entries-if-due, daily-report, status, backtest, data-sync, research-etfs, research-stocks, review-stocks, build-targets, strategy-status, weekly-report, pause, request-resume, audit-log, or validate-contract`;
 }
 
 main().then((code) => {

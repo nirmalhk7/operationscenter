@@ -1,29 +1,28 @@
 export const MOUNTAINVALUE_WATCHLIST = [
-  "SPY",
+  "VTI",
   "QQQ",
   "IWM",
-  "XLK",
-  "XLF",
-  "XLV",
-  "XLE",
-  "XLI",
+  "VEA",
+  "VWO",
+  "VNQ",
+  "GLD",
+  "DBC",
+  "IEF",
+  "TLT",
   "BIL",
 ] as const;
 
 export const MOUNTAINVALUE_TRADABLE_SYMBOLS = [
-  "QQQ",
-  "IWM",
-  "XLK",
-  "XLF",
-  "XLV",
-  "XLE",
-  "XLI",
+  "VTI", "QQQ", "IWM", "VEA", "VWO", "VNQ", "GLD", "DBC", "IEF", "TLT",
   "BIL",
 ] as const;
 
 export type WatchlistSymbol = string;
 export type TradableSymbol = string;
 export type ExecutionMode = "paper" | "live";
+export type OperatingMode = "shadow" | "paper";
+export type Sleeve = "etf" | "stock" | "portfolio";
+export type ApprovalStatus = "approved" | "rejected" | "expired" | "shadow";
 export type TradingSide = "buy" | "sell";
 export type OrderType = "market" | "limit" | "stop" | "stop_limit";
 export type TimeInForce = "day" | "gtc";
@@ -35,6 +34,7 @@ export type ExecutionOutcome = "ORDER_SUBMITTED" | "EXIT_SUBMITTED" | "NO_ORDER"
 
 export interface TradingConfig {
   execution_mode: ExecutionMode;
+  operating_mode: OperatingMode;
   autonomous_execution_enabled: boolean;
   alpaca_trading_base_url: string;
   alpaca_data_base_url: string;
@@ -45,10 +45,12 @@ export interface TradingConfig {
   max_open_positions: number;
   max_new_entries_per_day: number;
   max_position_notional_pct: number;
+  etf_position_risk_pct: number;
   max_total_invested_pct: number;
   minimum_order_notional_usd: number;
   max_quote_age_seconds: number;
   max_spread_bps: number;
+  max_stock_spread_bps: number;
   max_midpoint_deviation_pct: number;
   max_strategy_drawdown_pct: number;
   target_portfolio_volatility_pct: number;
@@ -138,6 +140,103 @@ export interface OrderSnapshot {
   raw?: unknown;
 }
 
+export interface StrategyManifest {
+  strategy_version: string;
+  created_at: string;
+  sleeve: Sleeve;
+  approval_status: ApprovalStatus;
+  expires_at: string | null;
+  parameters: Record<string, unknown>;
+  data_as_of: string;
+  approval_reason: string;
+  survivorship_limited?: boolean;
+}
+
+export interface ResearchRun {
+  id: string;
+  strategy_version: string;
+  sleeve: Sleeve;
+  as_of: string;
+  created_at: string;
+  data_provenance: Array<{ provider: string; source_url: string; requested_at: string; effective_as_of: string; checksum: string }>;
+  immutable: true;
+}
+
+export interface CandidateScore {
+  strategy_version: string;
+  symbol: string;
+  sleeve: "etf" | "stock";
+  as_of: string;
+  eligible: boolean;
+  total_score: number;
+  components: Record<string, number | null>;
+  rank: number | null;
+  sector: string | null;
+  reason: string;
+}
+
+export interface AgentReview {
+  strategy_version: string;
+  symbol: string;
+  reviewer: "eq_quantsieve" | "eq_thesis_depth_reviewer" | "eq_riskskeptic";
+  as_of: string;
+  verdict: "pass" | "reject";
+  findings: string[];
+  sources: string[];
+}
+
+export interface TargetAllocation {
+  strategy_version: string;
+  as_of: string;
+  symbol: string;
+  sleeve: "etf" | "stock" | "cash";
+  target_weight: number;
+  reason: string;
+}
+
+export interface OrderAttempt {
+  idempotency_key: string;
+  strategy_version: string;
+  trade_date: string;
+  symbol: string;
+  side: TradingSide;
+  status: string;
+  broker_order_id: string | null;
+  created_at: string;
+  payload: Record<string, unknown>;
+}
+
+export interface Fill {
+  broker_order_id: string;
+  symbol: string;
+  side: TradingSide;
+  quantity: number;
+  price: number;
+  filled_at: string;
+  strategy_version: string;
+}
+
+export interface PositionRisk {
+  symbol: string;
+  sleeve: "etf" | "stock";
+  stop_price: number | null;
+  stop_order_id: string | null;
+  stop_distance_pct: number | null;
+  loss_budget_pct: number;
+  covered: boolean;
+}
+
+export interface PerformanceSnapshot {
+  as_of: string;
+  strategy_version: string;
+  nav: number;
+  high_water_mark: number;
+  drawdown_pct: number;
+  drawdown_tier: "normal" | "reduce_25" | "reduce_50" | "halt";
+  benchmark_spy: number | null;
+  benchmark_60_40: number | null;
+}
+
 export interface Bar {
   symbol: string;
   t: string;
@@ -195,6 +294,9 @@ export interface TradeIntent {
   limit_price?: number | null;
   stop_price?: number | null;
   signal?: SignalDecision;
+  strategy_version?: string;
+  sleeve?: "etf" | "stock";
+  idempotency_key?: string;
 }
 
 export interface ExecutionRetryState {
@@ -226,7 +328,7 @@ export interface BacktestResult {
   metrics: PerformanceMetrics;
   baseline: PerformanceMetrics;
   benchmark: PerformanceMetrics;
-  selected_strategy: "dual_momentum" | "baseline";
+  selected_strategy: "dual_momentum" | "baseline" | "none";
   walk_forward: {
     windows: number;
     dual_momentum_wins: number;
@@ -235,7 +337,13 @@ export interface BacktestResult {
   assumptions: {
     transaction_cost_bps: number;
     slippage_bps: number;
-    rebalance_frequency: "daily";
+    rebalance_frequency: "daily" | "monthly" | "daily_after_close_20_session_rotation";
+  };
+  approval?: {
+    status: ApprovalStatus;
+    reasons: string[];
+    out_of_sample_windows: number;
+    deflated_sharpe_confidence: number;
   };
 }
 
@@ -250,6 +358,7 @@ export interface CycleResult {
 
 export interface ReportSummary {
   mode: ExecutionMode;
+  operating_mode?: OperatingMode;
   trading_enabled: boolean;
   trade_date: string;
   strategy_equity: number;
@@ -267,6 +376,10 @@ export interface ReportSummary {
   audit_count: number;
   pause_reason: string | null;
   watchdog: Record<string, unknown>;
+  next_intent?: TradeIntent | null;
+  strategy?: StrategyManifest | null;
+  drawdown?: PerformanceSnapshot | null;
+  stop_coverage?: PositionRisk[];
 }
 
 export interface AuditRecord {
