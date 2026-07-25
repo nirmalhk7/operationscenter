@@ -247,7 +247,7 @@ export class AlpacaClient {
     const results = await Promise.all(
       symbols.map(async (symbol) => {
         const normalized = normalizeSymbol(symbol);
-        const startDate = new Date();
+        const startDate = options.end ? new Date(options.end) : new Date();
         // Lookback enough calendar days to cover weekends and holidays to satisfy the limit
         startDate.setUTCDate(startDate.getUTCDate() - Math.ceil(limit * 1.5));
         const start = startDate.toISOString().split("T")[0] + "T00:00:00Z";

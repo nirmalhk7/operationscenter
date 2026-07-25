@@ -16,6 +16,7 @@ import {
   TargetAllocation,
   TradeIntent,
   TradingState,
+  ValidationRun,
   createDefaultState,
 } from "./contracts.js";
 
@@ -87,11 +88,12 @@ export class TradingLedger {
         CREATE TABLE IF NOT EXISTS target_allocations (strategy_version TEXT NOT NULL, as_of TEXT NOT NULL, symbol TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(strategy_version, as_of, symbol));
         CREATE TABLE IF NOT EXISTS order_attempts (idempotency_key TEXT PRIMARY KEY, created_at TEXT NOT NULL, payload TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS fills (broker_order_id TEXT PRIMARY KEY, filled_at TEXT NOT NULL, payload TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS validation_runs (id TEXT PRIMARY KEY, created_at TEXT NOT NULL, payload TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS performance_snapshots (as_of TEXT PRIMARY KEY, payload TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS run_leases (name TEXT PRIMARY KEY, holder TEXT NOT NULL, expires_at TEXT NOT NULL, acquired_at TEXT NOT NULL);
       `);
       const ledger = new TradingLedger(db);
-      ledger.db.prepare("INSERT INTO schema_meta (key, value) VALUES ('schema_version', '2') ON CONFLICT(key) DO UPDATE SET value = excluded.value").run();
+      ledger.db.prepare("INSERT INTO schema_meta (key, value) VALUES ('schema_version', '3') ON CONFLICT(key) DO UPDATE SET value = excluded.value").run();
       if (!ledger.readState()) {
         ledger.writeState(createDefaultState(mode));
       }
@@ -265,6 +267,22 @@ export class TradingLedger {
 
   saveFill(fill: Fill): void {
     this.db.prepare("INSERT INTO fills (broker_order_id, filled_at, payload) VALUES (?, ?, ?) ON CONFLICT(broker_order_id) DO UPDATE SET payload = excluded.payload").run(fill.broker_order_id, fill.filled_at, stringify(fill));
+  }
+
+  listFills(strategyVersion?: string): Fill[] {
+    const rows = this.db.prepare("SELECT payload FROM fills ORDER BY filled_at").all() as Array<{ payload: string }>;
+    return rows.map((row) => parse<Fill>(row.payload, null))
+      .filter((value): value is Fill => value !== null)
+      .filter((fill) => !strategyVersion || fill.strategy_version === strategyVersion);
+  }
+
+  saveValidationRun(run: ValidationRun): void {
+    this.db.prepare("INSERT INTO validation_runs (id, created_at, payload) VALUES (?, ?, ?) ON CONFLICT(id) DO NOTHING").run(run.id, run.created_at, stringify(run));
+  }
+
+  latestValidationRun(): ValidationRun | null {
+    const row = this.db.prepare("SELECT payload FROM validation_runs ORDER BY created_at DESC LIMIT 1").get() as { payload?: string } | undefined;
+    return row?.payload ? parse<ValidationRun>(row.payload, null) : null;
   }
 
   savePerformance(snapshot: PerformanceSnapshot): void {

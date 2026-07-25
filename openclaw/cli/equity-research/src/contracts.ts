@@ -214,6 +214,47 @@ export interface Fill {
   price: number;
   filled_at: string;
   strategy_version: string;
+  reference_price?: number;
+  implementation_shortfall_bps?: number;
+}
+
+export interface ValidationFold {
+  fold: number;
+  train_start: string;
+  train_end: string;
+  oos_start: string;
+  oos_end: string;
+  metrics: PerformanceMetrics;
+  primary_benchmark: PerformanceMetrics;
+  exposure_matched_benchmark: PerformanceMetrics;
+  active_return: number;
+}
+
+export interface CandidateValidation {
+  candidate_id: string;
+  strategy_version: string;
+  max_holding_sessions: number;
+  configuration: Record<string, unknown>;
+  folds: ValidationFold[];
+  metrics: PerformanceMetrics;
+  primary_benchmark: PerformanceMetrics;
+  exposure_matched_benchmark: PerformanceMetrics;
+  stress_metrics: PerformanceMetrics;
+  approval: {
+    status: ApprovalStatus;
+    reasons: string[];
+    positive_active_folds: number;
+    total_folds: number;
+    trial_count: number;
+  };
+}
+
+export interface ValidationRun {
+  id: string;
+  created_at: string;
+  as_of: string;
+  data_checksum: string;
+  candidates: CandidateValidation[];
 }
 
 export interface PositionRisk {
@@ -380,6 +421,7 @@ export interface ReportSummary {
   strategy?: StrategyManifest | null;
   drawdown?: PerformanceSnapshot | null;
   stop_coverage?: PositionRisk[];
+  implementation?: { fill_count: number; average_shortfall_bps: number | null; p95_shortfall_bps: number | null };
 }
 
 export interface AuditRecord {

@@ -57,7 +57,7 @@ async function commandOutput(service: ReturnType<typeof createTradingCoreService
     case "status":
       return await service.status();
     case "backtest":
-      return await service.backtest();
+      return await service.backtest(option(args, "as-of"));
     case "data-sync":
       return await service.dataSync(option(args, "as-of"));
     case "research-etfs":

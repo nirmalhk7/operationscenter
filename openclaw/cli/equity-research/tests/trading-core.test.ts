@@ -11,6 +11,7 @@ import { buildExecutionPlan, computeSignalPlan, computeTargetSignalPlan } from "
 import { AlpacaClient } from "../src/adapters.js";
 import { runDualMomentumBacktest } from "../src/backtest.js";
 import { buildEtfResearch, currentDrawdownTier, lossBudgetQuantity, stopDistance } from "../src/research.js";
+import { SHORT_HORIZON_CANDIDATES, candidateTargets, runShortHorizonValidation } from "../src/validation.js";
 
 function round(value: number): number {
   return Math.round(value * 10_000) / 10_000;
@@ -77,6 +78,20 @@ function series(symbol: string, start: number, slope: number): Bar[] {
     });
   }
   return bars;
+}
+
+function longSeries(symbol: string, start: number, slope: number): Bar[] {
+  const bars: Bar[] = [];
+  const startTime = new Date("2020-01-01T00:00:00Z").getTime();
+  for (let index = 0; index < 1_200; index += 1) {
+    const close = round(start + slope * index + Math.sin(index / 11) * 0.25);
+    bars.push({ symbol, t: new Date(startTime + index * 86_400_000).toISOString(), o: round(close - 0.1), h: round(close + 0.5), l: round(close - 0.5), c: close, v: 1_000_000 + index });
+  }
+  return bars;
+}
+
+function longValidationUniverse(): Record<string, Bar[]> {
+  return Object.fromEntries(["SPY", "VTI", "QQQ", "IWM", "VEA", "VWO", "VNQ", "GLD", "DBC", "IEF", "TLT", "XLK", "XLF", "XLV", "XLE", "XLI", "BIL"].map((symbol, index) => [symbol, longSeries(symbol, 100 + index, symbol === "BIL" ? 0.01 : 0.08 + index / 400)]));
 }
 
 function universe(overrides: Record<string, number> = {}): Record<string, Bar[]> {
@@ -845,6 +860,31 @@ test("dual-momentum backtest reports baseline, benchmark, and a bounded drawdown
   assert.ok(Number.isFinite(result.baseline.cagr));
   assert.ok(Number.isFinite(result.benchmark.cagr));
   assert.ok(["dual_momentum", "none"].includes(result.selected_strategy));
+});
+
+test("short-horizon validation uses purged rolling folds and keeps all signals within one month", () => {
+  const bars = longValidationUniverse();
+  const result = runShortHorizonValidation({ bars_by_symbol: bars, as_of: "2023-04-14", data_checksum: "test-checksum" });
+  assert.equal(result.candidates.length, SHORT_HORIZON_CANDIDATES.length);
+  for (const candidate of result.candidates) {
+    assert.equal(candidate.max_holding_sessions, 20);
+    assert.ok(candidate.folds.length >= 8);
+    assert.equal(candidate.configuration.purge_sessions, 20);
+    assert.equal(candidate.configuration.embargo_sessions, 5);
+    assert.equal(candidate.configuration.oos_sessions, 63);
+    assert.ok(candidate.folds.every((fold) => fold.train_end < fold.oos_start));
+    assert.ok(candidate.folds.every((fold) => Number.isFinite(fold.metrics.cumulative_return)));
+  }
+});
+
+test("candidate targets are deterministic and preserve the BIL reserve", () => {
+  const bars = longValidationUniverse();
+  const candidate = SHORT_HORIZON_CANDIDATES[0];
+  const first = candidateTargets(candidate, "2023-04-14", bars);
+  const second = candidateTargets(candidate, "2023-04-14", structuredClone(bars));
+  assert.deepEqual(first, second);
+  assert.ok(Math.abs(first.reduce((sum, target) => sum + target.target_weight, 0) - 1) < 1e-9);
+  assert.ok(first.find((target) => target.symbol === "BIL")!.target_weight >= 0.1);
 });
 
 test("quote-guard skips schedule a bounded retry and Discord summary leads with no order", async () => {

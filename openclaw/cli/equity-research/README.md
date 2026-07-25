@@ -12,9 +12,10 @@ Only deterministic code ranks, sizes, and can submit a paper order. Victor and
 review agents report source-backed findings or veto a stock thesis; they cannot
 promote candidates, alter weights, or submit orders.
 
-`backtest` is an informational historical experiment. It records its result but
-cannot overwrite the current user-approved paper-trading manifest; only
-`build-targets` may refresh that manifest.
+`backtest --as-of YYYY-MM-DD` is an informational historical experiment. It
+records immutable, reproducible validation runs but cannot overwrite the
+current user-approved paper-trading manifest; only `build-targets` may refresh
+that manifest.
 Victor is the only Discord-facing MountainValue configured agent.
 `eq_quantsieve`, `eq_eventhound`, `eq_riskskeptic`, and
 `eq_thesis_depth_reviewer` are MountainValue OpenClaw profiles with no Discord
@@ -96,13 +97,25 @@ data plus all three veto-stage reviews are available. Drawdown tiers are 8%
 Quotes must be <=15 seconds old; ETF and stock spread caps are 15 and 30 bps.
 ETF/stock stops use 3x ATR14 clamped to 6–10% and 8–15%; BIL has no stop.
 
+Short-horizon validation is deliberately finite: three pre-registered
+strategies, each using no more than 20 sessions of signal history. It uses a
+504-session training history, a 20-session purge, five-session embargo, and
+63-session rolling out-of-sample folds. Returns begin at the next session's
+open, not the signal close; each candidate is scored against fixed 90/10
+SPY/BIL and exposure-matched SPY/BIL benchmarks at 20- and 40-bps one-way
+costs. A candidate must pass at least eight folds, win six against its matched
+benchmark, have positive aggregate stressed excess return, and respect the
+drawdown limits before it may be considered for a future promotion. Paper
+fills record midpoint-to-fill shortfall and `daily-report` exposes its average
+and 95th percentile.
+
 ```text
 equity-research data-sync [--as-of YYYY-MM-DD]
 equity-research research-etfs [--as-of YYYY-MM-DD]
 equity-research research-stocks [--as-of YYYY-MM-DD]
 equity-research review-stocks [--as-of YYYY-MM-DD]
 equity-research build-targets [--as-of YYYY-MM-DD]
-equity-research backtest [--sleeve etf|stock|portfolio]
+equity-research backtest [--as-of YYYY-MM-DD]
 equity-research strategy-status
 equity-research weekly-report
 equity-research preflight|reconcile|watchdog|signals-if-due|cycle-if-due
@@ -112,7 +125,7 @@ equity-research cancel-stale-entries-if-due|daily-report|status|pause|request-re
 Persisted contracts are schema-migrated in SQLite: `StrategyManifest`,
 `ResearchRun`, `CandidateScore`, `AgentReview`, `TargetAllocation`,
 `TradeIntent`, `OrderAttempt`, `Fill`, `PositionRisk`, and
-`PerformanceSnapshot`. Raw provider snapshots retain provider, requested time,
+`PerformanceSnapshot`, and immutable `ValidationRun`. Raw provider snapshots retain provider, requested time,
 effective-as-of, source URL, checksum, and strategy-run linkage.
 
 Candidate handoffs use `ticker`, `company`, `sources`, `screen_reasons`,

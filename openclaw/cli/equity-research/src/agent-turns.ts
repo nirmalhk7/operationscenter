@@ -22,6 +22,7 @@ import { buildExecutionPlan, computeSignalPlan, computeTargetSignalPlan, Executi
 import type { SignalPlan } from "./value-engine.js";
 import { runDualMomentumBacktest } from "./backtest.js";
 import { ETF_UNIVERSE, STRATEGY_VERSION, buildEtfResearch, currentDrawdownTier, lossBudgetQuantity, stopDistance } from "./research.js";
+import { runShortHorizonValidation } from "./validation.js";
 
 export interface ReconciliationResult {
   status: WorkflowStatus;
@@ -486,6 +487,7 @@ export class TradingCoreService {
       watchdog: this.deps.ledger.readSnapshot("watchdog") ?? {},
       strategy: this.deps.ledger.latestStrategyManifest(),
       drawdown: this.deps.ledger.latestPerformance(),
+      implementation: paperImplementationStats(this.deps.ledger.listFills(this.deps.ledger.latestStrategyManifest()?.strategy_version)),
       stop_coverage: positions.map((position) => ({ symbol: position.symbol, sleeve: ETF_UNIVERSE.includes(position.symbol as typeof ETF_UNIVERSE[number]) ? "etf" : "stock", stop_price: position.protective_stop_price ?? null, stop_order_id: position.protective_stop_order_id ?? null, stop_distance_pct: position.avg_entry_price && position.protective_stop_price ? 1 - position.protective_stop_price / position.avg_entry_price : null, loss_budget_pct: ETF_UNIVERSE.includes(position.symbol as typeof ETF_UNIVERSE[number]) ? 0.01 : 0.0075, covered: position.symbol === this.deps.config.defensive_symbol || Boolean(position.protective_stop_price) })),
     };
     summary.discord_summary = formatDiscordSummary(summary);
@@ -502,22 +504,24 @@ export class TradingCoreService {
     };
   }
 
-  async backtest(): Promise<Record<string, unknown>> {
-    const symbols = this.deps.config.tradable_symbols.filter((symbol) => symbol !== this.deps.config.defensive_symbol);
-    const bars = await this.deps.broker.getDailyBars(["SPY", ...symbols, this.deps.config.defensive_symbol], 2_520, { adjustment: "all" });
+  async backtest(asOf?: string): Promise<Record<string, unknown>> {
+    const effectiveAsOf = asOf ?? tradeDateInNewYork(this.now());
+    const bars = await this.deps.broker.getDailyBars(["SPY", ...ETF_UNIVERSE], 2_520, { adjustment: "all", end: `${effectiveAsOf}T23:59:59Z` });
     const result = runDualMomentumBacktest({
       bars_by_symbol: bars,
-      symbols,
+      symbols: ETF_UNIVERSE.filter((symbol) => symbol !== this.deps.config.defensive_symbol),
       defensive_symbol: this.deps.config.defensive_symbol,
       transaction_cost_bps: 10,
       slippage_bps: 10,
     });
-    this.deps.ledger.saveSnapshot("backtest", result, this.now().toISOString());
+    const validation = runShortHorizonValidation({ bars_by_symbol: bars, as_of: effectiveAsOf, data_checksum: checksumOf(bars) });
+    this.deps.ledger.saveSnapshot("backtest", { legacy_comparison: result, validation }, this.now().toISOString());
+    this.deps.ledger.saveValidationRun(validation);
     // A historical experiment must never revoke a separately approved live
     // paper mandate.  build-targets is the sole writer for the v3 manifest;
     // this command remains an auditable research result only.
-    this.audit("backtest", "info", "20-session ETF backtest completed (informational; it cannot alter the active paper manifest).", { result });
-    return { ...result, operational_effect: "informational_only" };
+    this.audit("backtest", "info", "Purged rolling 20-session validation completed (informational; it cannot alter the active paper manifest).", { legacy_comparison: result, validation });
+    return { legacy_comparison: result, validation, operational_effect: "informational_only" };
   }
 
   async dataSync(asOf?: string): Promise<Record<string, unknown>> {
@@ -591,6 +595,7 @@ export class TradingCoreService {
       operating_mode: this.deps.config.operating_mode,
       manifest: this.deps.ledger.latestStrategyManifest(),
       backtest: this.deps.ledger.readSnapshot("backtest"),
+      validation: this.deps.ledger.latestValidationRun(),
       performance: this.deps.ledger.latestPerformance(),
       latest_targets: this.deps.ledger.latestTargets(STRATEGY_VERSION),
     };
@@ -700,7 +705,9 @@ export class TradingCoreService {
         };
         this.deps.ledger.upsertPosition(position, this.now().toISOString());
         this.deps.ledger.saveSnapshot("position_stop_pending", position, this.now().toISOString());
-        this.deps.ledger.saveFill({ broker_order_id: filled.id, symbol: filled.symbol, side: "buy", quantity: filled.filled_qty ?? quantity, price: filled.filled_avg_price ?? limitPrice, filled_at: filled.filled_at ?? this.now().toISOString(), strategy_version: strategyVersion });
+        const fillPrice = filled.filled_avg_price ?? limitPrice;
+        const referencePrice = (quote.bid + quote.ask) / 2;
+        this.deps.ledger.saveFill({ broker_order_id: filled.id, symbol: filled.symbol, side: "buy", quantity: filled.filled_qty ?? quantity, price: fillPrice, filled_at: filled.filled_at ?? this.now().toISOString(), strategy_version: strategyVersion, reference_price: referencePrice, implementation_shortfall_bps: implementationShortfallBps("buy", fillPrice, referencePrice) });
         this.writeState({ virtual_cash_usd: Math.max(0, this.state().virtual_cash_usd - ((filled.filled_qty ?? quantity) * (filled.filled_avg_price ?? limitPrice))) });
       }
       this.audit("buy", "info", `Submitted buy order for ${intent.symbol}.`, { order, filled: filled.status, quote, intent });
@@ -736,8 +743,12 @@ export class TradingCoreService {
       const filled = await this.tryFill(order.id);
       if (filled && filled.status === "filled") {
         this.deps.ledger.deletePosition(intent.symbol);
-        const proceeds = (filled.filled_qty ?? position.qty) * (filled.filled_avg_price ?? limitPrice);
-        const realizedDelta = ((filled.filled_avg_price ?? limitPrice) - (position.avg_entry_price ?? limitPrice)) * (filled.filled_qty ?? position.qty);
+        const fillPrice = filled.filled_avg_price ?? limitPrice;
+        const proceeds = (filled.filled_qty ?? position.qty) * fillPrice;
+        const realizedDelta = (fillPrice - (position.avg_entry_price ?? limitPrice)) * (filled.filled_qty ?? position.qty);
+        const strategyVersion = this.deps.ledger.latestStrategyManifest()?.strategy_version ?? "unversioned";
+        const referencePrice = (quote.bid + quote.ask) / 2;
+        this.deps.ledger.saveFill({ broker_order_id: filled.id, symbol: filled.symbol, side: "sell", quantity: filled.filled_qty ?? position.qty, price: fillPrice, filled_at: filled.filled_at ?? this.now().toISOString(), strategy_version: strategyVersion, reference_price: referencePrice, implementation_shortfall_bps: implementationShortfallBps("sell", fillPrice, referencePrice) });
         this.writeState({
           virtual_cash_usd: this.state().virtual_cash_usd + proceeds,
           realized_pnl_usd: this.state().realized_pnl_usd + realizedDelta,
@@ -1095,6 +1106,18 @@ function checksumOf(value: unknown): string {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function implementationShortfallBps(side: "buy" | "sell", fillPrice: number, referencePrice: number): number {
+  if (!Number.isFinite(fillPrice) || !Number.isFinite(referencePrice) || referencePrice <= 0) return 0;
+  const shortfall = side === "buy" ? fillPrice / referencePrice - 1 : referencePrice / fillPrice - 1;
+  return Math.round(shortfall * 10_000 * 100) / 100;
+}
+
+function paperImplementationStats(fills: Array<{ implementation_shortfall_bps?: number }>): { fill_count: number; average_shortfall_bps: number | null; p95_shortfall_bps: number | null } {
+  const shortfalls = fills.map((fill) => fill.implementation_shortfall_bps).filter((value): value is number => Number.isFinite(value)).sort((left, right) => left - right);
+  if (shortfalls.length === 0) return { fill_count: 0, average_shortfall_bps: null, p95_shortfall_bps: null };
+  return { fill_count: shortfalls.length, average_shortfall_bps: Math.round((shortfalls.reduce((sum, value) => sum + value, 0) / shortfalls.length) * 100) / 100, p95_shortfall_bps: shortfalls[Math.min(shortfalls.length - 1, Math.ceil(shortfalls.length * 0.95) - 1)] };
 }
 
 function getNewYorkParts(date: Date): { year: number; month: number; day: number; hour: number; minute: number; weekday: number } {
