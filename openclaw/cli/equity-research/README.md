@@ -11,6 +11,10 @@ deterministic, bounded Alpaca paper-order execution.
 Only deterministic code ranks, sizes, and can submit a paper order. Victor and
 review agents report source-backed findings or veto a stock thesis; they cannot
 promote candidates, alter weights, or submit orders.
+
+`backtest` is an informational historical experiment. It records its result but
+cannot overwrite the current user-approved paper-trading manifest; only
+`build-targets` may refresh that manifest.
 Victor is the only Discord-facing MountainValue configured agent.
 `eq_quantsieve`, `eq_eventhound`, `eq_riskskeptic`, and
 `eq_thesis_depth_reviewer` are MountainValue OpenClaw profiles with no Discord

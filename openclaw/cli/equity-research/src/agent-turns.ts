@@ -1,7 +1,6 @@
 import { AlpacaClient } from "./adapters.js";
 import {
   AccountSnapshot,
-  ApprovalStatus,
   AuditRecord,
   BacktestResult,
   ContractError,
@@ -514,19 +513,11 @@ export class TradingCoreService {
       slippage_bps: 10,
     });
     this.deps.ledger.saveSnapshot("backtest", result, this.now().toISOString());
-    const approvalStatus: ApprovalStatus = result.approval?.status ?? "rejected";
-    this.deps.ledger.saveStrategyManifest({
-      strategy_version: STRATEGY_VERSION,
-      created_at: this.now().toISOString(),
-      sleeve: "etf",
-      approval_status: approvalStatus,
-      expires_at: approvalStatus === "approved" ? new Date(this.now().getTime() + 35 * 86_400_000).toISOString() : null,
-      parameters: { universe: ETF_UNIVERSE, execution: "next-session 10:05 IEX proxy", costs_bps: 20, trial_count: 1 },
-      data_as_of: result.end_date,
-      approval_reason: result.approval?.reasons.join("; ") || "Legacy validation did not produce approval evidence.",
-    });
-    this.audit("backtest", "info", "Dual-momentum ETF backtest completed.", { result });
-    return { ...result };
+    // A historical experiment must never revoke a separately approved live
+    // paper mandate.  build-targets is the sole writer for the v3 manifest;
+    // this command remains an auditable research result only.
+    this.audit("backtest", "info", "20-session ETF backtest completed (informational; it cannot alter the active paper manifest).", { result });
+    return { ...result, operational_effect: "informational_only" };
   }
 
   async dataSync(asOf?: string): Promise<Record<string, unknown>> {
@@ -595,7 +586,14 @@ export class TradingCoreService {
   }
 
   async strategyStatus(): Promise<Record<string, unknown>> {
-    return { status: "NO_TRADE", operating_mode: this.deps.config.operating_mode, manifest: this.deps.ledger.latestStrategyManifest(), backtest: this.deps.ledger.readSnapshot("backtest"), performance: this.deps.ledger.latestPerformance(), latest_targets: this.deps.ledger.latestDailyIntent() };
+    return {
+      status: "NO_TRADE",
+      operating_mode: this.deps.config.operating_mode,
+      manifest: this.deps.ledger.latestStrategyManifest(),
+      backtest: this.deps.ledger.readSnapshot("backtest"),
+      performance: this.deps.ledger.latestPerformance(),
+      latest_targets: this.deps.ledger.latestTargets(STRATEGY_VERSION),
+    };
   }
 
   async weeklyReport(): Promise<Record<string, unknown>> {
