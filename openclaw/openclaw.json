@@ -216,9 +216,9 @@
       "heartbeat": {
         "every": "30m",
         "model": "openrouter/free",
-        "target": "discord",
+        "target": "none",
         "accountId": "main",
-        "directPolicy": "allow",
+        "directPolicy": "block",
         "lightContext": true,
         "isolatedSession": true
       },
@@ -257,8 +257,9 @@
           "every": "30m",
           "model": "openrouter/free",
           "target": "discord",
+          "to": "channel:1504282225770889226",
           "accountId": "main",
-          "directPolicy": "allow",
+          "directPolicy": "block",
           "lightContext": true,
           "isolatedSession": true
         },
@@ -292,9 +293,14 @@
           "requireAgentId": true
         },
         "heartbeat": {
+          "every": "30m",
           "model": "openrouter/free",
           "target": "discord",
-          "accountId": "victor"
+          "to": "channel:1504897560261689544",
+          "accountId": "victor",
+          "directPolicy": "block",
+          "lightContext": true,
+          "isolatedSession": true
         },
         "tools": {
           "profile": "full",
