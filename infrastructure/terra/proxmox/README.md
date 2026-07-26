@@ -93,6 +93,7 @@ flowchart LR
 - Managed guest firewall option resources have `enabled = true`, input policy set to `DROP`, and drop logging set to `info`.
 - Managed inbound access is explicit: SSH through `sg-managed`, Nginx `80/tcp`, `443/tcp`, `6901/tcp`, `3306/tcp`, `5432/tcp`, `27017/tcp`, k8mgd `6443/tcp`, Nginx to k8mgd `443/tcp`, and mgdnfs `2049/tcp`, `111/tcp`, `111/udp`, plus ICMP from `172.16.0.105` for reachability checks. The NFS rules are now scoped to `172.16.0.105`.
 - `vm-mgdk8.tf` has one extra inbound allow for `172.16.0.101:443` so Nginx can reach the backend used by `nginx/conf.d/mgd.conf`.
+- `vm-mgdk8.tf` permits TCP `587` only to Maileroo (`167.235.217.250`) for cluster transactional email.
 - `vm-mgddocker.tf` allows `3306/tcp`, `5432/tcp`, and `27017/tcp` from `172.16.0.101` (nginx stream proxy) and `172.16.0.105` (in-cluster apps) only.
 - All managed guest firewall options resources use `output_policy = "DROP"` with explicit outbound allows.
 

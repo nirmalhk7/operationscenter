@@ -90,6 +90,18 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
     enabled        = true
   }
 
+  # Appwrite and other cluster workloads submit transactional mail via Maileroo.
+  rule {
+    action  = "ACCEPT"
+    type    = "out"
+    proto   = "tcp"
+    dport   = "587"
+    dest    = "167.235.217.250"
+    comment = "Allow SMTP submission to Maileroo"
+    iface   = "net0"
+    enabled = true
+  }
+
   # ALLOWED FROM Rahul cluster manager TO k8mgd
   rule {
     action  = "ACCEPT"

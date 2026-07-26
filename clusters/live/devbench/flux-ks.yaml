@@ -4,7 +4,7 @@ metadata:
   name: live-devbench
   namespace: flux-system
 spec:
-  interval: 24h
+  interval: 5m
   path: ./clusters/live/devbench
   prune: true
   sourceRef:

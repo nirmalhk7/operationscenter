@@ -27,6 +27,9 @@ spec:
       storage:
         limit: "30000000"
       extraEnv:
+        # The initial Console owner already exists; reject further Console self-registration.
+        - name: _APP_CONSOLE_WHITELIST_ROOT
+          value: enabled
         # The Appwrite default is six API/realtime workers per available core.
         # This node is CPU-constrained, so keep a smaller process pool.
         - name: _APP_WORKER_PER_CORE
@@ -38,7 +41,8 @@ spec:
         - name: _APP_OPTIONS_ABUSE
           value: enabled
         - name: _APP_SMTP_HOST
-          value: smtp.maileroo.com
+          # Appwrite's musl resolver requires an absolute FQDN in this cluster.
+          value: smtp.maileroo.com.
         - name: _APP_SMTP_PORT
           value: "587"
         - name: _APP_SMTP_SECURE
