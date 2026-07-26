@@ -38,6 +38,18 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "sg-manag
     comment = "Allow managed-to-managed outbound traffic"
   }
 
+  # ALLOWED FROM private Nginx TO Proxmox API
+  rule {
+    enabled = true
+    action  = "ACCEPT"
+    type    = "out"
+    source  = local.proxmoxMachines.nginx.ip
+    dest    = local.proxmoxBridgeIp
+    proto   = "tcp"
+    dport   = "8006"
+    comment = "Allow private Nginx to proxy Proxmox API"
+  }
+
   # BLOCKED FROM managed resources TO prohibited destinations
   rule {
     enabled = true

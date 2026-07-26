@@ -74,10 +74,21 @@ resource "proxmox_virtual_environment_vm" "vm-k8mgd" {
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "lxc-vm-mgdk-sg" {
-  depends_on = [proxmox_virtual_environment_vm.vm-k8mgd]
+  depends_on = [
+    proxmox_virtual_environment_vm.vm-k8mgd,
+    proxmox_virtual_environment_cluster_firewall_security_group.sg-managed
+  ]
 
   node_name = local.nodeName
   vm_id     = proxmox_virtual_environment_vm.vm-k8mgd.vm_id
+
+  # ALLOWED FROM managed security group TO k8mgd
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.sg-managed.name
+    comment        = "Managed Group Rules"
+    iface          = "net0"
+    enabled        = true
+  }
 
   # ALLOWED FROM Rahul cluster manager TO k8mgd
   rule {
