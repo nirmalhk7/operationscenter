@@ -3,3 +3,8 @@ kind: Kustomization
 
 resources:
   - restrict-live-egress.yaml
+  - allow-live-namespace-traffic.yaml
+  - allow-traefik-ingress.yaml
+  - allow-dns-egress.yaml
+  - allow-public-egress.yaml
+  - allow-appwrite-mariadb-egress.yaml

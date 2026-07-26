@@ -13,7 +13,14 @@ User=cloudflared
 Group=cloudflared
 NoNewPrivileges=true
 # CT 108 cannot create the mount namespace required by systemd filesystem
-# sandboxing, so retain only hardening compatible with an unprivileged LXC.
+# sandboxing. These hardening controls do not require a mount namespace.
+CapabilityBoundingSet=
+LockPersonality=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
 
 [Install]
 WantedBy=multi-user.target

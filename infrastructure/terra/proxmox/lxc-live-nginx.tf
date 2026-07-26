@@ -77,45 +77,6 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-live-nginx-sg" {
     enabled = true
   }
 
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "icmp"
-    comment = "Allow ICMP from any source wherever TCP management ingress is allowed"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "tcp"
-    dport   = "53,80,443"
-    comment = "Allow inbound DNS, HTTP, and HTTPS"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "icmp"
-    source  = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow ICMP from k8mgd wherever Prometheus TCP ingress is allowed"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "in"
-    proto   = "udp"
-    dport   = "53"
-    comment = "Allow inbound UDP DNS"
-    iface   = "net0"
-    enabled = true
-  }
-
   # Prometheus runs on k8mgd and scrapes the local Nginx exporter.
   # ALLOWED FROM k8mgd TO live Nginx
   rule {
@@ -138,30 +99,6 @@ resource "proxmox_virtual_environment_firewall_rules" "lxc-live-nginx-sg" {
     dest    = local.proxmoxMachines.k8mgd.ip
     dport   = "8443"
     comment = "Allow live Nginx to reach Traefik livepublic"
-    iface   = "net0"
-    enabled = true
-  }
-
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    proto   = "icmp"
-    dest    = local.proxmoxMachines.k8mgd.ip
-    comment = "Allow ICMP wherever livepublic TCP egress is allowed"
-    iface   = "net0"
-    enabled = true
-  }
-
-  # Permit replies from the exporter to Prometheus scrape connections before
-  # the broad RFC1918 egress deny rules below.
-  # ALLOWED FROM live Nginx TO k8mgd
-  rule {
-    action  = "ACCEPT"
-    type    = "out"
-    proto   = "tcp"
-    dest    = local.proxmoxMachines.k8mgd.ip
-    dport   = "1024:65535"
-    comment = "Allow live Nginx exporter replies to k8mgd"
     iface   = "net0"
     enabled = true
   }

@@ -6,33 +6,5 @@ metadata:
 spec:
   podSelector: {}
   policyTypes:
+    - Ingress
     - Egress
-  egress:
-    # 1. Allow Egress to pods in any namespace starting with `live-` (labeled milano.tier: live)
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              milano.tier: live
-
-    # 2. Allow Egress to CoreDNS in kube-system (required for domain name resolution)
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-      ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-
-    # 3. Allow Egress to external non-cluster IPs (Internet/external APIs)
-    #    while blocking all internal cluster Pod & Service ranges of non-live namespaces
-    - to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-            except:
-              - 10.42.0.0/16 # K3s Pod CIDR
-              - 10.43.0.0/16 # K3s Service CIDR

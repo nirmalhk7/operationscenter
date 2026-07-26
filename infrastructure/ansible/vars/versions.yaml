@@ -8,6 +8,9 @@ nginx_exporter_version: "1.5.1"
 
 # renovate: datasource=github-releases depName=cloudflare/cloudflared versioning=semver
 cloudflared_version: "2026.7.1"
+cloudflared_linux_amd64_deb_sha256: "79f790b45e6a9152c6cf63f60f4901e3d8a029f7f4be1345a24cd2373aba8e7d"
+
+nginx_exporter_linux_amd64_sha256: "42ddc7ac31c70021d2a5c10414d473526490769632c1ef430b95d76dd1e3c187"
 
 # renovate: datasource=github-releases depName=k3s-io/k3s versioning=loose
 k3s_version: "v1.35.3+k3s1"

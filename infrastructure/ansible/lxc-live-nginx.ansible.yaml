@@ -16,20 +16,17 @@
         fail_msg: "Set CLOUDFLARED_TUNNEL_TOKEN before provisioning live-nginx."
       tags: [cloudflared_setup]
 
-    - name: Ensure gpg is installed
-      ansible.builtin.apt:
-        name: gnupg
-        state: present
-        update_cache: true
-
-    - name: Add Nginx signing key
-      ansible.builtin.apt_key:
+    - name: Download Nginx signing key
+      ansible.builtin.get_url:
         url: https://nginx.org/keys/nginx_signing.key
-        state: present
+        dest: /usr/share/keyrings/nginx-signing.asc
+        owner: root
+        group: root
+        mode: '0644'
 
     - name: Add official nginx.org apt repository
       ansible.builtin.apt_repository:
-        repo: "deb http://nginx.org/packages/debian bookworm nginx"
+        repo: "deb [signed-by=/usr/share/keyrings/nginx-signing.asc] https://nginx.org/packages/debian bookworm nginx"
         filename: nginx
         state: present
 
@@ -45,7 +42,6 @@
 
     - name: Ensure Nginx is installed at the requested version
       ansible.builtin.apt:
-        allow_unauthenticated: true
         update_cache: true
         name: "nginx={{ nginx_package_version }}"
 
@@ -53,6 +49,7 @@
       ansible.builtin.get_url:
         url: "https://github.com/cloudflare/cloudflared/releases/download/{{ cloudflared_version }}/cloudflared-linux-amd64.deb"
         dest: "/tmp/cloudflared-{{ cloudflared_version }}-linux-amd64.deb"
+        checksum: "sha256:{{ cloudflared_linux_amd64_deb_sha256 }}"
         mode: '0644'
       tags: [cloudflared_setup]
 
@@ -149,6 +146,7 @@
           ansible.builtin.get_url:
             url: "https://github.com/nginx/nginx-prometheus-exporter/releases/download/v{{ nginx_exporter_version }}/nginx-prometheus-exporter_{{ nginx_exporter_version }}_linux_amd64.tar.gz"
             dest: /tmp/nginx-prometheus-exporter.tar.gz
+            checksum: "sha256:{{ nginx_exporter_linux_amd64_sha256 }}"
             mode: '0644'
 
         - name: Unarchive Nginx Prometheus exporter
