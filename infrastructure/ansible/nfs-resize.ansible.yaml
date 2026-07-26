@@ -1,0 +1,56 @@
+---
+- name: Resize Proxmox VM disk for NFS node
+  hosts: proxmox
+  become: true
+  gather_facts: false
+  tags: [never, nfs-resize]
+
+  vars:
+    nfs_vmid: 107
+    nfs_disk_slot: "scsi1"
+
+  tasks:
+    - name: Require nfs_target_size to be set
+      ansible.builtin.assert:
+        that:
+          - nfs_target_size is defined
+          - nfs_target_size | string | length > 0
+        fail_msg: "nfs_target_size is required (e.g. SIZE=64G)"
+
+    - name: Standardize size string for qm resize
+      ansible.builtin.set_fact:
+        target_size_qm: "{{ nfs_target_size if (nfs_target_size | string | regex_search('(?i)[GMK]$')) else (nfs_target_size ~ 'G') }}"
+
+    - name: Resize virtual disk in Proxmox
+      ansible.builtin.command: "qm resize {{ nfs_vmid }} {{ nfs_disk_slot }} {{ target_size_qm }}"
+      register: qm_resize_out
+      changed_when: "'resized' in qm_resize_out.stdout or 'successful' in qm_resize_out.stdout"
+
+- name: Expand filesystem on NFS VM host
+  hosts: vm_mgdnfs1
+  become: true
+  gather_facts: false
+  tags: [never, nfs-resize]
+
+  vars_files:
+    - group_vars/vm_mgdnfs1/main.yaml
+
+  tasks:
+    - name: Rescan SCSI block device
+      ansible.builtin.shell:
+        cmd: "echo 1 > /sys/class/block/{{ nfs_dev_path | basename }}/device/rescan"
+      changed_when: false
+
+    - name: Grow ext4 filesystem on device
+      ansible.builtin.command: "resize2fs {{ nfs_dev_path }}"
+      register: resize2fs_out
+      changed_when: "'Nothing to do' not in resize2fs_out.stdout"
+
+    - name: Verify updated filesystem capacity
+      ansible.builtin.command: "df -h {{ nfs_mount_point }}"
+      register: df_out
+      changed_when: false
+
+    - name: Display updated mount capacity
+      ansible.builtin.debug:
+        msg: "{{ df_out.stdout_lines }}"

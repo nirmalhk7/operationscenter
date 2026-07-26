@@ -47,7 +47,7 @@ resource "proxmox_virtual_environment_vm" "vm-mgdnfs1" {
     interface    = "scsi1"
     iothread     = false
     replicate    = true
-    size         = 32
+    size         = 64
     ssd          = false
   }
 

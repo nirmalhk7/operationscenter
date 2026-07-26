@@ -1,6 +1,6 @@
 # Makefile for operationscenter
 
-.PHONY: setup init encrypt encrypt_all encrypt_newkey backup_nginx backup_repo nginx-build nginx-logs terraform-clear terraform-reset terraform-apply-proxmox terraform-apply-discord terraform-apply ansible-install ansible-check ansible-run ansible-run-one flux-bootstrap kubernetes-clean onboard-agents-discord flux-suspend flux-resume sync
+.PHONY: setup init encrypt encrypt_all encrypt_newkey authelia-add-user backup_nginx backup_repo nginx-build nginx-logs terraform-clear terraform-reset terraform-apply-proxmox terraform-apply-discord terraform-apply ansible-install ansible-check ansible-run ansible-run-one nfs-resize flux-bootstrap kubernetes-clean onboard-agents-discord flux-suspend flux-resume sync
 
 # --- Initialization ---
 setup:
@@ -31,6 +31,9 @@ encrypt_all:
 
 encrypt_newkey:
 	kubeseal --fetch-cert --controller-name=sealed-secrets-controller --controller-namespace=flux-system > pub-sealed-secrets.pem
+
+authelia-add-user:
+	@/usr/bin/python3 scripts/authelia_add_user.py
 
 # --- Backup ---
 backup_nginx:
@@ -102,6 +105,7 @@ ansible-run: ansible-install
 ansible-check: ansible-install
 	cd infrastructure/ansible && ansible-playbook -i inventory.ini site.ansible.yaml --syntax-check
 	cd infrastructure/ansible && ansible-playbook -i inventory.ini playbooks/legacy-cleanup.ansible.yaml --syntax-check
+	cd infrastructure/ansible && ansible-playbook -i inventory.ini nfs-resize.ansible.yaml --syntax-check
 
 
 ansible-run-one: ansible-install
@@ -113,6 +117,18 @@ ansible-run-one: ansible-install
 			set -a; . .env; set +a; \
 		fi; \
 		ansible-playbook  -i inventory.ini "$(NOTEBOOK)" --skip-tags disabled,upgrade,skip,block; \
+	fi
+
+nfs-resize: ansible-install
+	@if [ -z "$(SIZE)" ]; then \
+		echo "Usage: make nfs-resize SIZE=64G"; \
+		exit 1; \
+	else \
+		cd infrastructure/ansible && \
+		if [ -f .env ]; then \
+			set -a; . .env; set +a; \
+		fi; \
+		ansible-playbook -i inventory.ini nfs-resize.ansible.yaml --tags nfs-resize -e "nfs_target_size=$(SIZE)"; \
 	fi
 
 # --- Kubernetes / Flux ---
