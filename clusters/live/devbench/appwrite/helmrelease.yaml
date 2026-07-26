@@ -20,6 +20,8 @@ spec:
         patches:
           # Chart 1.2.2 puts this PHP option after app/worker.php, where
           # Appwrite interprets it as the queue name instead of a PHP option.
+          # It also uses Docker entrypoint names (worker-mails) as direct PHP
+          # arguments; direct PHP requires the corresponding action (mails).
           - target:
               group: apps
               version: v1
@@ -33,6 +35,78 @@ spec:
                   - -e
                   - -dopcache.preload=opcache.preload
                   - app/worker.php
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: appwrite-worker-audits
+            patch: |
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value: [audits]
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: appwrite-worker-certificates
+            patch: |
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value: [certificates]
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: appwrite-worker-databases
+            patch: |
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value: [databases]
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: appwrite-worker-deletes
+            patch: |
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value: [deletes]
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: appwrite-worker-mails
+            patch: |
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value: [mails]
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: appwrite-worker-messaging
+            patch: |
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value: [messaging]
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: appwrite-worker-migrations
+            patch: |
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value: [migrations]
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: appwrite-worker-webhooks
+            patch: |
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value: [webhooks]
   values:
     commonLabels:
       milano.app: appwrite
