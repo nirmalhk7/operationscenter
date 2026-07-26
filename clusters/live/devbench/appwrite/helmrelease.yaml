@@ -18,13 +18,6 @@ spec:
   values:
     commonLabels:
       milano.app: appwrite
-    image:
-      repository: docker.io/appwrite/appwrite
-      tag: "1.9.0"
-    console:
-      image:
-        repository: docker.io/appwrite/console
-        tag: "7.5.7"
     appwrite:
       domain: dev.nirmalhk7.com
       existingSecret: appwrite-env
