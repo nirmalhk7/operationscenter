@@ -129,6 +129,11 @@ spec:
           value: enabled
         - name: _APP_OPTIONS_ABUSE
           value: enabled
+        # Appwrite 1.9.0's Console variables endpoint instantiates a domain
+        # validator before applying its own empty default. Set it explicitly
+        # so the endpoint returns 200 when custom-domain targeting is unused.
+        - name: _APP_DOMAIN_TARGET_CNAME
+          value: ""
         - name: _APP_SMTP_HOST
           # Appwrite's musl resolver requires an absolute FQDN in this cluster.
           value: smtp.maileroo.com.
