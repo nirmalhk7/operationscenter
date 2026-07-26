@@ -140,6 +140,7 @@ test("MountainValue workflow is deterministic and trader-facing docs mention pap
   assert.deepEqual((watchdogWorkflow.steps as Array<Record<string, unknown>>).map((step) => step.id), ["preflight", "reconcile", "watchdog", "daily_report"]);
   assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "AGENTS.md")), /\[PAPER\]/u);
   assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "TOOLS.md")), /lobster/i);
+  assert.match(repoText(join("openclaw", "customAgents", "workspace-victor", "HEARTBEAT.md")), /exactly `HEARTBEAT_OK`/u);
   assert.match(repoText(join("openclaw", "README.md")), /Victor-owned OpenClaw\s+cron/u);
   assert.match(repoText(join("openclaw", "plugins", "lobster", "openclaw.plugin.json")), /"id": "lobster"/u);
   const lobsterPlugin = repoText(join("openclaw", "plugins", "lobster", "src", "index.js"));

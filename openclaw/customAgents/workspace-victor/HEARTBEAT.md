@@ -14,4 +14,5 @@ not a separate MountainValue cycle.
 - Direct messages are reserved for credentials, private access blockers, or
   approval requests.
 
-If nothing needs operator attention, return `HEARTBEAT_OK`.
+If nothing needs operator attention, return exactly `HEARTBEAT_OK` with no
+surrounding text. OpenClaw consumes this acknowledgement and sends nothing.
