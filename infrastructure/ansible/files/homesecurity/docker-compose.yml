@@ -35,7 +35,7 @@ services:
       - ./network_exporter/network_exporter.yml:/app/cfg/network_exporter.yml:ro
 
   openport:
-    image: ghcr.io/renatogalera/openport-exporter:v0.3.0
+    image: ghcr.io/renatogalera/openport-exporter:v0.4.0
     restart: unless-stopped
     labels:
       homepage.group: Home Security
