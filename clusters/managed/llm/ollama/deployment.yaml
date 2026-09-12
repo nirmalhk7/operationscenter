@@ -19,7 +19,7 @@ spec:
     spec:
       initContainers:
         - name: pull-models
-          image: ollama/ollama:0.30.11
+          image: ollama/ollama:0.34.0
           command:
             - /bin/sh
             - -c
@@ -38,7 +38,7 @@ spec:
               mountPath: /models
       containers:
         - name: *app
-          image: ollama/ollama:0.30.11
+          image: ollama/ollama:0.34.0
           command: ["ollama", "serve"]
           ports:
             - containerPort: 11434
