@@ -87,7 +87,7 @@ nodejs_version: "22.x"
 nodejs_package_version: "22.23.0-1nodesource1"
 
 # renovate: datasource=npm depName=pnpm
-pnpm_version: "10.33.2"
+pnpm_version: "12.4.1"
 
 # renovate: datasource=github-releases depName=cli/cli versioning=semver
 gh_cli_version: "2.90.0"
