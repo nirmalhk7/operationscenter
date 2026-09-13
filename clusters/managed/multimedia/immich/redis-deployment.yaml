@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: immich-redis
-        image: redis:8.8.0
+        image: redis:8.10.1
         ports:
         - containerPort: 6379
         env:
