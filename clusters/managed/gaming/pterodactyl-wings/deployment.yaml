@@ -116,7 +116,7 @@ spec:
               cpu: "2"
               memory: 4Gi
         - name: dind
-          image: docker:26-dind
+          image: docker:29-dind
           env:
             - name: DOCKER_TLS_CERTDIR
               value: ""
