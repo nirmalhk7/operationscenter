@@ -28,7 +28,7 @@ spec:
       locust_lib_configmap: homepage-locust-lib
     image:
       repository: locustio/locust
-      tag: 2.46.6
+      tag: 2.46.7
       pullPolicy: IfNotPresent
     extraLabels:
       milano.app: *app
