@@ -1,6 +1,6 @@
 services:
   blackbox:
-    image: prom/blackbox-exporter:v0.29.0
+    image: prom/blackbox-exporter:v0.29.1
     restart: unless-stopped
     labels:
       homepage.group: Home Security
