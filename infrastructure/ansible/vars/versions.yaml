@@ -54,7 +54,7 @@ stock_nse_india_version: "1.3.0"
 secedgar_mcp_server_version: "0.4.0"
 
 # renovate: datasource=pypi depName=kubectl-mcp-tool versioning=semver
-kubectl_mcp_tool_version: "1.11.0"
+kubectl_mcp_tool_version: "2.0.0"
 
 # renovate: datasource=npm depName=rss-reader-mcp
 rss_reader_mcp_version: "1.0.8"
