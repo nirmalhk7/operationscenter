@@ -11,6 +11,7 @@ resources:
   - docker_scrapeconfigs.yaml
   - openclaw_scrapeconfigs.yaml
   - proxbridge_scrapeconfigs.yaml
+  - roma_scrapeconfig.yaml
   - homesecurity_scrapeconfigs.yaml
   - k8docker_scrapeconfigs.yaml
   - k8docker_prometheusrule.yaml

@@ -1,0 +1,13 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: roma-node
+  labels:
+    prometheus: prometheus_scraper
+spec:
+  staticConfigs:
+    - labels:
+        job: roma-node
+      targets:
+        - 10.0.0.79:9100
+  metricsPath: /metrics
