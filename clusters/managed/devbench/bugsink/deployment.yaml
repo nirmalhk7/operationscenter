@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: *app
-        image: bugsink/bugsink:2.6
+        image: bugsink/bugsink:2.7
         ports:
         - containerPort: 8000
         env:
